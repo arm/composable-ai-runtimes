@@ -1,0 +1,7 @@
+services:
+  messaging:
+    image: redis-pubsub:local
+    build: ./messaging
+    container_name: redis-pubsub
+    ports:
+      - "6379:6379"
