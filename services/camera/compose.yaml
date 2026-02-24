@@ -1,0 +1,44 @@
+services:
+  pipewire-daemon:
+    build:
+      context: ./daemon
+    image: camera-daemon:trixie
+    group_add:
+      - video
+    cap_add:
+      - SYS_NICE
+    device_cgroup_rules:
+      - "c 81:* rwm" # v4l2 video devices (/dev/video*, /dev/v4l-subdev*)
+      - "c 510:* rwm" # v4l2 media devices (/dev/media*)
+      - "c 189:* rwm" # usb devices (/dev/bus/usb/*)
+    environment:
+      XDG_RUNTIME_DIR: /run/pipewire
+    volumes:
+      - pipewire-runtime:/run/pipewire
+      - /dev:/dev
+      - /run/udev:/run/udev:ro
+    devices:
+      - /dev/dma_heap/system
+      - /dev/dma_heap/linux,cma
+      - /dev/dma_heap/vidbuf_cached
+      - /dev/dri/card0
+      - /dev/dri/card1
+      - /dev/dri/renderD128
+
+  # Simple client that lists devices every 10 seconds to check if the daemon is reachable.
+  pipewire-client:
+    image: camera-daemon:trixie
+    depends_on:
+      - pipewire-daemon
+    environment:
+      XDG_RUNTIME_DIR: /run/pipewire
+    volumes:
+      - pipewire-runtime:/run/pipewire
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      [
+        "while true; do if pw-cli info 0 >/dev/null 2>&1; then pw-cli ls Node; else echo 'PipeWire daemon not reachable' >&2; fi; sleep 10; done",
+      ]
+
+volumes:
+  pipewire-runtime:

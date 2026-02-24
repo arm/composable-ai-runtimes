@@ -1,0 +1,33 @@
+#!/bin/sh
+set -eu
+
+mkdir -p "$XDG_RUNTIME_DIR" /run/dbus
+chmod 700 "$XDG_RUNTIME_DIR"
+chmod 755 /run/dbus
+
+if [ ! -s /etc/machine-id ]; then
+  dbus-uuidgen --ensure=/etc/machine-id
+fi
+
+dbus-daemon --system --nofork --nopidfile &
+dbus-daemon --session --address=unix:path=/run/dbus/session_bus_socket --nofork --nopidfile &
+export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/dbus/session_bus_socket
+
+if command -v rtkit-daemon >/dev/null 2>&1; then
+  rtkit-daemon &
+fi
+
+pipewire &
+TIMEOUT_TENTHS=50
+for _ in $(seq 1 "$TIMEOUT_TENTHS"); do
+  if pw-cli info 0 >/dev/null 2>&1; then
+    break
+  fi
+  sleep 0.1
+done
+if ! pw-cli info 0 >/dev/null 2>&1; then
+  echo "pipewire did not become ready within timeout" >&2
+  exit 1
+fi
+
+exec wireplumber 
