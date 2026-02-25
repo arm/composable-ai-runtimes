@@ -1,0 +1,19 @@
+[project]
+name = "concordia"
+description = "Concordia inference service"
+version = "0.0.0"
+requires-python = "==3.12.0"
+dependencies = [
+  "grpcio==1.70.0",
+  "protobuf==5.29.3",
+  "numpy==1.26.4",
+  "pillow==10.4.0",
+]
+
+[project.scripts]
+concordia = "inference.main:main"
+
+[project.optional-dependencies]
+dev = [
+  "grpcio-tools==1.70.0",
+]
