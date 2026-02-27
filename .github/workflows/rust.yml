@@ -1,0 +1,27 @@
+name: Rust
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+    paths:
+      - "lib/**"
+
+jobs:
+  lint-and-format:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: lib
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - name: install rust toolchain
+        run: |
+          rustup component add rustfmt clippy
+      - name: cargo fmt
+        run: cargo fmt --all -- --check
+      - name: cargo clippy
+        run: cargo clippy --all-targets --all-features --no-deps

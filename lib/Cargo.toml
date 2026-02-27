@@ -1,0 +1,10 @@
+[package]
+name = "cairn-sdk"
+version = "0.0.1"
+description = "Core library for the Cairn SDK"
+edition = "2024"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
