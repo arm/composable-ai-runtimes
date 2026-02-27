@@ -1,4 +1,4 @@
-#include "pipewire_client.h"
+#include "client.h"
 
 #include <pipewire/pipewire.h>
 #include <spa/utils/list.h>
@@ -8,8 +8,10 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 const char PWC_MEDIA_CLASS_VIDEO_SOURCE[] = "Video/Source";
+static struct pwc_client *g_client = NULL;
 
 struct pwc_node {
     struct spa_list link;
@@ -48,7 +50,7 @@ static char *dup_prop(const struct spa_dict *props, const char *key)
     return value ? strdup(value) : NULL;
 }
 
-static struct pwc_node *find_node(struct pwc_client *client, uint32_t id)
+static struct pwc_node *find_node(const struct pwc_client *client, uint32_t id)
 {
     struct pwc_node *node;
     spa_list_for_each(node, &client->nodes, link) {
@@ -74,20 +76,26 @@ static void free_link(struct pwc_link *link)
     free(link);
 }
 
+static void pwc_destroy_client(struct pwc_client *client);
+
+static void copy_event_name(char out[PWC_MAX_NAME_LEN], const char *in)
+{
+    if (!in) {
+        out[0] = '\0';
+        return;
+    }
+    snprintf(out, PWC_MAX_NAME_LEN, "%s", in);
+}
+
 static void emit_camera_event(struct pwc_client *client, pwc_event_type_t type, uint32_t id, const char *name)
 {
     if (!client->event_cb)
         return;
 
-    struct pwc_event event = {
-        .type = type,
-        .id = id,
-        .name = name,
-        .camera_node_id = 0,
-        .consumer_node_id = 0,
-        .camera_name = NULL,
-        .consumer_name = NULL,
-    };
+    struct pwc_event event = {0};
+    event.type = type;
+    event.id = id;
+    copy_event_name(event.name, name);
 
     client->event_cb(&event, client->event_userdata);
 }
@@ -103,15 +111,13 @@ static void emit_stream_event(struct pwc_client *client,
     if (!client->event_cb)
         return;
 
-    struct pwc_event event = {
-        .type = type,
-        .id = link_id,
-        .name = NULL,
-        .camera_node_id = camera_node_id,
-        .consumer_node_id = consumer_node_id,
-        .camera_name = camera_name,
-        .consumer_name = consumer_name,
-    };
+    struct pwc_event event = {0};
+    event.type = type;
+    event.id = link_id;
+    event.camera_node_id = camera_node_id;
+    event.consumer_node_id = consumer_node_id;
+    copy_event_name(event.camera_name, camera_name);
+    copy_event_name(event.consumer_name, consumer_name);
 
     client->event_cb(&event, client->event_userdata);
 }
@@ -238,9 +244,8 @@ static void handle_global_remove_node(struct pwc_client *client, uint32_t id)
     spa_list_for_each(node, &client->nodes, link) {
         if (node->id == id) {
             if (node_is_video_source(node)) {
-                char *name_copy = node->name ? strdup(node->name) : NULL;
-                emit_camera_event(client, PWC_EVENT_CAMERA_REMOVED, id, name_copy ? name_copy : "(unknown)");
-                free(name_copy);
+                emit_camera_event(client, PWC_EVENT_CAMERA_REMOVED, id,
+                                  node->name ? node->name : "(unknown)");
             }
             spa_list_remove(&node->link);
             free_node(node);
@@ -288,6 +293,9 @@ static const struct pw_registry_events registry_events = {
 
 struct pwc_client *pwc_create(pwc_event_cb cb, void *userdata)
 {
+    if (g_client)
+        return g_client;
+
     struct pwc_client *client = calloc(1, sizeof(*client));
     if (!client)
         return NULL;
@@ -317,10 +325,11 @@ struct pwc_client *pwc_create(pwc_event_cb cb, void *userdata)
 
     pw_registry_add_listener(client->registry, &client->registry_listener, &registry_events, client);
 
+    g_client = client;
     return client;
 
 fail:
-    pwc_destroy(client);
+    pwc_destroy_client(client);
     return NULL;
 }
 
@@ -331,72 +340,177 @@ static void on_quit_signal(void *data, int signal_number)
     pw_main_loop_quit(client->loop);
 }
 
-int pwc_run(struct pwc_client *client)
+int pwc_run(void)
 {
+    struct pwc_client *client = g_client;
     if (!client || !client->core)
         return -1;
 
     sigset_t mask;
+    sigset_t prev_mask;
     sigemptyset(&mask);
     sigaddset(&mask, SIGINT);
     sigaddset(&mask, SIGTERM);
-    sigprocmask(SIG_BLOCK, &mask, NULL);
+    if (sigprocmask(SIG_BLOCK, &mask, &prev_mask) != 0)
+        return -1;
 
     pw_loop_add_signal(pw_main_loop_get_loop(client->loop), SIGINT, on_quit_signal, client);
     pw_loop_add_signal(pw_main_loop_get_loop(client->loop), SIGTERM, on_quit_signal, client);
 
     pw_main_loop_run(client->loop);
+    sigprocmask(SIG_SETMASK, &prev_mask, NULL);
     return 0;
 }
 
-void pwc_list_cameras(FILE *out, const struct pwc_client *client)
+static size_t count_cameras(const struct pwc_client *client)
 {
-    fprintf(out, "Cameras:\n");
-    bool found = false;
+    size_t count = 0;
     struct pwc_node *node;
     spa_list_for_each(node, &client->nodes, link) {
-        if (node_is_video_source(node)) {
-            fprintf(out, "  - id=%u name=%s\n", node->id, node->name ? node->name : "(unknown)");
-            found = true;
-        }
+        if (node_is_video_source(node))
+            count++;
     }
-    if (!found)
-        fprintf(out, "  (none)\n");
+    return count;
 }
 
-void pwc_list_streams(FILE *out, const struct pwc_client *client)
+static size_t fill_cameras(const struct pwc_client *client,
+                           struct pwc_camera_info *items,
+                           size_t capacity)
 {
-    fprintf(out, "Active Links (camera -> consumer):\n");
-    bool found = false;
+    size_t idx = 0;
+    struct pwc_node *node;
+    spa_list_for_each(node, &client->nodes, link) {
+        if (!node_is_video_source(node))
+            continue;
+        if (idx >= capacity)
+            break;
+        items[idx].id = node->id;
+        if (node->name)
+            snprintf(items[idx].name, sizeof(items[idx].name), "%s", node->name);
+        else
+            items[idx].name[0] = '\0';
+        idx++;
+    }
+    return idx;
+}
+
+static bool stream_matches(const struct pwc_client *client,
+                           const struct pwc_link *link,
+                           struct pwc_stream_info *out)
+{
+    struct pwc_node *out_node = find_node(client, link->output_node_id);
+    struct pwc_node *in_node = find_node(client, link->input_node_id);
+    struct pwc_node *camera = node_is_video_source(out_node) ? out_node :
+                              (node_is_video_source(in_node) ? in_node : NULL);
+    struct pwc_node *consumer = (camera == out_node) ? in_node :
+                                (camera == in_node ? out_node : NULL);
+    if (!camera || !consumer)
+        return false;
+    if (out) {
+        out->link_id = link->id;
+        out->camera_node_id = camera->id;
+        out->consumer_node_id = consumer->id;
+        if (camera->name)
+            snprintf(out->camera_name, sizeof(out->camera_name), "%s", camera->name);
+        else
+            out->camera_name[0] = '\0';
+        if (consumer->name)
+            snprintf(out->consumer_name, sizeof(out->consumer_name), "%s", consumer->name);
+        else
+            out->consumer_name[0] = '\0';
+    }
+
+    return true;
+}
+
+static size_t count_streams(const struct pwc_client *client)
+{
+    size_t count = 0;
     struct pwc_link *link;
     spa_list_for_each(link, &client->links, link) {
-        struct pwc_node *out_node = find_node((struct pwc_client *)client, link->output_node_id);
-        struct pwc_node *in_node = find_node((struct pwc_client *)client, link->input_node_id);
-
-        if (!out_node || !in_node)
-            continue;
-
-        if (node_is_video_source(out_node)) {
-            fprintf(out, "  - camera=%s (%u) -> consumer=%s (%u)\n",
-                    out_node->name ? out_node->name : "(unknown)",
-                    out_node->id,
-                    in_node->name ? in_node->name : "(unknown)",
-                    in_node->id);
-            found = true;
-        } else if (node_is_video_source(in_node)) {
-            fprintf(out, "  - camera=%s (%u) -> consumer=%s (%u)\n",
-                    in_node->name ? in_node->name : "(unknown)",
-                    in_node->id,
-                    out_node->name ? out_node->name : "(unknown)",
-                    out_node->id);
-            found = true;
-        }
+        if (stream_matches(client, link, NULL))
+            count++;
     }
-    if (!found)
-        fprintf(out, "  (none)\n");
+    return count;
 }
 
-void pwc_destroy(struct pwc_client *client)
+static size_t fill_streams(const struct pwc_client *client,
+                           struct pwc_stream_info *items,
+                           size_t capacity)
+{
+    size_t idx = 0;
+    struct pwc_link *link;
+    spa_list_for_each(link, &client->links, link) {
+        if (idx >= capacity)
+            break;
+        if (stream_matches(client, link, &items[idx]))
+            idx++;
+    }
+    return idx;
+}
+
+
+int pwc_list_cameras(struct pwc_camera_info **out_items,
+                     size_t *out_count)
+{
+    const struct pwc_client *client = g_client;
+    if (!client || !out_items || !out_count)
+        return -1;
+
+    *out_items = NULL;
+    *out_count = 0;
+
+    size_t count = count_cameras(client);
+    if (count == 0)
+        return 0;
+
+    struct pwc_camera_info *items = calloc(count, sizeof(*items));
+    if (!items)
+        return -1;
+
+    size_t idx = fill_cameras(client, items, count);
+    *out_items = items;
+    *out_count = idx;
+    return 0;
+}
+
+int pwc_list_streams(struct pwc_stream_info **out_items,
+                     size_t *out_count)
+{
+    const struct pwc_client *client = g_client;
+    if (!client || !out_items || !out_count)
+        return -1;
+
+    *out_items = NULL;
+    *out_count = 0;
+
+    size_t count = count_streams(client);
+    if (count == 0)
+        return 0;
+
+    struct pwc_stream_info *items = calloc(count, sizeof(*items));
+    if (!items)
+        return -1;
+
+    size_t idx = fill_streams(client, items, count);
+    *out_items = items;
+    *out_count = idx;
+    return 0;
+}
+
+void pwc_free_cameras(struct pwc_camera_info *items, size_t count)
+{
+    (void)count;
+    free(items);
+}
+
+void pwc_free_streams(struct pwc_stream_info *items, size_t count)
+{
+    (void)count;
+    free(items);
+}
+
+static void pwc_destroy_client(struct pwc_client *client)
 {
     if (client == NULL)
         return;
@@ -424,4 +538,12 @@ void pwc_destroy(struct pwc_client *client)
 
     pw_deinit();
     free(client);
+}
+
+void pwc_destroy(void)
+{
+    if (!g_client)
+        return;
+    pwc_destroy_client(g_client);
+    g_client = NULL;
 }

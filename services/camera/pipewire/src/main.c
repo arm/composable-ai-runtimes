@@ -1,4 +1,4 @@
-#include "pipewire_client.h"
+#include "client.h"
 
 #include <stdio.h>
 
@@ -10,11 +10,11 @@ static void on_event(const struct pwc_event *event, void *userdata)
     switch (event->type) {
     case PWC_EVENT_CAMERA_ADDED:
         type = "camera-added";
-        printf("event=%s id=%u name=%s\n", type, event->id, event->name ? event->name : "(unknown)");
+        printf("event=%s id=%u name=%s\n", type, event->id, event->name[0] ? event->name : "(unknown)");
         break;
     case PWC_EVENT_CAMERA_REMOVED:
         type = "camera-removed";
-        printf("event=%s id=%u name=%s\n", type, event->id, event->name ? event->name : "(unknown)");
+        printf("event=%s id=%u name=%s\n", type, event->id, event->name[0] ? event->name : "(unknown)");
         break;
     case PWC_EVENT_STREAM_ADDED:
         type = "stream-added";
@@ -23,8 +23,8 @@ static void on_event(const struct pwc_event *event, void *userdata)
                event->id,
                event->camera_node_id,
                event->consumer_node_id,
-               event->camera_name ? event->camera_name : "(unknown)",
-               event->consumer_name ? event->consumer_name : "(unknown)");
+               event->camera_name[0] ? event->camera_name : "(unknown)",
+               event->consumer_name[0] ? event->consumer_name : "(unknown)");
         break;
     case PWC_EVENT_STREAM_REMOVED:
         type = "stream-removed";
@@ -33,8 +33,8 @@ static void on_event(const struct pwc_event *event, void *userdata)
                event->id,
                event->camera_node_id,
                event->consumer_node_id,
-               event->camera_name ? event->camera_name : "(unknown)",
-               event->consumer_name ? event->consumer_name : "(unknown)");
+               event->camera_name[0] ? event->camera_name : "(unknown)",
+               event->consumer_name[0] ? event->consumer_name : "(unknown)");
         break;
     }
     fflush(stdout);
@@ -42,19 +42,18 @@ static void on_event(const struct pwc_event *event, void *userdata)
 
 int main(void)
 {
-    struct pwc_client *client = pwc_create(on_event, NULL);
-    if (!client) {
+    if (!pwc_create(on_event, NULL)) {
         fprintf(stderr, "failed to create pipewire client\n");
         return 1;
     }
 
-    if (pwc_run(client) != 0) {
+    if (pwc_run() != 0) {
         fprintf(stderr, "failed to run pipewire client\n");
-        pwc_destroy(client);
+        pwc_destroy();
         return 1;
     }
 
-    pwc_destroy(client);
+    pwc_destroy();
 
     return 0;
 }

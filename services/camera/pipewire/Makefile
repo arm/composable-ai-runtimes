@@ -6,7 +6,7 @@ PW_CFLAGS := $(shell $(PKG_CONFIG) --cflags libpipewire-0.3)
 PW_LIBS := $(shell $(PKG_CONFIG) --libs libpipewire-0.3)
 
 BIN := pw_camera_monitor
-SRC := src/main.c src/pipewire_client.c
+SRC := src/main.c src/client.c
 
 PROTO_DIR := proto
 GEN_DIR := gen
