@@ -25,6 +25,7 @@ class InferenceService(pb2_grpc.InferenceServiceServicer):
 
     def __init__(self, manifest_dir: Path) -> None:
         self._manifest_dir = manifest_dir
+        self._brick_cache = {} 
 
     def ListBricks(
         self, request: pb2.ListBricksRequest, context: grpc.ServicerContext
@@ -78,11 +79,17 @@ class InferenceService(pb2_grpc.InferenceServiceServicer):
     ) -> Optional[pb2.RunBrickResponse]:  # noqa: N802
         brick_type, variant = self._parse_request(request, context)
 
-        brick_factory = self.get_brick_entry(brick_type, variant, context)
-        if brick_factory is None:
-            return
-        manifest_path = self.get_manifest_path(context, variant)
-        brick = self._setup_brick(brick_factory, manifest_path, brick_type, variant)
+        cache_key = (brick_type, variant)
+        if cache_key in self._brick_cache:
+            brick = self._brick_cache[cache_key]
+        else:
+            brick_factory = self.get_brick_entry(brick_type, variant, context)
+            if brick_factory is None:
+                return
+            manifest_path = self.get_manifest_path(context, variant)
+            brick = self._setup_brick(brick_factory, manifest_path, brick_type, variant)
+            self._brick_cache[cache_key] = brick
+
         if brick_type == pb2.BRICK_TYPE_OBJECT_DETECTION:
             return self._run_object_detection(brick, request, context)
         if brick_type == pb2.BRICK_TYPE_TTS:

@@ -1,0 +1,7 @@
+services:
+  concordia-inference-service:
+    build: .
+    volumes:
+      - ./models:/models:ro   
+    ports:
+      - "50052:50052"  

@@ -1,34 +1,65 @@
-# Concordia gRPC Service
+# Concordia Inference Service
 
-## Start The Server
+## Overview
+
+Concordia is a gRPC-based inference service for running object detection and text-to-speech models.
+
+## Requirements
+
+- Python 3.12
+- [pip](https://pip.pypa.io/en/stable/)
+- [virtualenv](https://virtualenv.pypa.io/en/latest/)
+- Docker (optional, for containerized deployment)
+
+## Installation
+
+### Local Setup
 
 ```bash
+# Create a virtual environment
 python -m venv .venv
+
+# Activate the virtual environment
 source .venv/bin/activate
+
+# Install the package in editable mode
 pip install -e .
-concordia \
-  --host 0.0.0.0 \
-  --port 50052 \
-  --model-dir /path/to/concordia-models
 ```
 
-## Run Example Clients
+### Docker Compose
 
-### TTS Example
+Ensure your `compose.yaml` mounts the models and source code.  
+Start the local server using:
 
 ```bash
-python scripts/grpc_client_tts_example.py \
-  --host 127.0.0.1 \
-  --port 50052 \
-  --variant kokoro \
-  --out output.wav
+docker compose up
 ```
 
-### YOLO Example
+## Usage
+
+### Example to test gRPC Client
 
 ```bash
-python scripts/grpc_client_yolo_example.py \
-  --host 127.0.0.1 \
-  --port 50052 \
-  --image /path/to/image.jpg
+pip install .[dev]
+
+pytest test/test_concordia_service.py
 ```
+
+## Development
+
+- Install dev dependencies:
+  ```bash
+ pip install .[dev]
+  ```
+- Regenerate protobuf files as needed.
+
+## Troubleshooting
+
+- Ensure `/models` contains the required manifest and model files. Download them from [https://gitlab.geo.arm.com/artificial-intelligence/gen-ai/compute_flow](https://gitlab.geo.arm.com/artificial-intelligence/gen-ai/compute_flow) (see `bricks` diectory).
+- Replace model files if corrupted.
+- Check Docker logs for errors:
+  ```bash
+  docker compose logs concordia
+  ```
+- Use `localhost:50052` as the client target if running locally.
+

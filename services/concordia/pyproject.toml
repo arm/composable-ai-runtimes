@@ -2,7 +2,7 @@
 name = "concordia"
 description = "Concordia inference service"
 version = "0.0.0"
-requires-python = "==3.12.0"
+requires-python = ">=3.12,<3.13"
 dependencies = [
   "grpcio==1.70.0",
   "protobuf==5.29.6",
@@ -15,5 +15,5 @@ concordia = "inference.main:main"
 
 [project.optional-dependencies]
 dev = [
-  "grpcio-tools==1.70.0",
+    "pytest==8.1.1",
 ]

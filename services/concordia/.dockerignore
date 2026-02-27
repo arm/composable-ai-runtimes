@@ -1,0 +1,19 @@
+# Python cache and build artifacts
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+env/
+venv/
+
+# Editor and system files
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Docker
+.dockerignore
+
+# Tests (if not needed in image)
+test/
+tests/
