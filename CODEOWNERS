@@ -1,0 +1,9 @@
+# Python SDK
+*.py              @arm/edge-ai-sdk-python
+
+# C SDK
+*.c               @arm/edge-ai-sdk-c
+*.h               @arm/edge-ai-sdk-c
+
+# Rust SDK
+*.rs              @arm/edge-ai-sdk-rust
