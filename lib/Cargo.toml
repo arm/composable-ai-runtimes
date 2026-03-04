@@ -1,5 +1,5 @@
 [package]
-name = "cairn-sdk"
+name = "cairn-sdk-lib"
 version = "0.0.1"
 description = "Core library for the Cairn SDK"
 edition = "2024"
@@ -8,3 +8,13 @@ edition = "2024"
 path = "src/lib.rs"
 
 [dependencies]
+prost = "0.14"
+tonic = "0.14"
+# For some reason this is not pulled in by default by tonic
+tonic-prost = "0.14"
+
+[build-dependencies]
+tonic-prost-build = "0.14.5"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
