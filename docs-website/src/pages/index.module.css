@@ -1,23 +1,316 @@
-/**
- * CSS files with the .module.css suffix will be treated as CSS modules
- * and scoped locally.
- */
-
-.heroBanner {
-  padding: 4rem 0;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
+.page {
+    background:
+        radial-gradient(
+            circle at 52% -12%,
+            rgba(74, 210, 134, 0.18),
+            transparent 40%
+        ),
+        radial-gradient(
+            circle at 20% 20%,
+            rgba(0, 179, 159, 0.16),
+            transparent 36%
+        ),
+        radial-gradient(
+            circle at 82% 4%,
+            rgba(0, 58, 135, 0.28),
+            transparent 34%
+        ),
+        #0a1a38;
+    color: #e6edf5;
+    min-height: 100vh;
 }
 
-@media screen and (max-width: 996px) {
-  .heroBanner {
-    padding: 2rem;
-  }
+.hero {
+    display: grid;
+    grid-template-columns: 1fr minmax(520px, 620px);
+    gap: 2rem;
+    padding: 4.5rem clamp(1.5rem, 4vw, 4rem);
+    align-items: center;
+    position: relative;
+    overflow: hidden;
 }
 
-.buttons {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.hero::before {
+    content: "";
+    position: absolute;
+    width: 520px;
+    height: 520px;
+    right: -120px;
+    top: -210px;
+    background: radial-gradient(
+        circle,
+        rgba(123, 231, 213, 0.24),
+        transparent 65%
+    );
+    filter: blur(1px);
+    pointer-events: none;
+}
+
+.heroContent h1 {
+    margin: 0.4rem 0 0.6rem;
+    font-size: clamp(2.6rem, 4vw, 3.4rem);
+    letter-spacing: -0.02em;
+}
+
+.lead {
+    max-width: 640px;
+    color: #c9d5ec;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.9rem;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(123, 231, 213, 0.28);
+    border-radius: 999px;
+    font-size: 0.85rem;
+    color: #b7c6e5;
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.button {
+    font-weight: 600;
+}
+
+.buttonDisabled {
+    cursor: not-allowed;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.heroCard {
+    background: rgba(8, 24, 50, 0.82);
+    border: 1px solid rgba(123, 231, 213, 0.24);
+    border-radius: 16px;
+    padding: 1.4rem 1.6rem;
+    box-shadow: 0 18px 48px rgba(0, 8, 20, 0.4);
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    z-index: 1;
+}
+
+.cardHeader {
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    color: #d8ebff;
+}
+
+.codeBlock {
+    background: #09152d;
+    border: 1px solid rgba(123, 231, 213, 0.22);
+    border-radius: 12px;
+    padding: 0.9rem 1rem;
+    font-family:
+        "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    color: #d8e5ff;
+    margin: 0;
+}
+
+.installCta {
+    align-self: flex-end;
+}
+
+.cardFooter {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #a6b6d7;
+    font-size: 0.92rem;
+}
+
+.dot {
+    width: 6px;
+    height: 6px;
+    background: #7bd7ff;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.codeSection {
+    padding: 2.2rem clamp(1.5rem, 4vw, 4rem) 0.9rem;
+}
+
+.codeIntro {
+    margin-bottom: 1.1rem;
+    max-width: 760px;
+}
+
+.codeEyebrow {
+    margin: 0 0 0.2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #84e7d7;
+    font-size: 0.78rem;
+}
+
+.codeIntro h2 {
+    margin: 0 0 0.4rem;
+    color: #f0f6ff;
+    font-size: clamp(1.45rem, 2vw, 1.9rem);
+}
+
+.codeIntro p {
+    margin: 0;
+    color: #bfd0ea;
+    line-height: 1.5;
+}
+
+.codeGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+}
+
+.exampleCard {
+    background: linear-gradient(
+        180deg,
+        rgba(10, 20, 38, 0.92),
+        rgba(11, 24, 45, 0.9)
+    );
+    border: 1px solid rgba(123, 231, 213, 0.26);
+    border-radius: 14px;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+.exampleHead {
+    padding: 1rem 1rem 0.85rem;
+}
+
+.exampleTag {
+    display: inline-block;
+    margin-bottom: 0.55rem;
+    padding: 0.2rem 0.52rem;
+    border-radius: 999px;
+    font-size: 0.73rem;
+    letter-spacing: 0.05em;
+    color: #d9fff8;
+    background: rgba(0, 179, 159, 0.24);
+    border: 1px solid rgba(123, 231, 213, 0.44);
+}
+
+.exampleHead h3 {
+    margin: 0 0 0.35rem;
+    color: #e9f3ff;
+    font-size: 1.02rem;
+}
+
+.exampleHead p {
+    margin: 0;
+    color: #aec3e2;
+    font-size: 0.9rem;
+    line-height: 1.45;
+}
+
+.exampleCode {
+    margin: 0;
+    padding: 1rem;
+    background: rgba(8, 14, 27, 0.95);
+    border-top: 1px solid rgba(123, 231, 213, 0.2);
+    border-bottom: 1px solid rgba(123, 231, 213, 0.2);
+    overflow: auto;
+}
+
+.exampleCode code {
+    font-family:
+        "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    color: #d7e8ff;
+    font-size: 0.83rem;
+    line-height: 1.5;
+    white-space: pre;
+}
+
+.exampleLang {
+    margin: 0;
+    padding: 0.55rem 1rem 0.7rem;
+    color: #8ea8cb;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.bottom {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 2rem clamp(1.5rem, 4vw, 4rem) 3.2rem;
+}
+
+.bottomCard {
+    background: linear-gradient(
+        135deg,
+        rgba(16, 67, 119, 0.36),
+        rgba(8, 35, 66, 0.42)
+    );
+    border: 1px solid rgba(123, 231, 213, 0.24);
+    border-radius: 16px;
+    padding: 1.4rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    color: #eaf2ff;
+}
+
+.tutorialsBox {
+    background: linear-gradient(
+        135deg,
+        rgba(22, 83, 120, 0.32),
+        rgba(10, 42, 79, 0.42)
+    );
+    border: 1px solid rgba(123, 231, 213, 0.28);
+    border-radius: 16px;
+    padding: 1.2rem;
+}
+
+.tutorialsHeader {
+    margin: 0 0 0.8rem;
+}
+
+.tutorialsHeader h4 {
+    margin: 0;
+    color: #eaf2ff;
+}
+
+.tutorialsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+}
+
+.label {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.75rem;
+    color: #a9e8df;
+    margin: 0 0 0.2rem;
+}
+
+.small {
+    color: #c7d6f1;
+    margin: 0.1rem 0 0;
+    line-height: 1.4;
+}
+
+@media screen and (max-width: 960px) {
+    .hero {
+        grid-template-columns: 1fr;
+    }
+
+    .heroCard {
+        order: -1;
+    }
 }

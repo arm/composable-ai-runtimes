@@ -35,6 +35,10 @@ const config: Config = {
     defaultLocale: "en",
     locales: ["en"],
   },
+  markdown: {
+    mermaid: true,
+  },
+  themes: ["@docusaurus/theme-mermaid"],
 
   presets: [
     [
@@ -56,11 +60,25 @@ const config: Config = {
     // Replace with your project's social card
     image: "img/docusaurus-social-card.jpg",
     colorMode: {
-      respectPrefersColorScheme: true,
+      defaultMode: "dark",
+      respectPrefersColorScheme: false,
+      disableSwitch: true,
     },
     navbar: {
       title: "Cairn SDK",
       items: [
+        {
+          type: "docSidebar",
+          sidebarId: "architectureSidebar",
+          position: "left",
+          label: "Architecture",
+        },
+        {
+          type: "docSidebar",
+          sidebarId: "modulesSidebar",
+          position: "left",
+          label: "Modules",
+        },
         {
           type: "docSidebar",
           sidebarId: "tutorialSidebar",
@@ -87,8 +105,20 @@ const config: Config = {
           title: "Docs",
           items: [
             {
+              label: "Overview",
+              to: "/architecture/overview-system-design",
+            },
+            {
+              label: "Architecture",
+              to: "/architecture/overview-system-design",
+            },
+            {
+              label: "Modules",
+              to: "/modules/overview",
+            },
+            {
               label: "Tutorial",
-              to: "/tutorials/intro",
+              to: "/tutorials/getting-started/your-first-program",
             },
             {
               label: "API",
