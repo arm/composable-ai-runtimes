@@ -9,7 +9,7 @@
 
 ```sh
 make
-./pw_camera_monitor
+./server
 ```
 
 ## gRPC server runtime arguments

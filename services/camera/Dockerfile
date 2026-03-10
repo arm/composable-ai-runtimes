@@ -1,3 +1,21 @@
+FROM dtcooper/raspberrypi-os:bookworm AS build
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libgrpc++-dev \
+    libprotobuf-dev \
+    libpipewire-0.3-dev \
+    pkg-config \
+    protobuf-compiler \
+    protobuf-compiler-grpc \
+  && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /src/pipewire
+COPY pipewire/ ./
+RUN make
+
 FROM dtcooper/raspberrypi-os:bookworm
 
 ARG DEBIAN_FRONTEND=noninteractive
@@ -20,11 +38,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV XDG_RUNTIME_DIR=/run/pipewire
 ENV PIPEWIRE_NO_PORTAL=1
 
-RUN mkdir -p /etc/pipewire/pipewire.conf.d
+COPY scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY --from=build /src/pipewire/server /usr/local/bin/server
 
-COPY scripts/start-pipewire.sh /usr/local/bin/start-pipewire.sh
 COPY config/wireplumber/10-disable-bluetooth.conf /etc/wireplumber/wireplumber.conf.d/10-disable-bluetooth.conf
 COPY config/wireplumber/60-disable-portal.lua /etc/wireplumber/main.lua.d/60-disable-portal.lua
-RUN chmod +x /usr/local/bin/start-pipewire.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/server
 
-ENTRYPOINT ["/usr/local/bin/start-pipewire.sh"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

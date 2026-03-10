@@ -18,6 +18,7 @@ if command -v rtkit-daemon >/dev/null 2>&1; then
 fi
 
 pipewire &
+PIPEWIRE_PID=$!
 TIMEOUT_TENTHS=50
 for _ in $(seq 1 "$TIMEOUT_TENTHS"); do
   if pw-cli info 0 >/dev/null 2>&1; then
@@ -30,4 +31,24 @@ if ! pw-cli info 0 >/dev/null 2>&1; then
   exit 1
 fi
 
-exec wireplumber 
+wireplumber &
+WIREPLUMBER_PID=$!
+
+/usr/local/bin/server &
+CAMERA_MONITOR_PID=$!
+
+while true; do
+  if ! kill -0 "$PIPEWIRE_PID" 2>/dev/null; then
+    echo "pipewire exited" >&2
+    exit 1
+  fi
+  if ! kill -0 "$WIREPLUMBER_PID" 2>/dev/null; then
+    echo "wireplumber exited" >&2
+    exit 1
+  fi
+  if ! kill -0 "$CAMERA_MONITOR_PID" 2>/dev/null; then
+    echo "server exited" >&2
+    exit 1
+  fi
+  sleep 1
+done

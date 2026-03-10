@@ -1,7 +1,6 @@
 services:
   pipewire-daemon:
-    build:
-      context: ./daemon
+    build: .
     image: camera-daemon:trixie
     group_add:
       - video
@@ -27,6 +26,8 @@ services:
 
   # Simple client that lists devices every 10 seconds to check if the daemon is reachable.
   pipewire-client:
+    profiles:
+      - validation
     image: camera-daemon:trixie
     depends_on:
       - pipewire-daemon

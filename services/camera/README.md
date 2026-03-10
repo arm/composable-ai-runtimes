@@ -27,6 +27,8 @@ The daemon image is based on `dtcooper/raspberrypi-os:bookworm` and installs the
 - SPA modules for camera: `libspa-0.2-libcamera`, `libspa-0.2-modules`.
 
 The daemon runs WirePlumber with its default configuration (the Raspberry Pi OS package does not expose a profile flag).
+It also starts the PipeWire camera monitor (from `services/camera/pipewire`) in the same container so that camera
+connect/disconnect and stream link events are visible in logs.
 
 ## Build Process
 
@@ -36,9 +38,15 @@ The compose file builds the daemon image locally. Run from the repository root:
 docker compose -f services/camera/compose.yaml up --build
 ```
 
+# Optional validation client
+```bash
+docker compose -f services/camera/compose.yaml --profile validation up --build
+```
+
 The compose file mounts a minimal set of device nodes for camera and DMA-BUF support. If your camera uses different `/dev/video*`, `/dev/media*`, or `/dev/v4l-subdev*` nodes, update `services/camera/compose.yaml` accordingly.
 
 The compose stack also includes a small client container that connects to the daemon and lists PipeWire nodes every 10 seconds as a lightweight validation step.
+It is disabled by default; enable it with `--profile validation`.
 
 The daemon service uses RTKit for realtime scheduling inside the container:
 
@@ -48,7 +56,7 @@ The daemon service uses RTKit for realtime scheduling inside the container:
 If you want to build just the daemon image:
 
 ```bash
-docker build -t camera-daemon:bookworm services/camera/daemon
+docker build -t camera-daemon:bookworm services/camera
 ```
 
 You can build and run the Camera Service using `docker compose`:
