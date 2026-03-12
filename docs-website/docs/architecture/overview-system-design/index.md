@@ -5,6 +5,7 @@ sidebar_position: 1
 ---
 
 This section explains how the Cairn SDK is structured at a high level and how its components relate to and work with one another.
+The current architecture should be read as the working shape of a proof of concept (PoC): it is concrete enough to build against, but still expected to evolve as the platform is refined.
 
 ## Conceptual layers
 

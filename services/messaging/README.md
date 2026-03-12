@@ -1,6 +1,7 @@
 # Messaging Redis Docker Image
 
 This directory contains a Redis Docker image using a custom `redis.conf` tuned for pub/sub workloads.
+It underpins the messaging path used in the current Cairn SDK proof of concept (PoC), where lightweight pub/sub integration is enough to exercise cross-module communication.
 
 ## Prerequisites
 

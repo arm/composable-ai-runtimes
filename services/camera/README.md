@@ -1,6 +1,7 @@
 # Camera Service
 
 The Camera Service is responsible for management of connected cameras, as well as capturing streams from the cameras and providing them to other services. The streaming technology is based on PipeWire.
+Within the current Cairn SDK proof of concept (PoC), it serves as the reference implementation for camera discovery and stream handling on supported edge devices.
 
 ## Building and Running Camera Service
 

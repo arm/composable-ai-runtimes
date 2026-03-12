@@ -1,6 +1,7 @@
 # cairn-sdk (lib)
 
 `cairn-sdk` is the Rust library crate for talking to Cairn gRPC services.
+It reflects the current proof-of-concept (PoC) SDK surface, giving user applications a typed and native feeling integration point with the runtime services.
 
 ## Prerequisites
 

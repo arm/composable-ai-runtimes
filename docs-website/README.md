@@ -1,6 +1,7 @@
 # Website
 
 This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
+It documents the current Cairn SDK proof of concept (PoC), so content should track the implementation as it exists today rather than describe a finished product shape.
 
 ## Directory Overview
 

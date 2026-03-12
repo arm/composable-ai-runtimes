@@ -3,6 +3,7 @@
 ## Overview
 
 Concordia is a gRPC-based inference service for running object detection and text-to-speech models.
+In the current Cairn SDK proof of concept (PoC), it provides the initial inference workflow used to validate model execution and client integration patterns.
 
 ## Requirements
 
@@ -62,4 +63,3 @@ pytest test/test_concordia_service.py
   docker compose logs concordia
   ```
 - Use `localhost:50052` as the client target if running locally.
-
