@@ -21,10 +21,10 @@ jobs:
       - name: install rust toolchain
         run: |
           rustup component add rustfmt clippy
-      - name: install protoc
+      - name: install deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y protobuf-compiler
+          sudo apt-get install -y protobuf-compiler libpipewire-0.3-dev
       - name: cargo fmt
         run: cargo fmt --all -- --check
       - name: cargo clippy

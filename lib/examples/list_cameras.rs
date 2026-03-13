@@ -2,7 +2,7 @@ use cairn_sdk_lib::camera_service::CameraService;
 
 #[tokio::main]
 async fn main() {
-    let endpoint = std::env::var("CAIRN_PIPEWIRE_ENDPOINT")
+    let endpoint = std::env::var("CAMERA_SERVICE_ENDPOINT")
         .unwrap_or_else(|_| "http://[::1]:50051".to_string());
 
     let mut service = match CameraService::new(endpoint).await {

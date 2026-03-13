@@ -19,10 +19,15 @@ protoc --version
 ## What it provides
 
 - `camera_service::CameraService` client for connecting to the PipeWire camera service
+- `camera_service::CameraMetadata` for discovered PipeWire camera nodes
+- `camera_service::Camera` for direct PipeWire frame capture
 - `inference_service::InferenceService` client for connecting to the Concordia inference service
 - Library-owned data types:
+  - `camera_service::CameraMetadata`
   - `camera_service::Camera`
-  - `camera_service::Stream`
+  - `camera_service::CameraOptions`
+  - `camera_service::CapturedFrame`
+  - `camera_service::CapturePixelFormat`
   - `inference_service::BrickSpec`
   - `inference_service::BrickType`
   - `inference_service::RunBrickInput`
@@ -39,12 +44,11 @@ From the `lib` directory:
 
 ```bash
 cargo run --example list_cameras
-cargo run --example list_streams
 cargo run --example list_bricks
 cargo run --example run_brick_tts
 ```
 
-By default, camera examples connect to:
+By default, the camera discovery example connects to this camera service gRPC address:
 
 ```text
 http://[::1]:50051
@@ -56,11 +60,20 @@ By default, inference examples connect to:
 http://[::1]:50052
 ```
 
-Override with `CAIRN_PIPEWIRE_ENDPOINT`:
+To point the discovery example at a different camera service gRPC address, set the `CAMERA_SERVICE_ENDPOINT` environment variable:
 
 ```bash
-CAIRN_PIPEWIRE_ENDPOINT=http://127.0.0.1:50051 cargo run --example list_cameras
-CAIRN_PIPEWIRE_ENDPOINT=http://127.0.0.1:50051 cargo run --example list_streams
+CAMERA_SERVICE_ENDPOINT=http://127.0.0.1:50051 cargo run --example list_cameras
+```
+
+Direct PipeWire capture uses the PipeWire runtime socket rather than the camera service gRPC API.
+
+`CameraOptions::default()` requests `640x480` at `30` FPS with `CapturePixelFormat::Yuy2`. The negotiated frame metadata remains available on `CapturedFrame`, including the final `pixel_format`, `width`, and `height`.
+
+If you need to inspect available nodes manually, use PipeWire tooling against the same runtime dir. The daemon socket will appear at `services/camera/.pipewire-runtime/pipewire-0`:
+
+```bash
+XDG_RUNTIME_DIR=../services/camera/.pipewire-runtime pw-cli ls Node
 ```
 
 Override with `CAIRN_CONCORDIA_ENDPOINT`:
@@ -73,6 +86,5 @@ CAIRN_CONCORDIA_ENDPOINT=http://127.0.0.1:50052 cargo run --example run_brick_tt
 ## Example files
 
 - `examples/list_cameras.rs`
-- `examples/list_streams.rs`
 - `examples/list_bricks.rs`
 - `examples/run_brick_tts.rs`

@@ -5,10 +5,8 @@ use tonic::transport::Server;
 use tonic::transport::server::TcpIncoming;
 use tonic::{Response, Status};
 
-use super::camera_service::pipewire::pipewire_service_server::{
-    PipewireService, PipewireServiceServer,
-};
-use super::camera_service::pipewire::{
+use super::service::pipewire::pipewire_service_server::{PipewireService, PipewireServiceServer};
+use super::service::pipewire::{
     Camera as ProtoCamera, ListCamerasResponse, ListRequest, ListStreamsResponse,
     Stream as ProtoStream,
 };
@@ -124,27 +122,69 @@ async fn list_cameras_maps_proto_to_library_type() {
     server.stop_server().await;
 }
 
-#[tokio::test]
-async fn list_streams_maps_proto_to_library_type() {
-    let server = start_mock_server().await;
-    let mut service = CameraService::new(server.endpoint().to_string())
-        .await
-        .expect("failed to create client");
+#[test]
+fn camera_new_rejects_invalid_options() {
+    let cases = [
+        (
+            "zero camera id",
+            0,
+            CameraOptions {
+                width: 640,
+                height: 480,
+                fps: 30,
+                pixel_format: CapturePixelFormat::Yuy2,
+            },
+            "camera_id must be non-zero",
+        ),
+        (
+            "zero width",
+            7,
+            CameraOptions {
+                width: 0,
+                height: 480,
+                fps: 30,
+                pixel_format: CapturePixelFormat::Yuy2,
+            },
+            "width must be greater than zero",
+        ),
+        (
+            "zero height",
+            7,
+            CameraOptions {
+                width: 640,
+                height: 0,
+                fps: 30,
+                pixel_format: CapturePixelFormat::Yuy2,
+            },
+            "height must be greater than zero",
+        ),
+        (
+            "zero fps",
+            7,
+            CameraOptions {
+                width: 640,
+                height: 480,
+                fps: 0,
+                pixel_format: CapturePixelFormat::Yuy2,
+            },
+            "fps must be greater than zero",
+        ),
+    ];
 
-    let streams = service.list_streams().await.expect("list_streams failed");
-    assert_eq!(streams.len(), 2);
-    assert_eq!(streams[0].link_id, 10);
-    assert_eq!(streams[0].camera_node_id, 20);
-    assert_eq!(streams[0].consumer_node_id, 30);
-    assert_eq!(streams[0].camera_name, "front");
-    assert_eq!(streams[0].consumer_name, "inference");
-    assert_eq!(streams[1].link_id, 11);
-    assert_eq!(streams[1].camera_node_id, 21);
-    assert_eq!(streams[1].consumer_node_id, 31);
-    assert_eq!(streams[1].camera_name, "rear");
-    assert_eq!(streams[1].consumer_name, "recording");
+    for (case_name, camera_id, options, expected_message) in cases {
+        let result = Camera::new(camera_id, options);
 
-    server.stop_server().await;
+        match result {
+            Ok(_) => panic!("expected camera creation to fail for {case_name}"),
+            Err(CameraError::Validation(message)) => {
+                assert_eq!(
+                    message, expected_message,
+                    "validation mismatch for {case_name}"
+                )
+            }
+            Err(err) => panic!("expected validation error for {case_name}, got {err}"),
+        }
+    }
 }
 
 #[tokio::test]

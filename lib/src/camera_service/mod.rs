@@ -1,6 +1,8 @@
-mod camera_service;
+mod pipewire_client;
+mod service;
 
 #[cfg(test)]
-mod camera_service_tests;
+mod service_tests;
 
-pub use camera_service::{Camera, CameraService, Stream};
+pub use pipewire_client::{CameraError, CameraOptions, CapturePixelFormat, CapturedFrame};
+pub use service::{Camera, CameraMetadata, CameraService};
