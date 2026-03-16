@@ -1,7 +1,6 @@
 services:
   concordia-inference-service:
     build: .
-    volumes:
-      - ./models:/models:ro   
+    platform: "linux/arm64"
     ports:
-      - "50052:50052"  
+      - "50052:50052"

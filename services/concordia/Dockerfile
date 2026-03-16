@@ -1,4 +1,4 @@
-FROM concordiaai-base:latest
+FROM edge-ai-tooling--sdk-docker-registry.artifactory.arm.com/concordiaai-base:latest
 
 WORKDIR /app
 
