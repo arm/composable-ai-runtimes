@@ -19,7 +19,7 @@ const sidebars: SidebarsConfig = {
         },
         {
           type: "doc",
-          id: "modules/message-bus",
+          id: "modules/notification",
         },
         {
           type: "doc",
