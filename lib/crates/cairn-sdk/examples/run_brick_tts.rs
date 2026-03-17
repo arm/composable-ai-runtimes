@@ -1,13 +1,11 @@
-use cairn_sdk::inference_service::{
-    BrickSpec, BrickType, InferenceService, RunBrickInput, RunBrickOutput,
-};
+use cairn_sdk::concordia_service::{ConcordiaService, RunBrickOptions, RunBrickOutput};
 
 #[tokio::main]
 async fn main() {
     let endpoint = std::env::var("CAIRN_CONCORDIA_ENDPOINT")
         .unwrap_or_else(|_| "http://[::1]:50052".to_string());
 
-    let mut service = match InferenceService::new(endpoint).await {
+    let mut service = match ConcordiaService::new(&endpoint).await {
         Ok(service) => service,
         Err(err) => {
             eprintln!("failed to connect: {err}");
@@ -17,11 +15,9 @@ async fn main() {
 
     let result = service
         .run_brick(
-            BrickSpec {
-                brick_type: BrickType::Tts,
-                brick_variant: "kokoro".to_string(),
-            },
-            RunBrickInput::Text {
+            "tts",
+            "kokoro",
+            RunBrickOptions::Text {
                 text: "Hello from Cairn SDK".to_string(),
             },
         )
