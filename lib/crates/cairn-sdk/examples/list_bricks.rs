@@ -1,4 +1,4 @@
-use cairn_sdk_lib::inference_service::InferenceService;
+use cairn_sdk::inference_service::InferenceService;
 
 #[tokio::main]
 async fn main() {

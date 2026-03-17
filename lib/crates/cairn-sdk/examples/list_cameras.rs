@@ -1,4 +1,4 @@
-use cairn_sdk_lib::camera_service::CameraService;
+use cairn_sdk::camera_service::CameraService;
 
 #[tokio::main]
 async fn main() {

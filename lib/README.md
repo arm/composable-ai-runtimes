@@ -85,6 +85,6 @@ CAIRN_CONCORDIA_ENDPOINT=http://127.0.0.1:50052 cargo run --example run_brick_tt
 
 ## Example files
 
-- `examples/list_cameras.rs`
-- `examples/list_bricks.rs`
-- `examples/run_brick_tts.rs`
+- `crates/cairn-sdk/examples/list_cameras.rs`
+- `crates/cairn-sdk/examples/list_bricks.rs`
+- `crates/cairn-sdk/examples/run_brick_tts.rs`

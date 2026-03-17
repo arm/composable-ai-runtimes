@@ -1,4 +1,4 @@
-use cairn_sdk_lib::inference_service::{
+use cairn_sdk::inference_service::{
     BrickSpec, BrickType, InferenceService, RunBrickInput, RunBrickOutput,
 };
 
