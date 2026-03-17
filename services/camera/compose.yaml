@@ -1,7 +1,7 @@
 services:
-  pipewire-daemon:
+  camera-service:
     build: .
-    image: camera-daemon:trixie
+    image: camera-service:trixie
     group_add:
       - video
     cap_add:
@@ -24,13 +24,13 @@ services:
       - /dev/dri/card1
       - /dev/dri/renderD128
 
-  # Simple client that lists devices every 10 seconds to check if the daemon is reachable.
+  # Simple client that lists devices every 10 seconds to check if the camera service is reachable.
   pipewire-client:
     profiles:
       - validation
-    image: camera-daemon:trixie
+    image: camera-service:trixie
     depends_on:
-      - pipewire-daemon
+      - camera-service
     environment:
       XDG_RUNTIME_DIR: /run/pipewire
     volumes:
@@ -38,7 +38,7 @@ services:
     entrypoint: ["/bin/sh", "-c"]
     command:
       [
-        "while true; do if pw-cli info 0 >/dev/null 2>&1; then pw-cli ls Node; else echo 'PipeWire daemon not reachable' >&2; fi; sleep 10; done",
+        "while true; do if pw-cli info 0 >/dev/null 2>&1; then pw-cli ls Node; else echo 'Camera service not reachable' >&2; fi; sleep 10; done",
       ]
 
 volumes:

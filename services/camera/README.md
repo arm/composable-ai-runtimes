@@ -21,19 +21,19 @@ The Camera Service is currently designed to run on a Raspberry Pi. The container
 
 ### Image Dependencies
 
-The daemon image is based on `dtcooper/raspberrypi-os:bookworm` and installs these key packages:
+The camera service image is based on `dtcooper/raspberrypi-os:bookworm` and installs these key packages:
 
 - PipeWire runtime: `pipewire`, `wireplumber`, `libpipewire-0.3-0t64`, `libpipewire-0.3-modules`.
 - Camera stack: `libcamera0.4`, `libcamera-ipa`, `libcamera-v4l2`, `libv4l-0`.
 - SPA modules for camera: `libspa-0.2-libcamera`, `libspa-0.2-modules`.
 
-The daemon runs WirePlumber with its default configuration (the Raspberry Pi OS package does not expose a profile flag).
+The camera service runs WirePlumber with its default configuration (the Raspberry Pi OS package does not expose a profile flag).
 It also starts the PipeWire camera monitor (from `services/camera/pipewire`) in the same container so that camera
 connect/disconnect and stream link events are visible in logs.
 
 ## Build Process
 
-The compose file builds the daemon image locally. Run from the repository root:
+The compose file builds the camera service image locally. Run from the repository root:
 
 ```bash
 docker compose -f services/camera/compose.yaml up --build
@@ -46,18 +46,18 @@ docker compose -f services/camera/compose.yaml --profile validation up --build
 
 The compose file mounts a minimal set of device nodes for camera and DMA-BUF support. If your camera uses different `/dev/video*`, `/dev/media*`, or `/dev/v4l-subdev*` nodes, update `services/camera/compose.yaml` accordingly.
 
-The compose stack also includes a small client container that connects to the daemon and lists PipeWire nodes every 10 seconds as a lightweight validation step.
+The compose stack also includes a small client container that connects to the camera service and lists PipeWire nodes every 10 seconds as a lightweight validation step.
 It is disabled by default; enable it with `--profile validation`.
 
-The daemon service uses RTKit for realtime scheduling inside the container:
+The camera service uses RTKit for realtime scheduling inside the container:
 
 - `cap_add: [SYS_NICE]` allows the container to raise thread priority.
 - `ulimits: { rtprio: 95, memlock: -1 }` permits realtime priorities and memory locking.
 
-If you want to build just the daemon image:
+If you want to build just the camera service image:
 
 ```bash
-docker build -t camera-daemon:bookworm services/camera
+docker build -t camera-service:bookworm services/camera
 ```
 
 You can build and run the Camera Service using `docker compose`:
