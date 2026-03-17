@@ -1,0 +1,16 @@
+[package]
+name = "cairn-sdk-py"
+version = "0.0.1"
+description = "PyO3 bindings for the Cairn SDK"
+edition = "2024"
+
+[lib]
+name = "_bindings"
+path = "src/lib.rs"
+crate-type = ["cdylib"]
+
+[dependencies]
+cairn-sdk = { package = "cairn-sdk-lib", path = "../cairn-sdk" }
+numpy = "0.24"
+pyo3 = { version = "0.24", features = ["extension-module", "abi3-py312"] }
+tokio = { version = "1", features = ["macros", "net", "rt", "rt-multi-thread", "time"] }

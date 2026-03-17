@@ -12,6 +12,31 @@ pub(super) mod pipewire {
 use pipewire::ListRequest;
 use pipewire::pipewire_service_client::PipewireServiceClient;
 
+const DEFAULT_CAMERA_SERVICE_ENDPOINT: &str = "http://[::1]:50051";
+
+#[derive(Debug)]
+pub enum CameraServiceError {
+    Transport(String),
+}
+
+impl std::fmt::Display for CameraServiceError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Transport(message) => f.write_str(message),
+        }
+    }
+}
+
+impl std::error::Error for CameraServiceError {}
+
+fn transport_error(message: impl Into<String>) -> CameraServiceError {
+    CameraServiceError::Transport(message.into())
+}
+
+fn map_tonic_status(error: tonic::Status) -> CameraServiceError {
+    transport_error(format!("{}: {}", error.code(), error.message()))
+}
+
 pub struct CameraMetadata {
     pub id: u32,
     pub name: String,
@@ -40,19 +65,27 @@ pub struct CameraService {
 }
 
 impl CameraService {
-    pub async fn new(endpoint: String) -> Result<Self, tonic::Status> {
+    pub async fn new(endpoint: Option<String>) -> Result<Self, CameraServiceError> {
+        let endpoint = endpoint.unwrap_or_else(|| DEFAULT_CAMERA_SERVICE_ENDPOINT.to_string());
         let client = PipewireServiceClient::connect(endpoint)
             .await
-            .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+            .map_err(|error| transport_error(error.to_string()))?;
 
         Ok(Self { client })
     }
 
-    pub async fn list_cameras(&mut self) -> Result<Vec<CameraMetadata>, tonic::Status> {
+    pub fn open(&self, camera: &CameraMetadata) -> Result<Camera, CameraError> {
+        Camera::new(camera.id, CameraOptions::default())
+    }
+
+    pub async fn list_camera_metadata(
+        &mut self,
+    ) -> Result<Vec<CameraMetadata>, CameraServiceError> {
         let response = self
             .client
             .list_cameras(Request::new(ListRequest {}))
-            .await?
+            .await
+            .map_err(map_tonic_status)?
             .into_inner();
         Ok(response
             .cameras

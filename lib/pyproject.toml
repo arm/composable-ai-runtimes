@@ -1,0 +1,17 @@
+[build-system]
+requires = ["maturin>=1.7,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "cairn-sdk-lib"
+version = "0.0.1"
+description = "Python bindings for the Cairn SDK"
+requires-python = ">=3.12"
+dependencies = [
+  "numpy>=1.26,<3",
+]
+
+[tool.maturin]
+manifest-path = "crates/cairn-sdk-py/Cargo.toml"
+python-source = "python"
+module-name = "cairn_sdk._bindings"

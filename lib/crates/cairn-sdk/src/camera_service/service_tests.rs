@@ -108,11 +108,14 @@ async fn start_mock_server() -> MockServerHandle {
 #[tokio::test]
 async fn list_cameras_maps_proto_to_library_type() {
     let server = start_mock_server().await;
-    let mut service = CameraService::new(server.endpoint().to_string())
+    let mut service = CameraService::new(Some(server.endpoint().to_string()))
         .await
         .expect("failed to create client");
 
-    let cameras = service.list_cameras().await.expect("list_cameras failed");
+    let cameras = service
+        .list_camera_metadata()
+        .await
+        .expect("list_camera_metadata failed");
     assert_eq!(cameras.len(), 2);
     assert_eq!(cameras[0].id, 7);
     assert_eq!(cameras[0].name, "front");
@@ -189,8 +192,13 @@ fn camera_new_rejects_invalid_options() {
 
 #[tokio::test]
 async fn new_returns_unavailable_for_unreachable_endpoint() {
-    match CameraService::new("http://127.0.0.1:1".to_string()).await {
+    match CameraService::new(Some("http://127.0.0.1:1".to_string())).await {
         Ok(_) => panic!("expected client creation to fail"),
-        Err(err) => assert_eq!(err.code(), tonic::Code::Unavailable),
+        Err(CameraServiceError::Transport(message)) => {
+            assert!(
+                !message.is_empty(),
+                "expected unreachable endpoint to produce a transport message"
+            );
+        }
     }
 }

@@ -42,7 +42,8 @@ The protobuf-generated modules are kept internal to each service implementation,
 From the `lib` directory:
 
 ```bash
-cargo run --example list_cameras
+cargo run -p cairn-sdk-py --example list_cameras
+cargo run --example list_bricks
 cargo run --example run_brick_tts
 ```
 
@@ -61,7 +62,7 @@ http://[::1]:50052
 To point the discovery example at a different camera service gRPC address, set the `CAMERA_SERVICE_ENDPOINT` environment variable:
 
 ```bash
-CAMERA_SERVICE_ENDPOINT=http://127.0.0.1:50051 cargo run --example list_cameras
+CAMERA_SERVICE_ENDPOINT=http://127.0.0.1:50051 cargo run -p cairn-sdk-py --example list_cameras
 ```
 
 Direct PipeWire capture uses the PipeWire runtime socket rather than the camera service gRPC API.
@@ -84,7 +85,6 @@ CAIRN_CONCORDIA_ENDPOINT=http://127.0.0.1:50052 cargo run --example run_brick_tt
 
 ## Example files
 
-- `examples/list_cameras.rs`
-- `examples/run_brick_tts.rs`
-- `crates/cairn-sdk/examples/list_cameras.rs`
+- `crates/cairn-sdk-py/examples/list_cameras.rs`
+- `crates/cairn-sdk/examples/list_bricks.rs`
 - `crates/cairn-sdk/examples/run_brick_tts.rs`

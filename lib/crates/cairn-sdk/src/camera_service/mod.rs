@@ -5,4 +5,4 @@ mod service;
 mod service_tests;
 
 pub use pipewire_client::{CameraError, CameraOptions, CapturePixelFormat, CapturedFrame};
-pub use service::{Camera, CameraMetadata, CameraService};
+pub use service::{Camera, CameraMetadata, CameraService, CameraServiceError};
