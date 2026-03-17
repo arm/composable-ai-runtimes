@@ -4,31 +4,35 @@ sidebar_position: 5
 
 # Object Detection
 
-:::warning Placeholder Tutorial
-The code below is example-only and uses placeholder API names.  
-This page will be updated with real repository code as soon as the production demo is available.
-:::
+This tutorial illustrates how to use the Concordia Service in an object detection workflow.
 
-## Example code (placeholder)
+## Example code
 
 ```python
-from cairn import CairnClient
+from pathlib import Path
 
-client = CairnClient()
-client.connect()
+from cairn import ConcordiaService
 
-# Placeholder stream, model, and event schema
-for frame in client.camera.subscribe_frames(source="front-camera"):
-    detections = client.inference.detect_objects(
-        model="yolo-edge",
-        image=frame.bytes,
-    )
-    client.messaging.publish(
-        channel="vision.detections",
-        payload={
-            "camera_id": frame.camera_id,
-            "frame_id": frame.frame_id,
-            "detections": [d.to_dict() for d in detections],
-        },
-    )
+endpoint = "http://127.0.0.1:50051"
+inference = ConcordiaService(endpoint)
+
+image_path = Path("friends.jpg")
+
+result = inference.run_brick(
+    brick_type="OBJECT_DETECTION",
+    brick_variant="YOLO",
+    options={"image_bytes": image_path.read_bytes()},
+)
+
+for detection in result["detections"]:
+    class_name = detection["class_name"]
+    score = detection["score"]
+    box = detection["box"]
+    print(f"{class_name}: {score:.2f} at {box}")
 ```
+
+`result["detections"]` contains a list of detection objects. Each detection includes:
+
+- `class_name`: the detected label, for example `person`
+- `score`: the model confidence for that detection
+- `box`: normalized bounding box coordinates in `[x1, y1, x2, y2]` format

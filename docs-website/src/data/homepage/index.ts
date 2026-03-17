@@ -122,15 +122,6 @@ for msg in stub.StreamFrames(camera_pb2.StreamFramesRequest(id="front-camera")):
   bottomCards: [
     {
       label: "Starter app",
-      title: "Sound-to-Text",
-      description:
-        "Launch a speech transcription pipeline with a lightweight Python app built on Cairn modules.",
-      to: "/tutorials/getting-started/sound-to-text",
-      cta: "Try tutorial",
-      variant: "secondary",
-    },
-    {
-      label: "Starter app",
       title: "Object Detection",
       description:
         "Stand up an object detection flow that combines camera input, inference, and event publishing.",

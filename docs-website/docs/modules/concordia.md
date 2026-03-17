@@ -10,13 +10,9 @@ sidebar_position: 4
 You can run AI inference in your application without building and operating your own model-serving pipeline.
 :::
 
-:::info Want to have a try?
-Check out the [Sound-to-Text tutorial](/tutorials/getting-started/sound-to-text) for an example of how to use Concordia for inference.
-:::
-
 ## About the Concordia Inference Module
 
-The Concordia Inference Module gives you access to simple on-device inference via Concordia AI Bricks. Concordia AI Bricks are pre-packaged AI model functions that perform specific inference tasks, such as object detection or the conversion of speech-to-text. By using the Concordia Inference Module, you can easily link together a series of AI Brick invocations to build complex inference workflows without the complexity of setting up a full inference stack.
+The Concordia Inference Module gives you access to simple on-device inference via Concordia AI Bricks. Concordia AI Bricks are pre-packaged AI model functions that perform specific inference tasks, such as object detection or text-to-speech. By using the Concordia Inference Module, you can easily link together a series of AI Brick invocations to build complex inference workflows without the complexity of setting up a full inference stack.
 
 ## Key Capabilities
 
@@ -25,28 +21,39 @@ The Concordia Inference Module gives you access to simple on-device inference vi
 
 ### Brick Execution
 
-Run simple AI inference tasks by passing input data to Concordia AI Bricks and receiving structured outputs.
+The current API supports an object detection and text-to-speech Concordia Brick. With Brick type, variant, and model input provided as parameters.
 
-:::warning Placeholder Code
-The code below is example-only and uses an indicative API only.
-This page will be updated with real repository code as soon as the production demo is available.
 ```python
-from cairn import concordia
+from pathlib import Path
 
-annotated_image = concordia.run_brick(
-    brick_name="object-detection",
-    input_data={"image": image_bytes},
+from cairn import ConcordiaService
+
+endpoint = "http://127.0.0.1:50051"
+inference = ConcordiaService(endpoint)
+
+image_path = Path("friends.jpg")
+
+detection_result = inference.run_brick(
+    brick_type="OBJECT_DETECTION",
+    brick_variant="YOLO",
+    options={"image_bytes": image_path.read_bytes()},
 )
 
-text_result = concordia.run_brick(
-    brick_name="sound-to-text",
-    input_data={"audio": audio_bytes},
+detections = detection_result["detections"]
+num_persons = len([d for d in detections if d["class_name"] == "person"])
+print(f"Number of persons detected: {num_persons}")
+
+audio_result = inference.run_brick(
+    brick_type="TEXT_TO_SPEECH",
+    brick_variant="KOKORO",
+    options={"text": "Hello, world!"},
 )
+
+left_channel = audio_result["left_channel"]
+right_channel = audio_result["right_channel"]
 ```
-:::
-
 
 
 ### Runtime Configuration
 
-Select from different AI Brick variants to adjust the model used and other parameters at runtime, allowing you to optimize your calls for different performance and accuracy needs without changing your application code.
+Select from different AI Brick variants to adjust the model used and other parameters at runtime, allowing you to optimize your calls for different performance and accuracy needs without changing your application code. In the current API this is done with the `brick_variant` argument, for example `YOLO` for object detection or `KOKORO` for text-to-speech.
