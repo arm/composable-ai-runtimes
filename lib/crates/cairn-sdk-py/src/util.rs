@@ -2,7 +2,7 @@ use cairn_sdk::camera_service;
 use numpy::{IntoPyArray, PyArray1};
 use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::prelude::{Bound, Py, PyErr, PyResult, Python};
-use pyo3::types::PyModule;
+use pyo3::types::{PyModule, PyModuleMethods};
 use pyo3::{pyclass, pymethods};
 use tokio::runtime::{Builder, Runtime};
 

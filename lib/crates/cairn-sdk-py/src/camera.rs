@@ -1,7 +1,8 @@
 use crate::util::{PyFrame, add_camera_shared_bindings, map_camera_error};
 use cairn_sdk::camera_service;
 use pyo3::prelude::{Bound, PyResult, Python};
-use pyo3::types::PyModule;
+use pyo3::types::{PyModule, PyModuleMethods};
+use pyo3::{pyclass, pymethods};
 
 #[pyclass(unsendable, module = "cairn_sdk", name = "Camera")]
 pub struct PyCamera {

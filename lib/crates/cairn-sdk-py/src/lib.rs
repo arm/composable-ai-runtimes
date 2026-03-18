@@ -4,7 +4,7 @@ mod util;
 
 use pyo3::prelude::{Bound, PyResult};
 use pyo3::pymodule;
-use pyo3::types::PyModule;
+use pyo3::types::{PyModule, PyModuleMethods};
 
 #[pymodule]
 fn _bindings(module: &Bound<'_, PyModule>) -> PyResult<()> {

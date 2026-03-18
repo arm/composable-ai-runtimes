@@ -16,6 +16,14 @@ cargo --version
 protoc --version
 ```
 
+Workspace validation from the `lib` directory should explicitly cover both crates:
+
+```bash
+cargo check --workspace
+cargo fmt --all -- --check
+cargo clippy --workspace --all-targets --all-features --no-deps
+```
+
 ## What it provides
 
 - `camera_service::CameraService` client for connecting to the PipeWire camera service

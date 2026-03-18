@@ -1,4 +1,4 @@
 [workspace]
 members = ["crates/cairn-sdk", "crates/cairn-sdk-py"]
-default-members = ["crates/cairn-sdk"]
+default-members = ["crates/cairn-sdk", "crates/cairn-sdk-py"]
 resolver = "3"

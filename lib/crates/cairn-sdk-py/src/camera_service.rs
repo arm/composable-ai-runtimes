@@ -1,6 +1,6 @@
 use cairn_sdk::camera_service;
 use pyo3::prelude::{Bound, PyRef, PyResult};
-use pyo3::types::PyModule;
+use pyo3::types::{PyModule, PyModuleMethods};
 use pyo3::{pyclass, pymethods};
 use tokio::runtime::Runtime;
 
