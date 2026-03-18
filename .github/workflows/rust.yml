@@ -9,6 +9,8 @@ on:
       - reopened
     paths:
       - "lib/**"
+      - "services/camera/pipewire/proto/**"
+      - "services/concordia/src/inference/proto/**"
 
 jobs:
   lint-and-format:
