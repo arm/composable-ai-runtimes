@@ -1,15 +1,31 @@
-# PipeWire Camera Monitor (Scaffold)
+# PipeWire Camera Service
 
 ## Requirements
 
 - PipeWire development libraries installed (libpipewire-0.3)
 - `pkg-config`
+- For gRPC server: `grpc++`, `protobuf`
+- For proto generation: `protoc` and `grpc_cpp_plugin`
 
-## Quick start (build + run):
+## Quick start (build + run)
 
 ```sh
 make
 ./server
+```
+
+## Proto layout
+
+The protobuf contracts are split by responsibility:
+
+- `pipewire_types.proto`: shared `Camera` and `Stream` messages
+- `pipewire_service.proto`: public gRPC service contract
+- `pipewire_events.proto`: event schema used with Redis
+
+Generate the protobuf artefacts locally with:
+
+```sh
+make proto
 ```
 
 ## gRPC server runtime arguments

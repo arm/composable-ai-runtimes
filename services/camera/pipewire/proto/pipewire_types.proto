@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package camera.pipewire.v1;
+
+message Camera {
+  uint32 id = 1;
+  string name = 2;
+}
+
+message Stream {
+  uint32 link_id = 1;
+  uint32 camera_node_id = 2;
+  uint32 consumer_node_id = 3;
+  string camera_name = 4;
+  string consumer_name = 5;
+}

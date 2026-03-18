@@ -8,6 +8,7 @@ PW_CFLAGS := $(shell $(PKG_CONFIG) --cflags libpipewire-0.3)
 PW_LIBS := $(shell $(PKG_CONFIG) --libs libpipewire-0.3)
 GRPC_CFLAGS := $(shell $(PKG_CONFIG) --cflags grpc++ protobuf)
 GRPC_LIBS := $(shell $(PKG_CONFIG) --libs grpc++ protobuf)
+GRPC_CPP_PLUGIN := $(shell command -v grpc_cpp_plugin 2>/dev/null)
 
 BIN := pw_server
 SERVER_BIN := server
@@ -15,11 +16,15 @@ OBJ_DIR := obj
 
 PROTO_DIR := proto
 GEN_DIR := gen
-PROTO := $(PROTO_DIR)/pipewire.proto
-PROTO_SRCS := $(GEN_DIR)/pipewire.pb.cc $(GEN_DIR)/pipewire.grpc.pb.cc
-PROTO_HDRS := $(GEN_DIR)/pipewire.pb.h $(GEN_DIR)/pipewire.grpc.pb.h
+TYPE_PROTO := $(PROTO_DIR)/pipewire_types.proto
+EVENT_PROTO := $(PROTO_DIR)/pipewire_events.proto
+SERVICE_PROTO := $(PROTO_DIR)/pipewire_service.proto
+PROTO_SRCS := $(GEN_DIR)/pipewire_types.pb.cc $(GEN_DIR)/pipewire_events.pb.cc \
+	$(GEN_DIR)/pipewire_service.pb.cc $(GEN_DIR)/pipewire_service.grpc.pb.cc
+PROTO_HDRS := $(GEN_DIR)/pipewire_types.pb.h $(GEN_DIR)/pipewire_events.pb.h \
+	$(GEN_DIR)/pipewire_service.pb.h $(GEN_DIR)/pipewire_service.grpc.pb.h
 SERVER_OBJS := $(OBJ_DIR)/server.o $(OBJ_DIR)/client.o \
-	$(OBJ_DIR)/pipewire.pb.o $(OBJ_DIR)/pipewire.grpc.pb.o
+	$(OBJ_DIR)/pipewire_types.pb.o $(OBJ_DIR)/pipewire_service.pb.o $(OBJ_DIR)/pipewire_service.grpc.pb.o
 
 all: proto $(SERVER_BIN)
 
@@ -35,17 +40,22 @@ $(OBJ_DIR)/server.o: src/server.cc src/client.h $(PROTO_HDRS) | $(OBJ_DIR)
 $(OBJ_DIR)/client.o: src/client.c src/client.h | $(OBJ_DIR)
 	$(CC) $(CFLAGS) $(PW_CFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/pipewire.pb.o: $(GEN_DIR)/pipewire.pb.cc $(GEN_DIR)/pipewire.pb.h | $(OBJ_DIR)
+$(OBJ_DIR)/pipewire_types.pb.o: $(GEN_DIR)/pipewire_types.pb.cc $(GEN_DIR)/pipewire_types.pb.h | $(OBJ_DIR)
 	$(CXX) $(CXXFLAGS) $(GRPC_CFLAGS) -I$(GEN_DIR) -c $< -o $@
 
-$(OBJ_DIR)/pipewire.grpc.pb.o: $(GEN_DIR)/pipewire.grpc.pb.cc $(GEN_DIR)/pipewire.grpc.pb.h | $(OBJ_DIR)
+$(OBJ_DIR)/pipewire_events.pb.o: $(GEN_DIR)/pipewire_events.pb.cc $(GEN_DIR)/pipewire_events.pb.h | $(OBJ_DIR)
 	$(CXX) $(CXXFLAGS) $(GRPC_CFLAGS) -I$(GEN_DIR) -c $< -o $@
 
-proto: $(PROTO_SRCS) $(PROTO_HDRS)
+$(OBJ_DIR)/pipewire_service.pb.o: $(GEN_DIR)/pipewire_service.pb.cc $(GEN_DIR)/pipewire_service.pb.h | $(OBJ_DIR)
+	$(CXX) $(CXXFLAGS) $(GRPC_CFLAGS) -I$(GEN_DIR) -c $< -o $@
 
-$(GEN_DIR)/pipewire.pb.cc $(GEN_DIR)/pipewire.pb.h $(GEN_DIR)/pipewire.grpc.pb.cc $(GEN_DIR)/pipewire.grpc.pb.h: $(PROTO)
+$(OBJ_DIR)/pipewire_service.grpc.pb.o: $(GEN_DIR)/pipewire_service.grpc.pb.cc $(GEN_DIR)/pipewire_service.grpc.pb.h | $(OBJ_DIR)
+	$(CXX) $(CXXFLAGS) $(GRPC_CFLAGS) -I$(GEN_DIR) -c $< -o $@
+
+proto:
 	mkdir -p $(GEN_DIR)
-	protoc -I $(PROTO_DIR) --cpp_out=$(GEN_DIR) --grpc_out=$(GEN_DIR) --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` $(PROTO)
+	protoc -I $(PROTO_DIR) --cpp_out=$(GEN_DIR) $(TYPE_PROTO) $(EVENT_PROTO) $(SERVICE_PROTO)
+	protoc -I $(PROTO_DIR) --grpc_out=$(GEN_DIR) --plugin=protoc-gen-grpc=$(GRPC_CPP_PLUGIN) $(SERVICE_PROTO)
 
 clean:
 	rm -f pw_server $(SERVER_BIN)

@@ -9,7 +9,7 @@
 #include <grpcpp/grpcpp.h>
 
 #include "client.h"
-#include "pipewire.grpc.pb.h"
+#include "pipewire_service.grpc.pb.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;
