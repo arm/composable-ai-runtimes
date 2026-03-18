@@ -20,25 +20,23 @@ The Camera Module is responsible for discovering camera devices, managing frame 
 
 ## Key Capabilities
 
-- [Device Discovery](#device-discovery)
+- [Camera Discovery](#camera-discovery)
 - [Zero Copy](#zero-copy)
 - [Reconnection and Fallback](#fallback-handling)
 
-### Device Discovery
+### Camera Discovery
 
 The Camera Module takes care of discovering connected camera devices and providing access to their data. It monitors for camera additions and removals, emitting events that your application can subscribe to and provides streaming access to camera frames without needing to manage device nodes, udev interactions, or stream lifecycle directly.
 
-:::warning Placeholder Code
-The code below is example-only and uses an indicative API only.
-This page will be updated with real repository code as soon as the production demo is available.
-
 ```python
-from cairn import camera
+from cairn import CameraService
 
-device_id = camera.list_devices()[0].id  # Get the ID of the first available camera
-camera.connect(device_id)
+camera_service = CameraService()
+camera_metadata = camera_service.list_camera_metadata()
+
+camera = camera_service.open(camera_metadata[0])
+frame = camera.get_latest_frame()
 ```
-:::
 
 ### Zero Copy
 

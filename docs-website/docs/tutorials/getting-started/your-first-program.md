@@ -4,19 +4,14 @@ sidebar_position: 2
 
 # Your First Program
 
-:::warning Placeholder Tutorial
-The code below is example-only and uses placeholder API names.  
-This page will be updated with real repository code as soon as the production demo is available.
-:::
-
 ```python title="capture.py"
-from cairn import Camera
+from cairn import CameraService
 
-# Create a Camera instance
-camera = Camera()
+camera_service = CameraService()
+camera_metadata = camera_service.list_camera_metadata()
 
-# Capture an image
-image = camera.capture()
-# Display the captured image
-image.show()
+camera = camera_service.open(camera_metadata[0])
+frame = camera.get_latest_frame()
+
+process(frame)
 ```

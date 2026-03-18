@@ -66,16 +66,16 @@ export const homepageContent = {
       {
         label: "High-level SDK",
         title: "Change cameras. Not performance.",
-        description: "Zero copy frames to your application.",
+        description: "Copy frames to your application.",
         language: "python",
-        code: `from cairn import camera
+        code: `from cairn import CameraService
 
-# Ask for any available camera; Cairn resolves the concrete source.
-cam = camera.get(prefer="any")
-stream = cam.get_stream(zero_copy=True)
+camera_service = CameraService()
+camera_metadata = camera_service.list_camera_metadata()
+camera = camera_service.open(camera_metadata[0])
 
-for frame in stream:
-    process(frame)`,
+frame = camera.get_latest_frame()
+process(frame)`,
       },
       {
         label: "Inference Pipeline",
@@ -83,18 +83,22 @@ for frame in stream:
         description:
           "Grab a frame, run object detection, then act on the detections.",
         language: "python",
-        code: `from cairn import camera, inference
+        code: `from cairn import CameraService, ConcordiaService
 
-cam = camera.get(prefer="any")
-frame = next(cam.get_stream(zero_copy=True))
+camera_service = CameraService()
+camera_metadata = camera_service.list_camera_metadata()
+camera = camera_service.open(camera_metadata[0])
+frame = camera.get_latest_frame()
 
-result = inference.run(
-    brick="object_detection",
-    inputs={"image": frame},
+inference = ConcordiaService("http://127.0.0.1:50052")
+result = inference.run_brick(
+    brick_type="OBJECT_DETECTION",
+    brick_variant="YOLO",
+    options={"image_bytes": frame},
 )
 
-for obj in result.objects:
-    if obj.label == "person" and obj.confidence > 0.7:
+for obj in result["detections"]:
+    if obj["class_name"] == "person":
         trigger_alert(frame, obj)`,
       },
       {
@@ -107,8 +111,8 @@ import camera_pb2
 import camera_pb2_grpc
 import redis
 
-channel = grpc.insecure_channel("camera-service:8000")
-stub = camera_pb2_grpc.CameraServiceStub(channel)
+channel = grpc.insecure_channel("camera-service:50051")
+stub = camera_pb2_grpc.PipewireServiceStub(channel)
 
 r = redis.Redis(host="redis", port=6379)
 stub.Init(camera_pb2.InitRequest(id="front-camera"))
