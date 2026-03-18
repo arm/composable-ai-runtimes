@@ -21,11 +21,12 @@ The Camera Service is currently designed to run on a Raspberry Pi. The container
 
 ### Image Dependencies
 
-The camera service image is based on `dtcooper/raspberrypi-os:bookworm` and installs these key packages:
+The daemon image is based on `dtcooper/raspberrypi-os:bookworm` and installs these key components:
 
-- PipeWire runtime: `pipewire`, `wireplumber`, `libpipewire-0.3-0t64`, `libpipewire-0.3-modules`.
+- PipeWire and the bundled WirePlumber session manager, built from a pinned upstream commit and installed into the standard system paths.
 - Camera stack: `libcamera0.4`, `libcamera-ipa`, `libcamera-v4l2`, `libv4l-0`.
-- SPA modules for camera: `libspa-0.2-libcamera`, `libspa-0.2-modules`.
+- SPA modules for camera: `libspa-0.2-libcamera`.
+- D-Bus and RTKit support for the headless session manager startup path.
 
 The camera service runs WirePlumber with its default configuration (the Raspberry Pi OS package does not expose a profile flag).
 It also starts the PipeWire camera monitor (from `services/camera/pipewire`) in the same container so that camera

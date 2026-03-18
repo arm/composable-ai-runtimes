@@ -21,12 +21,12 @@ pipewire &
 PIPEWIRE_PID=$!
 TIMEOUT_TENTHS=50
 for _ in $(seq 1 "$TIMEOUT_TENTHS"); do
-  if pw-cli info 0 >/dev/null 2>&1; then
+  if pw-dump 0 >/dev/null 2>&1; then
     break
   fi
   sleep 0.1
 done
-if ! pw-cli info 0 >/dev/null 2>&1; then
+if ! pw-dump 0 >/dev/null 2>&1; then
   echo "pipewire did not become ready within timeout" >&2
   exit 1
 fi

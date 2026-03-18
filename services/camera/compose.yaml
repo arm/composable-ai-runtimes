@@ -1,14 +1,19 @@
 services:
   camera-service:
-    build: .
-    image: camera-service:trixie
+    build: 
+      context: .
+      args:
+        PIPEWIRE_COMMIT: d20a1523b6770dfa93a270bdda5d7c800d7ec191 # 1.4.2 Release
+    image: camera-service:latest
     group_add:
       - video
     cap_add:
       - SYS_NICE
     device_cgroup_rules:
       - "c 81:* rwm" # v4l2 video devices (/dev/video*, /dev/v4l-subdev*)
+      - "c 236:* rwm" # v4l2 media devices (/dev/media*) on RPi kernels using major 236/510/511
       - "c 510:* rwm" # v4l2 media devices (/dev/media*)
+      - "c 511:* rwm" # v4l2 media devices (/dev/media*) 
       - "c 189:* rwm" # usb devices (/dev/bus/usb/*)
     environment:
       XDG_RUNTIME_DIR: /run/pipewire
@@ -23,23 +28,5 @@ services:
       - /dev/dri/card0
       - /dev/dri/card1
       - /dev/dri/renderD128
-
-  # Simple client that lists devices every 10 seconds to check if the camera service is reachable.
-  pipewire-client:
-    profiles:
-      - validation
-    image: camera-service:trixie
-    depends_on:
-      - camera-service
-    environment:
-      XDG_RUNTIME_DIR: /run/pipewire
-    volumes:
-      - pipewire-runtime:/run/pipewire
-    entrypoint: ["/bin/sh", "-c"]
-    command:
-      [
-        "while true; do if pw-cli info 0 >/dev/null 2>&1; then pw-cli ls Node; else echo 'Camera service not reachable' >&2; fi; sleep 10; done",
-      ]
-
 volumes:
   pipewire-runtime:
