@@ -5,6 +5,7 @@
 Icon
 *.log
 .env
+.python-version
 
 # IDEs
 .idea/
