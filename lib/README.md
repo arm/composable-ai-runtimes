@@ -7,6 +7,7 @@ It reflects the current proof-of-concept (PoC) SDK surface, giving user applicat
 
 - Rust toolchain (via `rustup`)
 - Protocol Buffers compiler (`protoc`) available on `PATH`
+- Python 3.12 when building or testing the Python bindings
 
 Quick checks:
 
@@ -14,6 +15,7 @@ Quick checks:
 rustc --version
 cargo --version
 protoc --version
+python3 --version
 ```
 
 Workspace validation from the `lib` directory should explicitly cover both crates:
@@ -32,8 +34,15 @@ cargo run -p cairn-sdk-py --bin stub_gen
 
 The generated Python stub for the mixed Rust/Python package is written to `python/cairn_sdk/__init__.pyi`.
 
-## What it provides
+## Workspace layout
 
+- `crates/cairn-sdk`: Rust SDK crate
+- `crates/cairn-sdk-py`: Rust `PyO3` bindings crate
+- `python/`: Python package sources and packaging metadata
+
+## Rust SDK
+
+The Rust SDK lives at `crates/cairn-sdk` and is published as the `cairn-sdk-lib` Cargo package. It provides:
 - `camera_service::CameraService` client for connecting to the PipeWire camera service
 - `camera_service::CameraMetadata` for discovered PipeWire camera nodes
 - `camera_service::Camera` for direct PipeWire frame capture
@@ -53,14 +62,13 @@ The generated Python stub for the mixed Rust/Python package is written to `pytho
 
 The protobuf-generated modules are kept internal to each service implementation, and responses are mapped into library types.
 
-## Run the examples
+## Run the Rust examples
 
 From the `lib` directory:
 
 ```bash
 cargo run -p cairn-sdk-py --example list_cameras
-cargo run --example list_bricks
-cargo run --example run_brick_tts
+cargo run -p cairn-sdk-lib --example run_brick_tts
 ```
 
 By default, the camera discovery example connects to this camera service gRPC address:
@@ -94,13 +102,41 @@ XDG_RUNTIME_DIR=../services/camera/.pipewire-runtime pw-cli ls Node
 Override with `CAIRN_CONCORDIA_ENDPOINT`:
 
 ```bash
-CAIRN_CONCORDIA_ENDPOINT=http://127.0.0.1:50052 cargo run --example run_brick_tts
+CAIRN_CONCORDIA_ENDPOINT=http://127.0.0.1:50052 cargo run -p cairn-sdk-lib --example run_brick_tts
 ```
 
 `ConcordiaService::new` and `ConcordiaService::run_brick` both accept borrowed string slices, so callers can pass either string literals or borrowed `String` values without cloning solely for the API.
 
+## Python bindings
+
+The Python package lives in `python/` and is backed by the `crates/cairn-sdk-py` extension crate.
+
+From the `lib` directory:
+
+```bash
+maturin develop
+```
+
+Example usage:
+
+```python
+from cairn_sdk import ConcordiaService
+
+
+service = ConcordiaService("http://127.0.0.1:50052")
+result = service.run_brick(
+    "tts",
+    "kokoro",
+    {"text": "Hello from Cairn SDK"},
+)
+print(len(result.left_channel), len(result.right_channel))
+```
+
+Pass `run_brick` options as a dict containing exactly one of `text` or `image_bytes`.
+
+Numeric outputs exposed by the Python bindings use NumPy arrays for channel and bounding-box data.
+
 ## Example files
 
 - `crates/cairn-sdk-py/examples/list_cameras.rs`
-- `crates/cairn-sdk/examples/list_bricks.rs`
 - `crates/cairn-sdk/examples/run_brick_tts.rs`

@@ -1,3 +1,23 @@
-from ._bindings import Camera, CameraMetadata, CameraService, Frame
+from ._bindings import (
+    AudioOutput,
+    Camera,
+    CameraMetadata,
+    CameraService,
+    ConcordiaError,
+    ConcordiaService,
+    Detection,
+    Frame,
+    ObjectDetectionOutput,
+)
 
-__all__ = ["Camera", "CameraMetadata", "CameraService", "Frame"]
+__all__ = [
+    "AudioOutput",
+    "Camera",
+    "CameraMetadata",
+    "CameraService",
+    "ConcordiaError",
+    "ConcordiaService",
+    "Detection",
+    "Frame",
+    "ObjectDetectionOutput",
+]

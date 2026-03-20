@@ -43,7 +43,7 @@ This repository currently follows the proof-of-concept threshold by default.
 ### Architecture Boundaries
 
 - `services/*` is core SDK behaviour.
-- `lib/*` exposes reusable SDK-facing behaviour, built in Rust and bound to C ABI and Python using bindings, no service deployment logic.
+- `lib/*` exposes reusable SDK-facing behaviour. It contains Rust SDK crates under `lib/crates/*` and Python package files under `lib/python/*`, with no service deployment logic.
 - `docs-website/*` should document existing behaviour, not introduce runtime assumptions, should be updated alongside every new PR/feature to reflect the current behaviour of the SDK for users.
 
 ### Code Reviews
@@ -103,6 +103,15 @@ Rust SDK (when touching `lib/**`):
 cd lib
 cargo fmt --all -- --check
 cargo clippy --all-targets --all-features --no-deps
+```
+
+Python bindings package (when touching `lib/python/**` or `lib/crates/cairn-sdk-pyO3/**`):
+```bash
+cd lib
+cargo fmt --all -- --check
+cargo clippy --workspace --all-targets --all-features --no-deps
+cd python
+maturin build
 ```
 
 Docs website (when touching `docs-website/**`):
