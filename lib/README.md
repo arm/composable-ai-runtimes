@@ -24,6 +24,14 @@ cargo fmt --all -- --check
 cargo clippy --workspace --all-targets --all-features --no-deps
 ```
 
+Python binding stub generation from the `lib` directory:
+
+```bash
+cargo run -p cairn-sdk-py --bin stub_gen
+```
+
+The generated Python stub for the mixed Rust/Python package is written to `python/cairn_sdk/__init__.pyi`.
+
 ## What it provides
 
 - `camera_service::CameraService` client for connecting to the PipeWire camera service

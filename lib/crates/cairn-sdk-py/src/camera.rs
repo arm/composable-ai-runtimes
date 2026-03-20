@@ -3,14 +3,28 @@ use cairn_sdk::camera_service;
 use pyo3::prelude::{Bound, PyResult, Python};
 use pyo3::types::{PyModule, PyModuleMethods};
 use pyo3::{pyclass, pymethods};
+use pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pymethods};
 
+/// Class that handles reading frames from a camera.
+#[gen_stub_pyclass]
 #[pyclass(unsendable, module = "cairn_sdk", name = "Camera")]
 pub struct PyCamera {
     pub(crate) inner: camera_service::Camera,
 }
 
+#[gen_stub_pymethods]
 #[pymethods]
 impl PyCamera {
+    /// Return the latest available frame from the camera.
+    ///
+    /// Returns
+    /// -------
+    /// Frame
+    ///     The most recent frame captured for this camera.
+    ///
+    /// The returned `Frame` exposes the pixel data and basic image metadata.
+    #[pyo3(text_signature = "($self)")]
+    #[gen_stub(override_return_type(type_repr = "'Frame'"))]
     fn get_latest_frame(&self, py: Python<'_>) -> PyResult<PyFrame> {
         self.inner
             .get_latest_frame()
