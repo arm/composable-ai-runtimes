@@ -11,7 +11,8 @@ use std::path::Path;
 
 /// Python interface for the Cairn SDK.
 ///
-/// Use this module to discover cameras, open a camera and read its frames.
+/// Use this module to discover cameras, open a camera, read its frames, and run
+/// Concordia bricks.
 #[pymodule]
 fn _bindings(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add("__doc__", "Python bindings for the Cairn SDK.")?;
@@ -23,7 +24,7 @@ fn _bindings(module: &Bound<'_, PyModule>) -> PyResult<()> {
 
 pyo3_stub_gen::module_doc!(
     "cairn_sdk",
-    "Python interface for the Cairn SDK.\n\nUse this module to discover cameras, open a camera and read its frames."
+    "Python interface for the Cairn SDK.\n\nUse this module to discover cameras, open a camera, read its frames, and run Concordia bricks."
 );
 
 pub fn stub_info() -> StubResult<StubInfo> {

@@ -3,7 +3,7 @@
 r"""
 Python interface for the Cairn SDK.
 
-Use this module to discover cameras, open a camera, and read frames.
+Use this module to discover cameras, open a camera, read its frames, and run Concordia bricks.
 """
 
 import builtins
@@ -11,11 +11,39 @@ import numpy
 import numpy.typing
 import typing
 __all__ = [
+    "AudioOutput",
     "Camera",
     "CameraMetadata",
     "CameraService",
+    "ConcordiaError",
+    "ConcordiaService",
+    "Detection",
     "Frame",
+    "ObjectDetectionOutput",
 ]
+
+@typing.final
+class AudioOutput:
+    r"""
+    Audio samples returned by a Concordia brick.
+    
+    Attributes
+    ----------
+    left_channel:
+        Left audio channel as a one-dimensional NumPy array of `float32`.
+    right_channel:
+        Right audio channel as a one-dimensional NumPy array of `float32`.
+    """
+    @property
+    def left_channel(self) -> numpy.typing.NDArray[numpy.float32]:
+        r"""
+        Left audio channel as a one-dimensional NumPy array of `float32`.
+        """
+    @property
+    def right_channel(self) -> numpy.typing.NDArray[numpy.float32]:
+        r"""
+        Right audio channel as a one-dimensional NumPy array of `float32`.
+        """
 
 @typing.final
 class Camera:
@@ -54,7 +82,7 @@ class CameraMetadata:
 @typing.final
 class CameraService:
     r"""
-    Entry point for discovering cameras and opening a camera connection.
+    Class for discovering cameras and opening a camera connection.
     
     Create `CameraService()`, call `list_camera_metadata()` to inspect available
     cameras, then pass one of those results to `open()`.
@@ -70,7 +98,7 @@ class CameraService:
         """
     def list_camera_metadata(self) -> builtins.list[CameraMetadata]:
         r"""
-        Return the cameras that are currently available.
+        Return metadata describing the cameras that are currently available.
         
         Returns
         -------
@@ -79,18 +107,94 @@ class CameraService:
         """
     def open(self, camera: CameraMetadata) -> Camera:
         r"""
-        Open a camera using a `CameraMetadata` returned by `CameraService.list_camera_metadata()`.
+        Open a camera using a `CameraMetadata` object returned by `CameraService.list_camera_metadata()`.
         
         Parameters
         ----------
         camera:
-            The CameraMetadata object describing the camera to open the connection to, typically taken from
+            The CameraMetadata object describing the camera to open the connection to.
             `list_camera_metadata()`.
         
         Returns
         -------
         Camera
             An opened camera handle that can be used to read frames.
+        """
+
+class ConcordiaError(builtins.Exception):
+    r"""
+    Raised when a Concordia request fails.
+    """
+    ...
+
+@typing.final
+class ConcordiaService:
+    r"""
+    Entry point for running Concordia bricks and collecting their outputs.
+    
+    Create `ConcordiaService(endpoint)` with the service address, then call
+    `run_brick()` with the brick you want to execute and its input payload.
+    """
+    def __new__(cls, endpoint: builtins.str) -> 'ConcordiaService':
+        r"""
+        Create a Concordia service client.
+        
+        Parameters
+        ----------
+        endpoint:
+            Service address to connect to, for example `http://127.0.0.1:50052`.
+        
+        Returns
+        -------
+        ConcordiaService
+            A service handle that can run bricks and return typed outputs.
+        """
+    def run_brick(self, brick_type: builtins.str, brick_variant: builtins.str, options: dict[builtins.str, builtins.str | builtins.bytes]) -> AudioOutput | ObjectDetectionOutput:
+        r"""
+        Run a Concordia brick and return its output.
+        
+        Parameters
+        ----------
+        brick_type:
+            The kind of brick to run, such as `tts` or `object-detection`.
+        brick_variant:
+            The specific variant to execute within that brick type.
+        options:
+            Input payload for the brick. Provide exactly one of `{"text": "..."}`
+            or `{"image_bytes": b"..."}`.
+        
+        Returns
+        -------
+        AudioOutput | ObjectDetectionOutput
+            The typed output returned by the brick that was run.
+        """
+
+@typing.final
+class Detection:
+    r"""
+    One detected object returned by an object-detection brick.
+    
+    Attributes
+    ----------
+    box:
+        Bounding box coordinates as a one-dimensional NumPy array of `float32`.
+    class_id:
+        Numeric class identifier assigned by the model.
+    score:
+        Confidence score for the detection.
+    class_name:
+        Human-readable class label for the detection.
+    """
+    @property
+    def class_id(self) -> builtins.int: ...
+    @property
+    def score(self) -> builtins.float: ...
+    @property
+    def class_name(self) -> builtins.str: ...
+    @property
+    def box(self) -> numpy.typing.NDArray[numpy.float32]:
+        r"""
+        Bounding box coordinates as a one-dimensional NumPy array of `float32`.
         """
 
 @typing.final
@@ -128,5 +232,21 @@ class Frame:
         -------
         numpy.typing.NDArray[numpy.uint8]
             The raw pixel buffer for the frame.
+        """
+
+@typing.final
+class ObjectDetectionOutput:
+    r"""
+    Collection of detections returned by an object-detection brick.
+    
+    Attributes
+    ----------
+    detections:
+        Detected objects returned by the brick.
+    """
+    @property
+    def detections(self) -> builtins.list[Detection]:
+        r"""
+        Detected objects returned by the brick.
         """
 
