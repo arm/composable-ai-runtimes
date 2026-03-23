@@ -29,10 +29,10 @@ impl From<RustConcordiaError> for BindingError {
     }
 }
 
-/// Entry point for running Concordia bricks and collecting their outputs.
+/// Client for the Cairn Concordia inference service.
 ///
-/// Create `ConcordiaService(endpoint)` with the service address, then call
-/// `run_brick()` with the brick you want to execute and its input payload.
+/// Connects to the Concordia gRPC service and runs bricks synchronously from
+/// Python.
 #[gen_stub_pyclass]
 #[pyclass(unsendable, module = "cairn_sdk", name = "ConcordiaService")]
 pub(crate) struct PyConcordiaService {
@@ -48,21 +48,23 @@ impl PyConcordiaService {
     /// Parameters
     /// ----------
     /// endpoint:
-    ///     Service address to connect to, for example `http://127.0.0.1:50052`.
+    ///     Concordia service gRPC endpoint. Defaults to
+    ///     `http://127.0.0.1:50052`.
     ///
     /// Returns
     /// -------
     /// ConcordiaService
     ///     A service handle that can run bricks and return typed outputs.
     #[new]
-    #[pyo3(text_signature = "(endpoint)")]
+    #[pyo3(signature = (endpoint=None))]
+    #[pyo3(text_signature = "(endpoint=None)")]
     #[gen_stub(override_return_type(type_repr = "'ConcordiaService'"))]
-    fn new(endpoint: String) -> PyResult<Self> {
+    fn new(endpoint: Option<String>) -> PyResult<Self> {
         let tokio_runtime = build_runtime().map_err(|error| {
             ConcordiaError::new_err(format!("failed to initialize concordia runtime: {error}"))
         })?;
         let inner_service = tokio_runtime
-            .block_on(RustConcordiaService::new(&endpoint))
+            .block_on(RustConcordiaService::new(endpoint))
             .map_err(binding_error_to_pyerr)?;
 
         Ok(Self {
@@ -71,22 +73,22 @@ impl PyConcordiaService {
         })
     }
 
-    /// Run a Concordia brick and return its output.
+    /// Run a Concordia brick and return the decoded result.
     ///
     /// Parameters
     /// ----------
     /// brick_type:
-    ///     The kind of brick to run, such as `tts` or `object-detection`.
+    ///     Brick family to run, such as `tts` or `object-detection`.
     /// brick_variant:
-    ///     The specific variant to execute within that brick type.
+    ///     Brick variant to execute within that brick family.
     /// options:
-    ///     Input payload for the brick. Provide exactly one of `{"text": "..."}`
+    ///     Brick input payload. Provide exactly one of `{"text": "..."}`
     ///     or `{"image_bytes": b"..."}`.
     ///
     /// Returns
     /// -------
     /// AudioOutput | ObjectDetectionOutput
-    ///     The typed output returned by the brick that was run.
+    ///     The typed output returned by the service.
     #[pyo3(signature = (brick_type, brick_variant, options))]
     #[pyo3(text_signature = "($self, brick_type, brick_variant, options)")]
     #[gen_stub(override_return_type(type_repr = "AudioOutput | ObjectDetectionOutput"))]

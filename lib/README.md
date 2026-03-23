@@ -74,13 +74,13 @@ cargo run -p cairn-sdk-lib --example run_brick_tts
 By default, the camera discovery example connects to this camera service gRPC address:
 
 ```text
-http://[::1]:50051
+http://127.0.0.1:50051
 ```
 
 By default, inference examples connect to:
 
 ```text
-http://[::1]:50052
+http://127.0.0.1:50052
 ```
 
 To point the discovery example at a different camera service gRPC address, set the `CAMERA_SERVICE_ENDPOINT` environment variable:
@@ -105,11 +105,17 @@ Override with `CAIRN_CONCORDIA_ENDPOINT`:
 CAIRN_CONCORDIA_ENDPOINT=http://127.0.0.1:50052 cargo run -p cairn-sdk-lib --example run_brick_tts
 ```
 
-`ConcordiaService::new` and `ConcordiaService::run_brick` both accept borrowed string slices, so callers can pass either string literals or borrowed `String` values without cloning solely for the API.
+Both `CameraService::new` and `ConcordiaService::new` accept `Option<String>`. Pass `None` to use the default IPv4 loopback endpoint or `Some(endpoint)` to connect to a custom service address.
 
 ## Python bindings
 
 The Python package lives in `python/` and is backed by the `crates/cairn-sdk-py` extension crate.
+
+The bindings currently expose two synchronous clients:
+- `CameraService(endpoint=None)` connects to the camera service gRPC endpoint, lists camera metadata, and opens `Camera` handles for frame capture. The default endpoint is `http://127.0.0.1:50051`.
+- `ConcordiaService(endpoint=None)` connects to the Concordia inference gRPC endpoint and runs bricks through `run_brick(...)`. The default endpoint is `http://127.0.0.1:50052`.
+
+Opened `Camera` handles use direct PipeWire capture when `get_latest_frame()` is called. `ConcordiaService.run_brick(...)` accepts a Python `dict` payload with exactly one of `text` or `image_bytes` and returns typed output objects.
 
 From the `lib` directory:
 
@@ -123,7 +129,7 @@ Example usage:
 from cairn_sdk import ConcordiaService
 
 
-service = ConcordiaService("http://127.0.0.1:50052")
+service = ConcordiaService()
 result = service.run_brick(
     "tts",
     "kokoro",
@@ -131,8 +137,6 @@ result = service.run_brick(
 )
 print(len(result.left_channel), len(result.right_channel))
 ```
-
-Pass `run_brick` options as a dict containing exactly one of `text` or `image_bytes`.
 
 Numeric outputs exposed by the Python bindings use NumPy arrays for channel and bounding-box data.
 

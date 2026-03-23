@@ -12,7 +12,7 @@ pub(super) mod pipewire {
 use pipewire::ListRequest;
 use pipewire::pipewire_service_client::PipewireServiceClient;
 
-const DEFAULT_CAMERA_SERVICE_ENDPOINT: &str = "http://[::1]:50051";
+const DEFAULT_CAMERA_SERVICE_ENDPOINT: &str = "http://127.0.0.1:50051";
 
 #[derive(Debug)]
 pub enum CameraServiceError {

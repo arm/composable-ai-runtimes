@@ -3,6 +3,8 @@ use super::helpers::{parse_brick_type, parse_brick_variant};
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 
+const DEFAULT_CONCORDIA_SERVICE_ENDPOINT: &str = "http://127.0.0.1:50052";
+
 #[derive(Debug, PartialEq)]
 pub enum BrickType {
     Unspecified,
@@ -73,9 +75,11 @@ pub struct ConcordiaService {
 }
 
 impl ConcordiaService {
-    pub async fn new(endpoint: &str) -> Result<Self, ConcordiaError> {
+    pub async fn new(endpoint: Option<String>) -> Result<Self, ConcordiaError> {
+        let endpoint = endpoint.unwrap_or_else(|| DEFAULT_CONCORDIA_SERVICE_ENDPOINT.to_string());
+
         Ok(Self {
-            grpc_bridge: GrpcBridge::connect(endpoint).await?,
+            grpc_bridge: GrpcBridge::connect(&endpoint).await?,
         })
     }
 

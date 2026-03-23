@@ -5,7 +5,7 @@ use pyo3::types::{PyModule, PyModuleMethods};
 use pyo3::{pyclass, pymethods};
 use pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pymethods};
 
-/// Class that handles reading frames from a camera.
+/// Handle for reading frames from an opened camera.
 #[gen_stub_pyclass]
 #[pyclass(unsendable, module = "cairn_sdk", name = "Camera")]
 pub struct PyCamera {
@@ -15,7 +15,7 @@ pub struct PyCamera {
 #[gen_stub_pymethods]
 #[pymethods]
 impl PyCamera {
-    /// Return the latest available frame from the camera.
+    /// Return the latest frame available from this camera handle.
     ///
     /// Returns
     /// -------

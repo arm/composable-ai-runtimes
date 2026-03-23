@@ -48,11 +48,11 @@ class AudioOutput:
 @typing.final
 class Camera:
     r"""
-    Class that handles reading frames from a camera.
+    Handle for reading frames from an opened camera.
     """
     def get_latest_frame(self) -> 'Frame':
         r"""
-        Return the latest available frame from the camera.
+        Return the latest frame available from this camera handle.
         
         Returns
         -------
@@ -82,14 +82,20 @@ class CameraMetadata:
 @typing.final
 class CameraService:
     r"""
-    Class for discovering cameras and opening a camera connection.
+    Client for the Cairn camera service.
     
-    Create `CameraService()`, call `list_camera_metadata()` to inspect available
-    cameras, then pass one of those results to `open()`.
+    Connects to the camera service over gRPC, lists the cameras it reports, and
+    opens a camera handle for frame capture.
     """
-    def __new__(cls) -> 'CameraService':
+    def __new__(cls, endpoint: typing.Optional[builtins.str] = None) -> 'CameraService':
         r"""
         Create a camera service client.
+        
+        Parameters
+        ----------
+        endpoint:
+            Camera service gRPC endpoint. Defaults to
+            `http://127.0.0.1:50051`.
         
         Returns
         -------
@@ -98,27 +104,26 @@ class CameraService:
         """
     def list_camera_metadata(self) -> builtins.list[CameraMetadata]:
         r"""
-        Return metadata describing the cameras that are currently available.
+        List the cameras currently reported by the camera service.
         
         Returns
         -------
         list[CameraMetadata]
-            Camera descriptors that can be passed to `open()`.
+            Camera descriptors returned by the camera service.
         """
     def open(self, camera: CameraMetadata) -> Camera:
         r"""
-        Open a camera using a `CameraMetadata` object returned by `CameraService.list_camera_metadata()`.
+        Open a camera returned by `list_camera_metadata()`.
         
         Parameters
         ----------
         camera:
-            The CameraMetadata object describing the camera to open the connection to.
-            `list_camera_metadata()`.
+            Camera metadata returned by `list_camera_metadata()`.
         
         Returns
         -------
         Camera
-            An opened camera handle that can be used to read frames.
+            A camera handle that can read the latest available frame.
         """
 
 class ConcordiaError(builtins.Exception):
@@ -130,19 +135,20 @@ class ConcordiaError(builtins.Exception):
 @typing.final
 class ConcordiaService:
     r"""
-    Entry point for running Concordia bricks and collecting their outputs.
+    Client for the Cairn Concordia inference service.
     
-    Create `ConcordiaService(endpoint)` with the service address, then call
-    `run_brick()` with the brick you want to execute and its input payload.
+    Connects to the Concordia gRPC service and runs bricks synchronously from
+    Python.
     """
-    def __new__(cls, endpoint: builtins.str) -> 'ConcordiaService':
+    def __new__(cls, endpoint: typing.Optional[builtins.str] = None) -> 'ConcordiaService':
         r"""
         Create a Concordia service client.
         
         Parameters
         ----------
         endpoint:
-            Service address to connect to, for example `http://127.0.0.1:50052`.
+            Concordia service gRPC endpoint. Defaults to
+            `http://127.0.0.1:50052`.
         
         Returns
         -------
@@ -151,22 +157,22 @@ class ConcordiaService:
         """
     def run_brick(self, brick_type: builtins.str, brick_variant: builtins.str, options: dict[builtins.str, builtins.str | builtins.bytes]) -> AudioOutput | ObjectDetectionOutput:
         r"""
-        Run a Concordia brick and return its output.
+        Run a Concordia brick and return the decoded result.
         
         Parameters
         ----------
         brick_type:
-            The kind of brick to run, such as `tts` or `object-detection`.
+            Brick family to run, such as `tts` or `object-detection`.
         brick_variant:
-            The specific variant to execute within that brick type.
+            Brick variant to execute within that brick family.
         options:
-            Input payload for the brick. Provide exactly one of `{"text": "..."}`
+            Brick input payload. Provide exactly one of `{"text": "..."}`
             or `{"image_bytes": b"..."}`.
         
         Returns
         -------
         AudioOutput | ObjectDetectionOutput
-            The typed output returned by the brick that was run.
+            The typed output returned by the service.
         """
 
 @typing.final
