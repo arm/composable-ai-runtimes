@@ -10,23 +10,12 @@ services:
     cap_add:
       - SYS_NICE
     device_cgroup_rules:
-      - "c 81:* rwm" # v4l2 video devices (/dev/video*, /dev/v4l-subdev*)
-      - "c 236:* rwm" # v4l2 media devices (/dev/media*) on RPi kernels using major 236/510/511
-      - "c 510:* rwm" # v4l2 media devices (/dev/media*)
-      - "c 511:* rwm" # v4l2 media devices (/dev/media*) 
-      - "c 189:* rwm" # usb devices (/dev/bus/usb/*)
+      - "c *:* rwm" # Wider Cgroup permissions for devices, to reduce compatibility issues across different host configurations.
     environment:
       XDG_RUNTIME_DIR: /run/pipewire
     volumes:
       - pipewire-runtime:/run/pipewire
       - /dev:/dev
       - /run/udev:/run/udev:ro
-    devices:
-      - /dev/dma_heap/system
-      - /dev/dma_heap/linux,cma
-      - /dev/dma_heap/vidbuf_cached
-      - /dev/dri/card0
-      - /dev/dri/card1
-      - /dev/dri/renderD128
 volumes:
   pipewire-runtime:
