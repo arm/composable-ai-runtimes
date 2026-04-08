@@ -55,7 +55,7 @@ export const homepageContent = {
   ] as HomepageLink[],
   installTitle: "Get started in 30 seconds",
   installCommands: [
-    "topo clone demo git@github.com:Arm-Debug/cairn-sdk-concordia.git#demo/concordia-topo",
+    "topo clone git@github.com:Arm-Debug/cairn-sdk-concordia.git#demo/concordia-topo demo",
     "cd demo",
     "topo extend compose.yaml git:https://github.com/Arm-Debug/cairn-sdk.git#concordia-topo",
     "topo deploy --target my_user@my_device",
