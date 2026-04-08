@@ -28,6 +28,11 @@ export type InstallCta = {
   to: string;
 };
 
+export type InstallLink = {
+  label: string;
+  href: string;
+};
+
 export const homepageContent = {
   meta: {
     title: "Cairn SDK",
@@ -50,13 +55,20 @@ export const homepageContent = {
   ] as HomepageLink[],
   installTitle: "Get started in 30 seconds",
   installCommands: [
-    "topo clone cairn-sdk https://github.com/Arm-Debug/cairn-sdk",
+    "topo clone demo git@github.com:Arm-Debug/cairn-sdk-concordia.git#demo/concordia-topo",
+    "cd demo",
+    "topo extend compose.yaml git:https://github.com/Arm-Debug/cairn-sdk.git#concordia-topo",
     "topo deploy --target my_user@my_device",
+    "docker -H ssh://my_user@my_device compose logs -f cairn-sdk-user-app",
   ],
   installCta: {
     label: "Your First Program",
     to: "/tutorials/getting-started/your-first-program",
   } as InstallCta,
+  installLink: {
+    label: "Get Topo",
+    href: "https://github.com/arm/topo",
+  } as InstallLink,
   codeExamples: {
     eyebrow: "Developer Experience",
     title: "From idea to running code in minutes",

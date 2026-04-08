@@ -50,15 +50,28 @@ export default function Home(): ReactElement {
                 </div>
               ))}
             </pre>
-            <Link
-              to={homepageContent.installCta.to}
-              className={clsx(
-                "button button--sm button--primary",
-                styles.installCta,
-              )}
-            >
-              {homepageContent.installCta.label}
-            </Link>
+            <div className={styles.installActions}>
+              <Link
+                to={homepageContent.installCta.to}
+                className={clsx(
+                  "button button--sm button--primary",
+                  styles.installCta,
+                )}
+              >
+                {homepageContent.installCta.label}
+              </Link>
+              <a
+                href={homepageContent.installLink.href}
+                target="_blank"
+                rel="noreferrer"
+                className={clsx(
+                  "button button--sm button--secondary",
+                  styles.installLink,
+                )}
+              >
+                {homepageContent.installLink.label}
+              </a>
+            </div>
           </div>
         </section>
 

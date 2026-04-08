@@ -119,8 +119,20 @@
     margin: 0;
 }
 
+.installActions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
 .installCta {
     align-self: flex-end;
+}
+
+.installLink {
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .cardFooter {
@@ -312,5 +324,9 @@
 
     .heroCard {
         order: -1;
+    }
+
+    .installActions {
+        justify-content: flex-start;
     }
 }
