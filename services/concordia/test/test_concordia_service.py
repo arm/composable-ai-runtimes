@@ -2,6 +2,7 @@
 import sys
 from pathlib import Path
 import grpc
+import numpy as np
 import pytest
 
 PROTO_DIR = Path(__file__).parent.parent / "src" / "inference" / "proto"
@@ -14,14 +15,14 @@ channel = grpc.insecure_channel("localhost:50052")
 
 def test_obj_detection_reply():
     stub = pb2_grpc.InferenceServiceStub(channel)
-    with open("test/sample.jpg", "rb") as f:
-        image_bytes = f.read()
+    frame = np.zeros((480, 640, 3), dtype=np.uint8)
+    frame[..., 0] = 255
     request = pb2.RunBrickRequest(
         brick=pb2.BrickSpec(
             type=pb2.BRICK_TYPE_OBJECT_DETECTION,
             brick_variant="yolo",
         ),
-        image=pb2.ImageInput(image_bytes=image_bytes)
+        image=pb2.ImageInput(image_bytes=frame.tobytes())
     )
     try:
         response = stub.RunBrick(request, timeout=5)

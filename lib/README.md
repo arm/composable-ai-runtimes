@@ -115,7 +115,7 @@ The bindings currently expose two synchronous clients:
 - `CameraService(endpoint=None)` connects to the camera service gRPC endpoint, lists camera metadata, and opens `Camera` handles for frame capture. The default endpoint is `http://127.0.0.1:50051`.
 - `ConcordiaService(endpoint=None)` connects to the Concordia inference gRPC endpoint and runs bricks through `run_brick(...)`. The default endpoint is `http://127.0.0.1:50052`.
 
-Opened `Camera` handles use direct PipeWire capture when `get_latest_frame()` is called. `ConcordiaService.run_brick(...)` accepts a Python `dict` payload with exactly one of `text` or `image_bytes` and returns typed output objects.
+Opened `Camera` handles use direct PipeWire capture when `get_latest_frame()` is called. `ConcordiaService.run_brick(...)` accepts a Python `dict` payload with exactly one of `text` or `image_bytes` and returns typed output objects. For object detection, `image_bytes` should contain raw packed RGB pixels. If the input comes from `Camera.get_latest_frame()`, pass `frame.pixels.tobytes()` directly when that frame is already RGB.
 
 From the `lib` directory:
 

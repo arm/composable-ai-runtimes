@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import Any
-import io
 import os
 
 import numpy as np
@@ -9,6 +8,10 @@ from PIL import Image
 
 import compute_flow_py as cfpy
 from .proto import concordia_pb2 as pb2
+
+DEFAULT_IMAGE_WIDTH = 640
+DEFAULT_IMAGE_HEIGHT = 480
+DEFAULT_IMAGE_CHANNELS = 3
 
 
 def configure_accelerators(manifest: Any, brick_type: int, variant: str) -> None:
@@ -32,7 +35,20 @@ def to_float_list(values: Any) -> list[float]:
 
 
 def image_bytes_to_npy(image_bytes: bytes, input_size=(640, 640)) -> np.ndarray:
-    img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    expected_len = DEFAULT_IMAGE_WIDTH * DEFAULT_IMAGE_HEIGHT * DEFAULT_IMAGE_CHANNELS
+    if len(image_bytes) != expected_len:
+        raise ValueError(
+            "image_bytes must contain raw packed RGB pixels for "
+            f"{DEFAULT_IMAGE_WIDTH}x{DEFAULT_IMAGE_HEIGHT} input "
+            f"({expected_len} bytes)"
+        )
+
+    img_np = np.frombuffer(image_bytes, dtype=np.uint8).reshape(
+        DEFAULT_IMAGE_HEIGHT,
+        DEFAULT_IMAGE_WIDTH,
+        DEFAULT_IMAGE_CHANNELS,
+    )
+    img = Image.fromarray(img_np, mode="RGB")
     img = img.resize(input_size, Image.BILINEAR)
     img_np = np.asarray(img).astype(np.float32)
     img_np /= 255.0
@@ -74,4 +90,3 @@ def to_detections(output: Any) -> list[pb2.Detection]:
             )
         )
     return detections
-

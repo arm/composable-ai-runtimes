@@ -167,7 +167,10 @@ class ConcordiaService:
             Brick variant to execute within that brick family.
         options:
             Brick input payload. Provide exactly one of `{"text": "..."}`
-            or `{"image_bytes": b"..."}`.
+            or `{"image_bytes": b"..."}`. For object detection, `image_bytes`
+            is expected to contain raw packed RGB pixels. When using
+            `Camera.get_latest_frame()`, pass `frame.pixels.tobytes()` when
+            the frame is already RGB.
         
         Returns
         -------
@@ -255,4 +258,3 @@ class ObjectDetectionOutput:
         r"""
         Detected objects returned by the brick.
         """
-
