@@ -2,7 +2,7 @@
 set -eu
 
 mkdir -p "$XDG_RUNTIME_DIR" /run/dbus
-chmod 700 "$XDG_RUNTIME_DIR"
+chmod 711 "$XDG_RUNTIME_DIR"
 chmod 755 /run/dbus
 
 if [ ! -s /etc/machine-id ]; then
@@ -30,6 +30,9 @@ if ! pw-dump 0 >/dev/null 2>&1; then
   echo "pipewire did not become ready within timeout" >&2
   exit 1
 fi
+
+# Allow non-root client containers to connect to the public PipeWire socket on the shared runtime volume.
+chmod 666 "$XDG_RUNTIME_DIR"/pipewire-0
 
 wireplumber &
 WIREPLUMBER_PID=$!

@@ -40,10 +40,7 @@ The compose file builds the camera service image locally. Run from the repositor
 docker compose -f services/camera/compose.yaml up --build
 ```
 
-# Optional validation client
-```bash
-docker compose -f services/camera/compose.yaml --profile validation up --build
-```
+The camera container uses network_mode: host to ensure reliable hotplug detection. PipeWire depends on udev events, which are not consistently delivered inside the container under the default network configuration.
 
 The compose file mounts a minimal set of device nodes for camera and DMA-BUF support. If your camera uses different `/dev/video*`, `/dev/media*`, or `/dev/v4l-subdev*` nodes, update `services/camera/compose.yaml` accordingly.
 

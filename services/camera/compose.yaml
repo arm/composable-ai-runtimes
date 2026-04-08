@@ -5,6 +5,8 @@ services:
       args:
         PIPEWIRE_COMMIT: d20a1523b6770dfa93a270bdda5d7c800d7ec191 # 1.4.2 Release
     image: camera-service:latest
+    # The Camera service needs access to host uevents for device hotplug handling.
+    network_mode: host
     group_add:
       - video
     cap_add:

@@ -1,7 +1,35 @@
+x-redis-port: &redis_port 6379
+
 services:
-  messaging:
+  messaging-service:
     image: redis-pubsub:local
     build: ./messaging
-    container_name: redis-pubsub
     ports:
-      - "6379:6379"
+      - host_ip: 127.0.0.1
+        target: *redis_port
+        published: *redis_port
+        protocol: tcp
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 2s
+      retries: 10
+  
+  camera-service:
+    extends:
+      file: camera/compose.yaml
+      service: camera-service
+    depends_on:
+      messaging-service:
+        condition: service_healthy
+    network_mode: host
+    environment:
+      PWC_REDIS_ENABLED: 1
+      PWC_REDIS_HOST: 127.0.0.1
+      PWC_REDIS_PORT: *redis_port
+      PWC_REDIS_CHANNEL_EVENTS: camera.events
+      # PWC_REDIS_PASSWORD is optional, only set if your Redis server requires authentication
+      # PWC_REDIS_PASSWORD: 
+
+volumes:
+  pipewire-runtime:
