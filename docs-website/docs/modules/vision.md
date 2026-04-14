@@ -91,47 +91,83 @@ The client SDK remains a thin shim over services in this proposed model. It does
 
 Conceptually, the application looks something like this:
 
+
 ```python
-from cairn import VisionClient
-from cairn import NotificationClient
-import asyncio
+import os
+import time
 
-
-vision = VisionClient()
-notifications = NotificationClient()
-
-session = vision.start_workflow(
-    source={"camera_id": "front-camera"},
-    workflow={
-        "stages": [
-            {"id": "detector", "kind": "object_detection", "model": "yolo"},
-        ]
-    },
-    outputs={
-        "results": True,
-        "webrtc": {"annotated": True},
-    },
+from cairn_sdk import CameraService
+from cairn_sdk.vision_builder import Inference, Output, VisionBuilder
+from cairn_sdk.vision_builder.opchains import (
+    GenericImagePreprocess,
+    GenericPostprocess,
+    InferenceController,
+    OpChain,
+    OpChainInference,
 )
+from cairn_sdk.vision_builder.outputs import AMPSink, RTSPStreamSink
+from cairn_sdk.vision_builder.presets import Ultraface
 
-def handle_camera_disconnect(notification):
-  if notification.camera_id == session.source["camera_id"]:
-    session.stop()
 
-notifications.subscribe(
-	"camera.disconnected",
-	handle_camera_disconnect
-)
+def main():
+    camera = CameraService().list_camera_metadata()[0]
 
-notifications.subscribe(
-	"vision.webrtc.ready",
-	lambda notification: print(f"Open preview at {notification.viewer_url}"),
-)
+    pipeline = (
+        VisionBuilder(
+            camera=camera,
+        )
+        .add(Inference(name="faces", opchain=Ultraface(), active=True))
+        .add(
+            Inference(
+                name="custom_objects",
+                active=False,
+                opchain=OpChain(
+                    ops=[
+                        InferenceController(),
+                        GenericImagePreprocess(
+                            inputImageTensorIndex=0,
+                            inputImageSourceName="pipelineVideoFrame",
+                        ),
+                        OpChainInference(
+                            modelDescriptor="/work/etc/models/yolo/yolo.json",
+                        ),
+                        GenericPostprocess(
+                            parser="YoloParser",
+                            normalizeOutputCoordinates=False,
+                            applyNms=True,
+                            confidenceThreshold=0.5,
+                            iouThreshold=0.45,
+                        ),
+                    ]
+                ),
+            )
+        )
+        .build(
+            output=Output(
+                sink=AMPSink(), # or RTSPSink
+                show_performance=True,
+                show_detections=True,
+            )
+        )
+    )
 
-notifications.subscribe(
-	topic="vision.results.ready",
-	handler=lambda notification: print(notification.result.detections),
-)
+    pipeline.add_listener(inference="faces", callback=handle_faces)
+    pipeline.add_listener(inference="custom_objects", callback=handle_custom_objects)
 
+    pipeline.start()
+    try:
+        print(f"Vision session {pipeline.session_id} started")
+        pipeline.enable("custom_objects")
+        while True:
+            time.sleep(1)
+            # pipeline.disable("faces")
+            # pipeline.enable("faces")
+    finally:
+        pipeline.stop()
+
+
+if __name__ == "__main__":
+    main()
 ```
 
-Under the hood, `start_workflow(...)` is an asynchronous control-plane request to the Vision Service. The service validates the request, translates the declared graph into an internal runtime pipeline, starts the session and returns a `session_id` immediately.
+This keeps `main()` short while still showing the core VisionBuilder surface: named inferences, preview output, listeners, and runtime control.
