@@ -21,14 +21,14 @@ The Camera Service is currently designed to run on a Raspberry Pi. The container
 
 ### Image Dependencies
 
-The daemon image is based on `dtcooper/raspberrypi-os:bookworm` and installs these key components:
+The daemon image is based on the first-party `debian:trixie` image and installs these key components from the Debian repositories, except for `libcamera`, which is now built from source in a separate build stage and copied into the runtime image:
 
-- PipeWire and the bundled WirePlumber session manager, built from a pinned upstream commit and installed into the standard system paths.
+- PipeWire and the bundled WirePlumber session manager.
 - Camera stack: `libcamera0.4`, `libcamera-ipa`, `libcamera-v4l2`, `libv4l-0`.
 - SPA modules for camera: `libspa-0.2-libcamera`.
 - D-Bus and RTKit support for the headless session manager startup path.
 
-The camera service runs WirePlumber with its default configuration (the Raspberry Pi OS package does not expose a profile flag).
+The camera service runs WirePlumber with the configuration in `services/camera/config/wireplumber`.
 It also starts the PipeWire camera monitor (from `services/camera/pipewire`) in the same container so that camera
 connect/disconnect and stream link events are visible in logs.
 
@@ -55,7 +55,7 @@ The camera service uses RTKit for realtime scheduling inside the container:
 If you want to build just the camera service image:
 
 ```bash
-docker build -t camera-service:bookworm services/camera
+docker build -t camera-service:trixie services/camera
 ```
 
 You can build and run the Camera Service using `docker compose`:
