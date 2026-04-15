@@ -1,20 +1,19 @@
 #!/bin/sh
 set -eu
 
-mkdir -p "$XDG_RUNTIME_DIR" /run/dbus
-chmod 711 "$XDG_RUNTIME_DIR"
-chmod 755 /run/dbus
-
-if [ ! -s /etc/machine-id ]; then
-  dbus-uuidgen --ensure=/etc/machine-id
+if [ ! -d "$XDG_RUNTIME_DIR" ]; then
+  echo "missing runtime directory: $XDG_RUNTIME_DIR" >&2
+  echo "fix: ensure /run/pipewire is mounted from the pipewire-runtime volume in services/camera/compose.yaml" >&2
+  echo "fix: recreate the runtime volume with 'docker compose -f services/camera/compose.yaml down && docker volume rm camera_pipewire-runtime'" >&2
+  exit 1
 fi
 
-dbus-daemon --system --nofork --nopidfile &
-dbus-daemon --session --address=unix:path=/run/dbus/session_bus_socket --nofork --nopidfile &
-export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/dbus/session_bus_socket
-
-if command -v rtkit-daemon >/dev/null 2>&1; then
-  rtkit-daemon &
+if [ ! -w "$XDG_RUNTIME_DIR" ]; then
+  echo "runtime directory is not writable: $XDG_RUNTIME_DIR" >&2
+  echo "fix: this usually means the pipewire-runtime volume was created by an older root-based image" >&2
+  echo "fix: start the container as root with /usr/local/bin/permissions-set-entrypint.sh to repair ownership before dropping privileges" >&2
+  echo "fix: recreate it with 'docker compose -f services/camera/compose.yaml down && docker volume rm camera_pipewire-runtime'" >&2
+  exit 1
 fi
 
 pipewire &

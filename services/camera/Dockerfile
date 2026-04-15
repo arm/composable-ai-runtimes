@@ -66,11 +66,13 @@ RUN make
 FROM ${BASE_IMAGE}
 
 ARG DEBIAN_FRONTEND=noninteractive
+ARG CAMERA_SERVICE_UID=10001
+ARG CAMERA_SERVICE_GID=10001
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    dbus=1.16.2-2 \
     libasound2t64=1.2.14-1 \
     libavahi-client3=0.8-16 \
+    libcap2-bin=1:2.75-10+b8 \
     libdbus-1-3=1.16.2-2 \
     libdrm2=2.4.124-2 \
     libgbm1=25.0.7-2 \
@@ -82,12 +84,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libunwind8=1.8.1-0.1 \
     libv4l-0t64=1.30.1-1 \
     pipewire=1.4.2-1 \
-    rtkit=0.13-5.1+b1 \
     wireplumber=0.5.8-2 \
   && rm -rf /var/lib/apt/lists/*
 
-ENV XDG_RUNTIME_DIR=/run/pipewire
-ENV PIPEWIRE_NO_PORTAL=1
+RUN groupadd --system --gid "${CAMERA_SERVICE_GID}" camera-service \
+  && useradd --system --uid "${CAMERA_SERVICE_UID}" --gid camera-service --groups video \
+      --create-home --home-dir /home/camera-service --shell /usr/sbin/nologin camera-service \
+  && mkdir -p /run/pipewire \
+  && chown -R camera-service:camera-service /home/camera-service /run/pipewire \
+  && chmod 711 /run/pipewire
+
+ENV HOME=/home/camera-service \
+    USER=camera-service \
+    LOGNAME=camera-service \
+    XDG_RUNTIME_DIR=/run/pipewire
 
 COPY config/pipewire/ /etc/pipewire/pipewire.conf.d/
 COPY config/wireplumber/ /etc/wireplumber/wireplumber.conf.d/
@@ -95,7 +105,12 @@ COPY config/wireplumber/ /etc/wireplumber/wireplumber.conf.d/
 COPY --from=libcamera-build /tmp/libcamera-install/ /
 COPY --from=camera-service-build /src/pipewire/server /usr/local/bin/server
 COPY scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/server \
+COPY scripts/permissions-set-entrypint.sh /usr/local/bin/permissions-set-entrypint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/permissions-set-entrypint.sh /usr/local/bin/server \
+  && setcap cap_sys_nice=ep /usr/bin/pipewire \
+  && setcap cap_sys_nice=ep /usr/bin/wireplumber \
   && ldconfig
+
+USER camera-service
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

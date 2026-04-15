@@ -44,6 +44,8 @@ The camera container uses network_mode: host to ensure reliable hotplug detectio
 
 The compose file mounts a minimal set of device nodes for camera and DMA-BUF support. If your camera uses different `/dev/video*`, `/dev/media*`, or `/dev/v4l-subdev*` nodes, update `services/camera/compose.yaml` accordingly.
 
+The compose service starts with a root-only permission entrypoint so it can repair ownership on the mounted `XDG_RUNTIME_DIR` path (`/run/pipewire` by default), then immediately drops back to the non-privileged `camera-service` user before starting PipeWire, WirePlumber, and the camera monitor.
+
 The compose stack also includes a small client container that connects to the camera service and lists PipeWire nodes every 10 seconds as a lightweight validation step.
 It is disabled by default; enable it with `--profile validation`.
 
