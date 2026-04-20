@@ -21,12 +21,12 @@ The Camera Service is currently designed to run on a Raspberry Pi. The container
 
 ### Image Dependencies
 
-The daemon image is based on the first-party `debian:trixie` image and installs these key components from the Debian repositories, except for `libcamera`, which is now built from source in a separate build stage and copied into the runtime image:
+The daemon image is based on the first-party `debian:trixie` image.
+It uses the Raspberry Pi package archive for the camera stack and builds PipeWire from source so the runtime image stays aligned with the Raspberry Pi `libcamera` packages.
 
-- PipeWire and the bundled WirePlumber session manager.
-- Camera stack: `libcamera0.4`, `libcamera-ipa`, `libcamera-v4l2`, `libv4l-0`.
-- SPA modules for camera: `libspa-0.2-libcamera`.
-- D-Bus and RTKit support for the headless session manager startup path.
+- PipeWire runtime and SPA camera modules.
+- Raspberry Pi camera stack: `libcamera0.7`, `libcamera-v4l2`, `libpisp1`.
+- WirePlumber and the supporting runtime libraries needed for the headless startup path.
 
 The camera service runs WirePlumber with the configuration in `services/camera/config/wireplumber`.
 It also starts the PipeWire camera monitor (from `services/camera/pipewire`) in the same container so that camera
@@ -45,9 +45,6 @@ The camera container uses network_mode: host to ensure reliable hotplug detectio
 The compose file mounts a minimal set of device nodes for camera and DMA-BUF support. If your camera uses different `/dev/video*`, `/dev/media*`, or `/dev/v4l-subdev*` nodes, update `services/camera/compose.yaml` accordingly.
 
 The compose service starts with a root-only permission entrypoint so it can repair ownership on the mounted `XDG_RUNTIME_DIR` path (`/run/pipewire` by default), then immediately drops back to the non-privileged `camera-service` user before starting PipeWire, WirePlumber, and the camera monitor.
-
-The compose stack also includes a small client container that connects to the camera service and lists PipeWire nodes every 10 seconds as a lightweight validation step.
-It is disabled by default; enable it with `--profile validation`.
 
 The camera service uses RTKit for realtime scheduling inside the container:
 
