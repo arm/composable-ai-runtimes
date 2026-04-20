@@ -1,0 +1,15 @@
+[package]
+name = "camera-rust"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+
+
+[[bin]]
+name = 'notifications'
+path = 'src/notifications/main.rs'
+
+[[bin]]
+name = 'grpc'
+path = 'src/grpc/main.rs'
