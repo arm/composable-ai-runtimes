@@ -27,3 +27,17 @@ The default container entrypoint starts both daemons:
 ```bash
 docker run --rm camera-service-rust:trixie
 ```
+
+The `notifications` binary currently depends on PipeWire and is only built natively on Linux hosts with the required development libraries available via `pkg-config`.
+
+To build the notifications binary:
+
+```bash
+cargo build --bin notifications
+```
+
+To test it:
+
+```bash
+cargo test --bin notifications
+```
