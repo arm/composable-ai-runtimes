@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package camera.pipewire.v1;
+
+service CameraService {
+  rpc list_cameras (ListRequest) returns (ListCamerasResponse);
+}
+
+message ListRequest {}
+
+message ListCamerasResponse {
+  repeated Camera cameras = 1;
+}
+
+message Camera {
+  uint32 id = 1;
+  string name = 2;
+}

@@ -11,11 +11,11 @@ RUN cargo build --locked --release --bins
 
 FROM ${RUST_IMAGE} AS camera-service-runtime
 
-COPY --from=camera-service-rust-build /src/target/release/grpc /usr/local/bin/grpc
+COPY --from=camera-service-rust-build /src/target/release/api /usr/local/bin/api
 COPY --from=camera-service-rust-build /src/target/release/notifications /usr/local/bin/notifications
 COPY scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
 
-RUN chmod +x /usr/local/bin/grpc /usr/local/bin/notifications /usr/local/bin/entrypoint.sh \
+RUN chmod +x /usr/local/bin/api /usr/local/bin/notifications /usr/local/bin/entrypoint.sh \
   && ldconfig
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
