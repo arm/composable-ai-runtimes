@@ -2,11 +2,11 @@
 
 The Camera Service is responsible for management of connected cameras, as well as capturing streams from the cameras and providing them to other services.
 
-This Rust port is still early-stage. The container image uses the Rust `trixie` base image and starts both service binaries.
+This Rust port is still early-stage. The container image is built with a Debian `trixie` multi-stage Dockerfile and starts both service binaries.
 
 ## Building the Camera Service
 
-The camera service consists of two binaries. One is responsible for handling the API communications and the other is responsible for handling the notifications sending to the event bus. Both are built with `cargo`:
+The camera service consists of two binaries. One handles the API communications and the other handles notifications from PipeWire.
 
 Local prerequisites:
 
@@ -20,7 +20,7 @@ To build the API binary locally:
 cargo build --release --bin api
 ```
 
-The `api` binary compiles `services/camera-rust/proto/camera_service.proto` via `tonic`/`prost` during the Cargo build and starts an API server with a stub response for `list_cameras`.
+The `api` binary compiles `services/camera-rust/proto/camera_service.proto` during the Cargo build and currently serves a stub `list_cameras` response.
 
 To run the API server locally:
 
@@ -40,36 +40,30 @@ Or set `CAMERA_API_LISTEN_ADDR`:
 CAMERA_API_LISTEN_ADDR=127.0.0.1:50052 cargo run --bin api
 ```
 
-## Building the Container Image
-
-The Docker image is built from the repository root so Docker can copy the Rust crate sources into the build stage:
-
-```bash
-docker build -f services/camera-rust/Dockerfile -t camera-service-rust:trixie .
-```
-
-The default container entrypoint starts both daemons:
-
-```bash
-docker run --rm camera-service-rust:trixie
-```
-
-The `notifications` binary currently depends on PipeWire and is only built natively on Linux hosts with the required development libraries available via `pkg-config`.
-
 To build the notifications binary:
 
 ```bash
 cargo build --bin notifications
 ```
 
-To build both release binaries on a host with PipeWire development headers installed:
-
-```bash
-cargo build --bin api --bin notifications
-```
-
-To test it:
+To run its tests:
 
 ```bash
 cargo test --bin notifications
 ```
+
+## Running with Compose
+
+Use the local Compose file in this directory to build and start the camera service container:
+
+```bash
+docker compose up --build
+```
+
+To validate the Compose configuration without starting the service:
+
+```bash
+docker compose config
+```
+
+The default container entrypoint starts both service binaries. The `notifications` binary depends on PipeWire and the Compose setup mounts the required host runtime and device paths for that workflow.
