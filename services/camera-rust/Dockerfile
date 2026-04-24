@@ -89,12 +89,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-dev=2.84.4-3~deb13u2 \
     libclang-common-19-dev \
     libclang1-19 \
+    protobuf-compiler=3.21.12-11 \
     libudev-dev \
     pkg-config=1.8.1-4 \
   && rm -rf /var/lib/apt/lists/*
 
 COPY --from=pipewire-build /opt/pipewire-root/usr/ /usr/
-COPY Cargo.toml Cargo.lock ./
+COPY Cargo.toml Cargo.lock build.rs ./
+COPY proto ./proto
 COPY src ./src
 
 RUN cargo build --locked --release --bins
