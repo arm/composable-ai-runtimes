@@ -46,10 +46,23 @@ To build the notifications binary:
 cargo build --bin notifications
 ```
 
+To run the notifications binary locally with the default Redis settings:
+
+```bash
+cargo run --bin notifications
+```
+
+By default it connects to Redis at `127.0.0.1:6379` and publishes camera events to `camera.events`. These Redis environment variables are optional overrides:
+
+- `PWC_REDIS_HOST`
+- `PWC_REDIS_PORT`
+- `PWC_REDIS_CHANNEL_EVENTS`
+- `PWC_REDIS_PASSWORD`
+
 To run its tests:
 
 ```bash
-cargo test --bin notifications
+cargo test --lib
 ```
 
 ## Running with Compose
@@ -66,4 +79,4 @@ To validate the Compose configuration without starting the service:
 docker compose config
 ```
 
-The default container entrypoint starts both service binaries. The `notifications` binary depends on PipeWire and the Compose setup mounts the required host runtime and device paths for that workflow.
+The default container entrypoint starts both service binaries. The `notifications` binary applies its Redis defaults before connecting, fails fast if Redis cannot be reached at startup, and also depends on PipeWire. The Compose setup mounts the required host runtime and device paths for that workflow.

@@ -1,19 +1,24 @@
-mod helpers;
-#[cfg(test)]
-mod helpers_test;
-
 use std::{cell::RefCell, collections::HashMap, error::Error, rc::Rc};
 
-use helpers::is_camera_node;
+use camera_rust::camera_metadata::CameraMetadata;
+use camera_rust::helpers::is_camera_node;
+use camera_rust::redis::{CameraEventType, RedisConfig, configure_redis_conn, send_camera_event};
 use pipewire::{self as pw, context::ContextRc, main_loop::MainLoopRc};
 
-#[derive(Debug)]
-struct CameraMetadata {
-    id: u32,
-    name: String,
-}
-
 fn main() -> Result<(), Box<dyn Error>> {
+    let redis_config = RedisConfig::from_env();
+    eprintln!(
+        "connecting notifications Redis client to {}:{} and publishing camera events to {}",
+        redis_config.host, redis_config.port, redis_config.events_channel
+    );
+
+    let redis_conn = Rc::new(RefCell::new(configure_redis_conn(&redis_config)?));
+    let redis_conn_remove = Rc::clone(&redis_conn);
+    let events_channel = redis_config.events_channel;
+    let events_channel_remove = events_channel.clone();
+
+    eprintln!("connected notifications Redis client");
+
     pw::init();
     let mainloop = MainLoopRc::new(None)?;
     let context = ContextRc::new(&mainloop, None)?;
@@ -27,16 +32,22 @@ fn main() -> Result<(), Box<dyn Error>> {
         .add_listener_local()
         .global(move |global| {
             if is_camera_node(global) {
-                println!("{global:?}");
-                let camera = CameraMetadata {
-                    id: global.id,
-                    name: global
-                        .props
-                        .and_then(|props| props.get("node.nick").map(|s| s.to_string()))
-                        .unwrap_or_else(|| "unknown".to_string()),
-                };
+                let camera = CameraMetadata::from_global_object(global);
+                camera_cache.borrow_mut().insert(camera.id, camera.clone());
 
-                camera_cache.borrow_mut().insert(global.id, camera);
+                println!("added camera: {} - {}", camera.id, camera.name);
+
+                if let Err(err) = send_camera_event(
+                    &mut redis_conn.borrow_mut(),
+                    CameraEventType::Connected,
+                    &camera,
+                    events_channel.as_str(),
+                ) {
+                    eprintln!(
+                        "failed to publish connected notification for {}: {err}",
+                        camera.id
+                    );
+                }
             }
         })
         .global_remove(move |id| {
@@ -47,6 +58,18 @@ fn main() -> Result<(), Box<dyn Error>> {
                     "removed camera: {} - {}",
                     deleted_camera.id, deleted_camera.name
                 );
+
+                if let Err(err) = send_camera_event(
+                    &mut redis_conn_remove.borrow_mut(),
+                    CameraEventType::Disconnected,
+                    &deleted_camera,
+                    events_channel_remove.as_str(),
+                ) {
+                    eprintln!(
+                        "failed to publish disconnected notification for {}: {err}",
+                        deleted_camera.id
+                    );
+                }
             }
         })
         .register();

@@ -2,7 +2,7 @@ use pipewire as pw;
 
 pub(crate) const VIDEO_SOURCE_MEDIA_CLASS: &str = "Video/Source";
 
-pub(crate) fn is_camera_node<P>(global: &pw::registry::GlobalObject<P>) -> bool
+pub fn is_camera_node<P>(global: &pw::registry::GlobalObject<P>) -> bool
 where
     P: AsRef<pw::spa::utils::dict::DictRef>,
 {
