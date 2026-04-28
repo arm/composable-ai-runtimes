@@ -2,6 +2,9 @@ mod config;
 #[cfg(test)]
 mod config_test;
 mod service;
+mod snapshot;
+#[cfg(test)]
+mod snapshot_test;
 
 use std::error::Error;
 
