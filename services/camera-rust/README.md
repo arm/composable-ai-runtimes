@@ -81,4 +81,4 @@ To validate the Compose configuration without starting the service:
 docker compose config
 ```
 
-The default container entrypoint starts both service binaries. The `notifications` binary applies its Redis defaults before connecting, fails fast if Redis cannot be reached at startup, and also depends on PipeWire. The Compose setup mounts the required host runtime and device paths for that workflow.
+The default container entrypoint starts both service binaries. The `notifications` binary applies its Redis defaults before connecting, retries Redis connection failures with capped Fibonacci backoff, and also depends on PipeWire. The Compose setup mounts the required host runtime and device paths for that workflow.

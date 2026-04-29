@@ -2,7 +2,9 @@ use std::{cell::RefCell, collections::HashMap, error::Error, rc::Rc};
 
 use camera_rust::camera_metadata::CameraMetadata;
 use camera_rust::helpers::is_camera_node;
-use camera_rust::redis::{CameraEventType, RedisConfig, configure_redis_conn, send_camera_event};
+use camera_rust::redis::{
+    CameraEventType, RedisConfig, configure_redis_conn_with_retry, send_camera_event,
+};
 use pipewire::{self as pw, context::ContextRc, main_loop::MainLoopRc};
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -13,7 +15,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     );
 
     let redis_config = Rc::new(redis_config);
-    let redis_conn = Rc::new(RefCell::new(configure_redis_conn(redis_config.as_ref())?));
+    let redis_conn = Rc::new(RefCell::new(configure_redis_conn_with_retry(
+        redis_config.as_ref(),
+    )?));
     let redis_conn_remove = Rc::clone(&redis_conn);
     let redis_config_remove = Rc::clone(&redis_config);
     let events_channel = redis_config.events_channel.clone();
@@ -108,7 +112,7 @@ pub fn reconnect_redis_client(
     redis_conn: &Rc<RefCell<redis::Connection>>,
     redis_config: &RedisConfig,
 ) -> bool {
-    match configure_redis_conn(redis_config) {
+    match configure_redis_conn_with_retry(redis_config) {
         Ok(new_redis_conn) => {
             *redis_conn.borrow_mut() = new_redis_conn;
             eprintln!(

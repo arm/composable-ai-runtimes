@@ -1,6 +1,7 @@
-use std::{env, error::Error};
+use std::{env, error::Error, thread, time::Duration};
 
 use crate::camera_metadata::CameraMetadata;
+use crate::helpers::FibonacciBackoff;
 use redis::{
     Client, Commands, Connection, ConnectionAddr, ConnectionInfo, ErrorKind, IntoConnectionInfo,
     RedisConnectionInfo, RedisError, RedisResult,
@@ -14,6 +15,7 @@ const REDIS_CHANNEL_EVENTS_ENV: &str = "PWC_REDIS_CHANNEL_EVENTS";
 const DEFAULT_REDIS_HOST: &str = "127.0.0.1";
 const DEFAULT_REDIS_PORT: &str = "6379";
 const CAMERA_EVENTS_CHANNEL: &str = "camera.events";
+const REDIS_RECONNECT_MAX_DELAY: Duration = Duration::from_secs(30);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "lowercase")]
@@ -75,10 +77,41 @@ impl IntoConnectionInfo for &RedisConfig {
     }
 }
 
-pub fn configure_redis_conn(redis_config: &RedisConfig) -> Result<Connection, Box<dyn Error>> {
+pub fn configure_redis_conn_with_retry(
+    redis_config: &RedisConfig,
+) -> Result<Connection, Box<dyn Error>> {
     let client = Client::open(redis_config)?;
 
-    Ok(client.get_connection()?)
+    Ok(retry_with_fibonacci(
+        || client.get_connection(),
+        thread::sleep,
+        REDIS_RECONNECT_MAX_DELAY,
+    )?)
+}
+
+pub(crate) fn retry_with_fibonacci<T, Connect, Sleep>(
+    mut connect: Connect,
+    mut sleep: Sleep,
+    max_delay: Duration,
+) -> RedisResult<T>
+where
+    Connect: FnMut() -> RedisResult<T>,
+    Sleep: FnMut(Duration),
+{
+    let mut backoff = FibonacciBackoff::new(Duration::from_secs(1), max_delay);
+    loop {
+        match connect() {
+            Ok(conn) => return Ok(conn),
+            Err(err) if err.is_io_error() => {
+                let delay = backoff.next_delay();
+                eprintln!(
+                    "failed to connect notifications Redis client: {err}; retrying in {delay:?}"
+                );
+                sleep(delay);
+            }
+            Err(err) => return Err(err),
+        }
+    }
 }
 
 pub fn send_camera_event(
