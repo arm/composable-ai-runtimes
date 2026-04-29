@@ -12,9 +12,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         redis_config.host, redis_config.port, redis_config.events_channel
     );
 
-    let redis_conn = Rc::new(RefCell::new(configure_redis_conn(&redis_config)?));
+    let redis_config = Rc::new(redis_config);
+    let redis_conn = Rc::new(RefCell::new(configure_redis_conn(redis_config.as_ref())?));
     let redis_conn_remove = Rc::clone(&redis_conn);
-    let events_channel = redis_config.events_channel;
+    let redis_config_remove = Rc::clone(&redis_config);
+    let events_channel = redis_config.events_channel.clone();
     let events_channel_remove = events_channel.clone();
 
     eprintln!("connected notifications Redis client");
@@ -37,17 +39,13 @@ fn main() -> Result<(), Box<dyn Error>> {
 
                 println!("added camera: {} - {}", camera.id, camera.name);
 
-                if let Err(err) = send_camera_event(
-                    &mut redis_conn.borrow_mut(),
+                publish_camera_event(
+                    &redis_conn,
+                    redis_config.as_ref(),
                     CameraEventType::Connected,
                     &camera,
                     events_channel.as_str(),
-                ) {
-                    eprintln!(
-                        "failed to publish connected notification for {}: {err}",
-                        camera.id
-                    );
-                }
+                );
             }
         })
         .global_remove(move |id| {
@@ -59,21 +57,72 @@ fn main() -> Result<(), Box<dyn Error>> {
                     deleted_camera.id, deleted_camera.name
                 );
 
-                if let Err(err) = send_camera_event(
-                    &mut redis_conn_remove.borrow_mut(),
+                publish_camera_event(
+                    &redis_conn_remove,
+                    redis_config_remove.as_ref(),
                     CameraEventType::Disconnected,
                     &deleted_camera,
                     events_channel_remove.as_str(),
-                ) {
-                    eprintln!(
-                        "failed to publish disconnected notification for {}: {err}",
-                        deleted_camera.id
-                    );
-                }
+                );
             }
         })
         .register();
 
     mainloop.run();
     Ok(())
+}
+
+fn publish_camera_event(
+    redis_conn: &Rc<RefCell<redis::Connection>>,
+    redis_config: &RedisConfig,
+    event_type: CameraEventType,
+    camera: &CameraMetadata,
+    events_channel: &str,
+) {
+    let publish_result = send_camera_event(
+        &mut redis_conn.borrow_mut(),
+        event_type,
+        camera,
+        events_channel,
+    );
+
+    if let Err(err) = publish_result {
+        let event_label = camera_event_label(event_type);
+        eprintln!(
+            "failed to publish {event_label} notification for {}: {err}",
+            camera.id
+        );
+
+        reconnect_redis_client(redis_conn, redis_config);
+    }
+}
+
+fn camera_event_label(event_type: CameraEventType) -> &'static str {
+    match event_type {
+        CameraEventType::Connected => "connected",
+        CameraEventType::Disconnected => "disconnected",
+    }
+}
+
+pub fn reconnect_redis_client(
+    redis_conn: &Rc<RefCell<redis::Connection>>,
+    redis_config: &RedisConfig,
+) -> bool {
+    match configure_redis_conn(redis_config) {
+        Ok(new_redis_conn) => {
+            *redis_conn.borrow_mut() = new_redis_conn;
+            eprintln!(
+                "reconnected notifications Redis client to {}:{}",
+                redis_config.host, redis_config.port
+            );
+            true
+        }
+        Err(reconnect_err) => {
+            eprintln!(
+                "failed to reconnect notifications Redis client to {}:{}: {reconnect_err}",
+                redis_config.host, redis_config.port
+            );
+            false
+        }
+    }
 }

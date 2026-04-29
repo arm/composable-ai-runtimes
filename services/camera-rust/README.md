@@ -59,6 +59,8 @@ By default it connects to Redis at `127.0.0.1:6379` and publishes camera events 
 - `PWC_REDIS_CHANNEL_EVENTS`
 - `PWC_REDIS_PASSWORD`
 
+Camera event publishing is best effort. If a publish fails after startup, the notification service logs the failed event and attempts to reconnect to Redis for future events, but it does not retry the failed event.
+
 To run its tests:
 
 ```bash
