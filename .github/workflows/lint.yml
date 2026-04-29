@@ -1,0 +1,29 @@
+name: Lint
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+
+permissions:
+  contents: read
+
+jobs:
+  prek:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Install native Rust hook dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler libpipewire-0.3-dev
+
+      - name: Run prek pre-push hooks
+        uses: j178/prek-action@ee00ace987cbe39678904658577b2993ae0f7f23 # v2 tag
+        with:
+          prek-version: "0.3.11"
+          extra-args: "--all-files --stage pre-push"

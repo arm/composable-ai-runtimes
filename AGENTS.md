@@ -70,6 +70,12 @@ During reviews you MUST ensure that:
 Run the smallest relevant checks for the files you changed.
 For PoC completion, smoke tests are sufficient; prioritise config/build/startup sanity checks over full test suites unless explicitly requested.
 
+Repository lint workspace:
+```bash
+prek validate-config
+prek run --all-files --stage pre-push
+```
+
 Compose checks:
 ```bash
 docker compose -f services/compose.yaml config

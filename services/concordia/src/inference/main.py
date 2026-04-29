@@ -25,7 +25,7 @@ class InferenceService(pb2_grpc.InferenceServiceServicer):
 
     def __init__(self, manifest_dir: Path) -> None:
         self._manifest_dir = manifest_dir
-        self._brick_cache = {} 
+        self._brick_cache = {}
 
     def ListBricks(
         self, request: pb2.ListBricksRequest, context: grpc.ServicerContext

@@ -2,6 +2,12 @@
 
 ## Use Cases
 
+### Run repository lint checks
+
+Tool: `prek`
+
+`prek` runs repository linting.
+
 ### Build and validate the Rust SDK (`lib/`)
 
 Tool: `cargo`  

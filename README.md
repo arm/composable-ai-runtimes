@@ -34,7 +34,7 @@ topo deploy --target `input_target_device_here`
 ```
 
 #### Vision Experience Kit
- 
+
 [Run a multi-model zero copy model suite](https://github.com/Arm-Debug/cairn-sdk-xpk-vision-kit.git) on your device, toggle models during runtime and visualise outputs/latency.
 
 ```bash
@@ -46,7 +46,7 @@ topo extend compose.yaml git:https://github.com/Arm-Debug/cairn-sdk.git\#migrate
 
 ### Create your own using AI
 
-Take the prompt below and run it using codex or any other LLM! 
+Take the prompt below and run it using codex or any other LLM!
 
 ```bash
 "Clone the https://github.com/Arm-Debug/cairn-sdk repository, and build a user application that utilises the various modules that are documented in docs-website/docs/ and defined in services/. Build the application on top of the user-application base and accompanying python lib and deploy it using the 'topo' tool to a a defined ssh target once defined. Ask your user if you cannot find 'topo'. Prefer a demo which shows a visual output via Web endpoints."

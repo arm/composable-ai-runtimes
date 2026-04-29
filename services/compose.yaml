@@ -14,7 +14,7 @@ services:
       interval: 2s
       timeout: 2s
       retries: 10
-  
+
   camera-service:
     extends:
       file: camera/compose.yaml
@@ -29,7 +29,7 @@ services:
       PWC_REDIS_PORT: *redis_port
       PWC_REDIS_CHANNEL_EVENTS: camera.events
       # PWC_REDIS_PASSWORD is optional, only set if your Redis server requires authentication
-      # PWC_REDIS_PASSWORD: 
+      # PWC_REDIS_PASSWORD:
 
 volumes:
   pipewire-runtime:

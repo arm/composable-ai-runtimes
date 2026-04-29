@@ -1,0 +1,83 @@
+minimum_prek_version = "0.3.11"
+default_install_hook_types = ["pre-push"]
+default_stages = ["pre-push"]
+
+[[repos]]
+repo = "builtin"
+
+[[repos.hooks]]
+id = "trailing-whitespace"
+args = ["--markdown-linebreak-ext=md"]
+types = ["text"]
+exclude = '''(?x)^(
+  docs-website/pnpm-lock\.yaml|
+  lib/Cargo\.lock|
+  services/camera-rust/Cargo\.lock|
+  services/camera/pipewire/gen/|
+  services/concordia/src/inference/proto/concordia_pb2(_grpc)?\.pyi?$
+)'''
+
+[[repos.hooks]]
+id = "end-of-file-fixer"
+types = ["text"]
+exclude = '''(?x)^(
+  docs-website/pnpm-lock\.yaml|
+  lib/Cargo\.lock|
+  services/camera-rust/Cargo\.lock|
+  services/camera/pipewire/gen/|
+  services/concordia/src/inference/proto/concordia_pb2(_grpc)?\.pyi?$
+)'''
+
+[[repos.hooks]]
+id = "fix-byte-order-marker"
+types = ["text"]
+
+[[repos.hooks]]
+id = "mixed-line-ending"
+args = ["--fix=no"]
+types = ["text"]
+
+[[repos.hooks]]
+id = "check-added-large-files"
+args = ["--maxkb=1024", "--enforce-all"]
+
+[[repos.hooks]]
+id = "check-case-conflict"
+
+[[repos.hooks]]
+id = "check-illegal-windows-names"
+
+[[repos.hooks]]
+id = "check-json"
+exclude = '''^docs-website/tsconfig\.json$'''
+
+[[repos.hooks]]
+id = "check-toml"
+
+[[repos.hooks]]
+id = "check-yaml"
+args = ["--allow-multiple-documents"]
+
+[[repos.hooks]]
+id = "check-merge-conflict"
+
+[[repos.hooks]]
+id = "detect-private-key"
+
+[[repos.hooks]]
+id = "check-executables-have-shebangs"
+
+[[repos]]
+repo = "local"
+
+[[repos.hooks]]
+id = "docker-compose-config"
+name = "docker compose config"
+language = "system"
+entry = '''
+for compose_file in "$@"; do
+  docker compose -f "$compose_file" config
+done
+'''
+shell = "sh"
+files = { glob = ["**/compose.yaml"] }

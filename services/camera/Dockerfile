@@ -45,14 +45,14 @@ ARG PIPEWIRE_COMMIT
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential=12.12 \
-    gettext-base \
-    git \
+    gettext-base=0.23.1-2 \
+    git=1:2.47.3-0+deb13u1 \
     libcamera-dev=0.7.0+rpt20260205-1 \
     libdbus-1-dev=1.16.2-2 \
     libglib2.0-dev=2.84.4-3~deb13u2 \
-    libudev-dev \
-    meson \
-    ninja-build \
+    libudev-dev=257.9-1~deb13u1 \
+    meson=1.7.0-1 \
+    ninja-build=1.12.1-1 \
     pkg-config=1.8.1-4 \
   && rm -rf /var/lib/apt/lists/*
 
@@ -115,8 +115,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libcamera0.7=0.7.0+rpt20260205-1 \
     libpisp1=1.4.0-1 \
     libprotobuf32t64=3.21.12-11 \
-    libsystemd0 \
-    libudev1 \
+    libsystemd0=257.9-1~deb13u1 \
+    libudev1=257.9-1~deb13u1 \
     libunwind8=1.8.1-0.1 \
     libv4l-0t64=1.30.1-1 \
     wireplumber=0.5.8-2 \

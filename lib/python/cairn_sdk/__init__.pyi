@@ -26,7 +26,7 @@ __all__ = [
 class AudioOutput:
     r"""
     Audio samples returned by a Concordia brick.
-    
+
     Attributes
     ----------
     left_channel:
@@ -53,12 +53,12 @@ class Camera:
     def get_latest_frame(self) -> 'Frame':
         r"""
         Return the latest frame available from this camera handle.
-        
+
         Returns
         -------
         Frame
             The most recent frame captured for this camera.
-        
+
         The returned `Frame` exposes the pixel data and basic image metadata.
         """
 
@@ -66,7 +66,7 @@ class Camera:
 class CameraMetadata:
     r"""
     Information about a camera returned by `CameraService.list_camera_metadata()`.
-    
+
     Attributes
     ----------
     id:
@@ -83,20 +83,20 @@ class CameraMetadata:
 class CameraService:
     r"""
     Client for the Cairn camera service.
-    
+
     Connects to the camera service over gRPC, lists the cameras it reports, and
     opens a camera handle for frame capture.
     """
     def __new__(cls, endpoint: typing.Optional[builtins.str] = None) -> 'CameraService':
         r"""
         Create a camera service client.
-        
+
         Parameters
         ----------
         endpoint:
             Camera service gRPC endpoint. Defaults to
             `http://127.0.0.1:50051`.
-        
+
         Returns
         -------
         CameraService
@@ -105,7 +105,7 @@ class CameraService:
     def list_camera_metadata(self) -> builtins.list[CameraMetadata]:
         r"""
         List the cameras currently reported by the camera service.
-        
+
         Returns
         -------
         list[CameraMetadata]
@@ -114,12 +114,12 @@ class CameraService:
     def open(self, camera: CameraMetadata) -> Camera:
         r"""
         Open a camera returned by `list_camera_metadata()`.
-        
+
         Parameters
         ----------
         camera:
             Camera metadata returned by `list_camera_metadata()`.
-        
+
         Returns
         -------
         Camera
@@ -136,20 +136,20 @@ class ConcordiaError(builtins.Exception):
 class ConcordiaService:
     r"""
     Client for the Cairn Concordia inference service.
-    
+
     Connects to the Concordia gRPC service and runs bricks synchronously from
     Python.
     """
     def __new__(cls, endpoint: typing.Optional[builtins.str] = None) -> 'ConcordiaService':
         r"""
         Create a Concordia service client.
-        
+
         Parameters
         ----------
         endpoint:
             Concordia service gRPC endpoint. Defaults to
             `http://127.0.0.1:50052`.
-        
+
         Returns
         -------
         ConcordiaService
@@ -158,7 +158,7 @@ class ConcordiaService:
     def run_brick(self, brick_type: builtins.str, brick_variant: builtins.str, options: dict[builtins.str, builtins.str | builtins.bytes]) -> AudioOutput | ObjectDetectionOutput:
         r"""
         Run a Concordia brick and return the decoded result.
-        
+
         Parameters
         ----------
         brick_type:
@@ -171,7 +171,7 @@ class ConcordiaService:
             is expected to contain raw packed RGB pixels. When using
             `Camera.get_latest_frame()`, pass `frame.pixels.tobytes()` when
             the frame is already RGB.
-        
+
         Returns
         -------
         AudioOutput | ObjectDetectionOutput
@@ -182,7 +182,7 @@ class ConcordiaService:
 class Detection:
     r"""
     One detected object returned by an object-detection brick.
-    
+
     Attributes
     ----------
     box:
@@ -210,7 +210,7 @@ class Detection:
 class Frame:
     r"""
     Frame data returned by `Camera.get_latest_frame()`.
-    
+
     Attributes
     ----------
     pixels:
@@ -236,7 +236,7 @@ class Frame:
     def pixels(self) -> numpy.typing.NDArray[numpy.uint8]:
         r"""
         Frame bytes as a one-dimensional NumPy array of `uint8`.
-        
+
         Returns
         -------
         numpy.typing.NDArray[numpy.uint8]
@@ -247,7 +247,7 @@ class Frame:
 class ObjectDetectionOutput:
     r"""
     Collection of detections returned by an object-detection brick.
-    
+
     Attributes
     ----------
     detections:

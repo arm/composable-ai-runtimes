@@ -7,13 +7,13 @@ services:
       - messaging-service
     platform: linux/arm64
     pull_policy: never
-  
+
   messaging-service:
     extends:
       file: services/compose.yaml
       service: messaging-service
     platform: linux/arm64
     pull_policy: never
-      
+
 volumes:
   pipewire-runtime:

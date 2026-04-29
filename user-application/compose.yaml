@@ -1,6 +1,6 @@
 services:
   user-application:
-    build: 
+    build:
       context: ../.
       dockerfile: user-application/Dockerfile
     image: edge-ai-tooling--sdk-docker-registry.artifactory.arm.com/cairnsdk-user-application-base:latest
