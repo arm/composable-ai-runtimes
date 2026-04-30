@@ -4,28 +4,25 @@ The instructions below are tool-agnostic and should be followed by any LLM worki
 
 ## Project summary
 
-`cairn-sdk` is an early-stage SDK developed by ARM and focused on edge runtime foundations, including camera (PipeWire), messaging (Redis pub/sub), and inference (Concordia gRPC) services. The repo also includes a Rust SDK crate (`lib`) and a Docusaurus docs site (`docs-website`). It is designed to be compatible with [`topo`](https://github.com/Arm-Debug/topo-cli), another ARM tool that simplifies container deployments to edge devices.
+`cairn-sdk` is an SDK developed by ARM and focused on edge runtime foundations, including camera (PipeWire), messaging (Redis pub/sub), and inference (Concordia gRPC) services. The repo also includes a Rust SDK crate (`lib`) and a Docusaurus docs site (`docs-website`). It is designed to be compatible with [`topo`](https://github.com/Arm-Debug/topo-cli), another ARM tool that simplifies container deployments to edge devices.
 
 ## Project maturity
 
-Proof of concept: prioritise fast learning and working increments, while keeping enough clarity for collaborators.
+Post-PoC active development: prioritise dependable, documented increments that preserve compatibility for published APIs, documented Redis channels, deployment workflows, and SDK-facing behaviour. Keep room for iteration, but treat user-facing contracts and operational guidance as compatibility surfaces once documented.
 
 ## Assumption policy
 
-In all cases, avoid assumptions and prefer clarifying questions. The threshold differs by maturity:
-- Proof of concept: proceed after minimal clarification; tolerate small ambiguity if it does not change behavior.
-- Production: require explicit confirmation on requirements, edge cases, and constraints before implementation.
-- In-between: ask when ambiguity could affect user expectations or quality.
+In all cases, avoid assumptions and prefer clarifying questions. This repository currently follows the in-between threshold by default: ask when ambiguity could affect user expectations, compatibility, operations, or quality; proceed on small internal implementation choices that do not change behaviour.
 
-This repository currently follows the proof-of-concept threshold by default.
+For production-bound changes, require explicit confirmation on requirements, edge cases, compatibility expectations, and operational constraints before implementation.
 
 ## Repository Engineering Standards
 
 ### API and Event Contracts
 
-- Treat protobuf files as the current API contracts for this phase.
+- Treat protobuf files as the current API contracts.
 - Treat Redis channel names and payload formats as compatibility surface once documented.
-- Generated protobuf artefacts (`*_pb2.py`, `*_pb2_grpc.py`, `services/camera/pipewire/gen/*`) are version-controlled in this PoC phase.
+- Generated protobuf artefacts (`*_pb2.py`, `*_pb2_grpc.py`, `services/camera/pipewire/gen/*`) are version-controlled unless the project explicitly changes that policy.
 - Do not hand-edit generated protobuf artefacts unless generation is broken; edit `.proto`, regenerate, and commit the regenerated files.
 
 ### Runtime and Reliability
@@ -67,8 +64,7 @@ During reviews you MUST ensure that:
 
 ## Build and Validation Commands
 
-Run the smallest relevant checks for the files you changed.
-For PoC completion, smoke tests are sufficient; prioritise config/build/startup sanity checks over full test suites unless explicitly requested.
+Run the smallest relevant checks for the files you changed. Broaden validation for contract, runtime, service, packaging, or documentation-site changes; smoke tests alone are only sufficient when they cover the changed behaviour.
 
 Repository lint workspace:
 ```bash
@@ -155,7 +151,7 @@ During editing:
 - Keep track of renamed commands, services, APIs, and workflows that will need documentation reconciliation before the branch is ready.
 
 Before completion:
-- Run proportionate smoke validation commands.
+- Run proportionate validation commands.
 - Compare the current branch to its base branch and reconcile affected documentation surfaces to match the branch as it exists now.
 - Update user-facing docs in `docs-website/**`, developer/operator guidance in relevant `README.md` files, and any still-necessary code comments.
 - Rewrite documents coherently instead of appending isolated notes to the end of stale content.
@@ -164,12 +160,12 @@ Before completion:
 - Summarise runtime impact (or explicitly state `no runtime behaviour change`).
 - Summarise residual risks and untested paths.
 
-## Definition of Done (Early Stage)
+## Definition of Done
 
 A change is done when:
-- Relevant Docker builds complete successfully.
-- Smoke tests for changed components pass (for example: compose config sanity, startup checks, or compile checks).
-- Logs are actionable for startup, lifecycle, and failure states.
+- The smallest relevant validation for changed areas passes; service changes include relevant Docker build, compose config, startup, or compile checks.
+- Smoke tests for changed components pass when they are the proportionate validation path, and broader tests run when behaviour, compatibility, or packaging risk warrants them.
+- Runtime changes have actionable logs for startup, lifecycle, and failure states.
 - Documentation affected by the branch has been reconciled against the current branch state, with stale content updated, rewritten, or removed as appropriate.
 - User-facing behaviour and usage changes are reflected in `docs-website/**`, and developer-facing changes are reflected in the relevant `README.md` files or necessary code comments.
 - Validation evidence and limits are clearly reported.
