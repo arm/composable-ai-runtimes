@@ -20,7 +20,7 @@ To build the API binary locally:
 cargo build --release --bin api
 ```
 
-The `api` binary compiles `services/camera-rust/proto/camera_service.proto` during the Cargo build and currently serves a stub `list_cameras` response.
+The `api` binary compiles `services/camera-rust/proto/camera_service.proto` during the Cargo build and serves the `CameraService` gRPC API.
 
 To run the API server locally:
 
@@ -39,6 +39,8 @@ Or set `CAMERA_API_LISTEN_ADDR`:
 ```bash
 CAMERA_API_LISTEN_ADDR=127.0.0.1:50052 cargo run --bin api
 ```
+
+The `list_cameras` endpoint queries PipeWire for the currently available cameras and returns their metadata over gRPC. Each request takes a fresh snapshot of the PipeWire registry. If PipeWire is unavailable or the snapshot cannot be completed, the API returns `UNAVAILABLE`.
 
 To build the notifications binary:
 

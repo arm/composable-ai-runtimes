@@ -1,4 +1,5 @@
 use super::snapshot::{SnapshotError, list_camera_metadata};
+use tokio::task;
 use tonic::{Request, Response, Status};
 
 pub(super) mod pipewire {
@@ -10,7 +11,7 @@ use pipewire::{ListCamerasResponse, ListRequest};
 
 pub struct CameraApiService;
 
-fn map_snapshot_error(err: SnapshotError) -> Status {
+pub(crate) fn map_snapshot_error(err: SnapshotError) -> Status {
     match err {
         SnapshotError::Unavailable(message) => Status::unavailable(message),
     }
@@ -22,7 +23,10 @@ impl CameraService for CameraApiService {
         &self,
         _request: Request<ListRequest>,
     ) -> Result<Response<ListCamerasResponse>, Status> {
-        let cameras = list_camera_metadata().map_err(map_snapshot_error)?;
+        let cameras = task::spawn_blocking(list_camera_metadata)
+            .await
+            .map_err(|err| Status::unavailable(format!("camera snapshot task failed: {err}")))?
+            .map_err(map_snapshot_error)?;
 
         Ok(Response::new(ListCamerasResponse {
             cameras: cameras

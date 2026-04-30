@@ -2,6 +2,8 @@ mod config;
 #[cfg(test)]
 mod config_test;
 mod service;
+#[cfg(test)]
+mod service_test;
 mod snapshot;
 #[cfg(test)]
 mod snapshot_test;
