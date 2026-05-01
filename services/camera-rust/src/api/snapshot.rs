@@ -1,3 +1,5 @@
+pub use camera_rust::camera_metadata::CameraMetadata;
+use camera_rust::helpers::is_camera_node;
 use pipewire as pw;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -6,12 +8,6 @@ use std::rc::Rc;
 use std::time::Duration;
 
 const SNAPSHOT_TIMEOUT: Duration = Duration::from_secs(5);
-
-#[derive(Debug, PartialEq, Eq)]
-pub struct CameraMetadata {
-    pub id: u32,
-    pub name: String,
-}
 
 #[derive(Debug, PartialEq)]
 pub enum SnapshotError {
@@ -129,38 +125,6 @@ pub(crate) fn record_snapshot_timeout(state: &mut SnapshotState) -> bool {
     true
 }
 
-fn is_camera_node<P>(global: &pw::registry::GlobalObject<P>) -> bool
-where
-    P: AsRef<pw::spa::utils::dict::DictRef>,
-{
-    if global.type_ != pw::types::ObjectType::Node {
-        return false;
-    }
-
-    global
-        .props
-        .as_ref()
-        .is_some_and(|props| props.as_ref().get(&pw::keys::MEDIA_CLASS) == Some("Video/Source"))
-}
-
-fn camera_name<P>(global: &pw::registry::GlobalObject<P>) -> String
-where
-    P: AsRef<pw::spa::utils::dict::DictRef>,
-{
-    global
-        .props
-        .as_ref()
-        .and_then(|props| {
-            props
-                .as_ref()
-                .get(&pw::keys::NODE_NICK)
-                .or_else(|| props.as_ref().get(&pw::keys::NODE_DESCRIPTION))
-                .or_else(|| props.as_ref().get(&pw::keys::NODE_NAME))
-        })
-        .unwrap_or("")
-        .to_string()
-}
-
 pub(crate) fn append_camera_metadata<P>(
     cameras: &mut HashMap<u32, CameraMetadata>,
     global: &pw::registry::GlobalObject<P>,
@@ -171,14 +135,8 @@ pub(crate) fn append_camera_metadata<P>(
         return;
     }
 
-    let id = global.id;
-    cameras.insert(
-        id,
-        CameraMetadata {
-            id,
-            name: camera_name(global),
-        },
-    );
+    let camera = CameraMetadata::from_global_object(global);
+    cameras.insert(camera.id, camera);
 }
 
 pub(crate) fn remove_camera_metadata(cameras: &mut HashMap<u32, CameraMetadata>, id: u32) {

@@ -63,7 +63,25 @@ By default it connects to Redis at `127.0.0.1:6379` and publishes camera events 
 
 Camera event publishing is best effort. If a publish fails after startup, the notification service logs the failed event and attempts to reconnect to Redis for future events, but it does not retry the failed event.
 
-To run its tests:
+To run the API tests:
+
+```bash
+cargo test --bin api
+```
+
+To run the notifications tests:
+
+```bash
+cargo test --bin notifications
+```
+
+To run both binaries and the library tests:
+
+```bash
+cargo test --lib --bins
+```
+
+To run only the library tests:
 
 ```bash
 cargo test --lib

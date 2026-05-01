@@ -46,6 +46,44 @@ fn test_redis_connection_info_includes_password_when_configured() {
 }
 
 #[test]
+fn test_fibonacci_backoff_caps_delay() {
+    let attempts = Cell::new(0);
+    let delays = RefCell::new(Vec::new());
+
+    let result = retry_with_fibonacci(
+        || {
+            let attempt = attempts.get();
+            attempts.set(attempt + 1);
+
+            if attempt < 6 {
+                Err(RedisError::from(io::Error::new(
+                    io::ErrorKind::ConnectionRefused,
+                    "redis unavailable",
+                )))
+            } else {
+                Ok("connected")
+            }
+        },
+        |delay| delays.borrow_mut().push(delay),
+        Duration::from_secs(5),
+    );
+
+    assert_eq!(result.unwrap(), "connected");
+    assert_eq!(attempts.get(), 7);
+    assert_eq!(
+        *delays.borrow(),
+        vec![
+            Duration::from_secs(1),
+            Duration::from_secs(1),
+            Duration::from_secs(2),
+            Duration::from_secs(3),
+            Duration::from_secs(5),
+            Duration::from_secs(5),
+        ]
+    );
+}
+
+#[test]
 fn test_retry_with_fibonacci_retries_io_errors_until_success() {
     let attempts = Cell::new(0);
     let delays = RefCell::new(Vec::new());

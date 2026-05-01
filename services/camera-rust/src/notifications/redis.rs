@@ -1,7 +1,6 @@
 use std::{env, error::Error, thread, time::Duration};
 
-use crate::camera_metadata::CameraMetadata;
-use crate::helpers::FibonacciBackoff;
+use camera_rust::camera_metadata::CameraMetadata;
 use redis::{
     Client, Commands, Connection, ConnectionAddr, ConnectionInfo, ErrorKind, IntoConnectionInfo,
     RedisConnectionInfo, RedisError, RedisResult,
@@ -16,6 +15,32 @@ const DEFAULT_REDIS_HOST: &str = "127.0.0.1";
 const DEFAULT_REDIS_PORT: &str = "6379";
 const CAMERA_EVENTS_CHANNEL: &str = "camera.events";
 const REDIS_RECONNECT_MAX_DELAY: Duration = Duration::from_secs(30);
+
+#[derive(Debug)]
+struct FibonacciBackoff {
+    current: Duration,
+    next: Duration,
+    max_delay: Duration,
+}
+
+impl FibonacciBackoff {
+    fn new(initial_delay: Duration, max_delay: Duration) -> Self {
+        Self {
+            current: initial_delay,
+            next: initial_delay,
+            max_delay,
+        }
+    }
+
+    fn next_delay(&mut self) -> Duration {
+        let delay = self.current.min(self.max_delay);
+        let next = self.current.saturating_add(self.next);
+        self.current = self.next;
+        self.next = next;
+
+        delay
+    }
+}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "lowercase")]

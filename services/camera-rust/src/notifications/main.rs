@@ -1,10 +1,14 @@
+mod redis;
+#[cfg(test)]
+mod redis_test;
+
 use std::{cell::RefCell, collections::HashMap, error::Error, rc::Rc};
 
-use camera_rust::camera_metadata::CameraMetadata;
-use camera_rust::helpers::is_camera_node;
-use camera_rust::redis::{
+use crate::redis::{
     CameraEventType, RedisConfig, configure_redis_conn_with_retry, send_camera_event,
 };
+use camera_rust::camera_metadata::CameraMetadata;
+use camera_rust::helpers::is_camera_node;
 use pipewire::{self as pw, context::ContextRc, main_loop::MainLoopRc};
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -77,7 +81,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 fn publish_camera_event(
-    redis_conn: &Rc<RefCell<redis::Connection>>,
+    redis_conn: &Rc<RefCell<::redis::Connection>>,
     redis_config: &RedisConfig,
     event_type: CameraEventType,
     camera: &CameraMetadata,
@@ -109,7 +113,7 @@ fn camera_event_label(event_type: CameraEventType) -> &'static str {
 }
 
 pub fn reconnect_redis_client(
-    redis_conn: &Rc<RefCell<redis::Connection>>,
+    redis_conn: &Rc<RefCell<::redis::Connection>>,
     redis_config: &RedisConfig,
 ) -> bool {
     match configure_redis_conn_with_retry(redis_config) {

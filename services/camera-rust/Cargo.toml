@@ -17,9 +17,6 @@ tonic-prost = "0.14"
 [build-dependencies]
 tonic-prost-build = "0.14.5"
 
-[lib]
-path = "src/notifications/lib.rs"
-
 [[bin]]
 name = 'notifications'
 path = 'src/notifications/main.rs'
