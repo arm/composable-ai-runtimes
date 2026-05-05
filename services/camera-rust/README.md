@@ -42,6 +42,20 @@ CAMERA_API_LISTEN_ADDR=127.0.0.1:50052 cargo run --bin api
 
 The `list_cameras` endpoint queries PipeWire for the currently available cameras and returns their metadata over gRPC. Each request takes a fresh snapshot of the PipeWire registry. If PipeWire is unavailable or the snapshot cannot be completed, the API returns `UNAVAILABLE`.
 
+Runtime logs use `tracing` and default to info-level output. Override the filter with `RUST_LOG` when you need to change the global log level or narrow output to one binary:
+
+```bash
+RUST_LOG=info cargo run --bin api
+```
+
+Debug logs are not enabled by default. Enable them explicitly when diagnosing startup or request flow:
+
+```bash
+RUST_LOG=debug cargo run --bin api
+```
+
+Logs are labelled by source, such as `api` or `notifications`. API request logs include request context, and notification logs include structured camera, publish, and Redis reconnect fields.
+
 To build the notifications binary:
 
 ```bash
@@ -52,6 +66,18 @@ To run the notifications binary locally with the default Redis settings:
 
 ```bash
 cargo run --bin notifications
+```
+
+To set the global log level while running notifications:
+
+```bash
+RUST_LOG=info cargo run --bin notifications
+```
+
+To include debug-level PipeWire startup logs while running notifications:
+
+```bash
+RUST_LOG=debug cargo run --bin notifications
 ```
 
 By default it connects to Redis at `127.0.0.1:6379` and publishes camera events to `camera.events`. These Redis environment variables are optional overrides:

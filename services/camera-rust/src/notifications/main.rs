@@ -9,13 +9,19 @@ use crate::redis::{
 };
 use camera_rust::camera_metadata::CameraMetadata;
 use camera_rust::helpers::is_camera_node;
+use camera_rust::logging;
 use pipewire::{self as pw, context::ContextRc, main_loop::MainLoopRc};
+use tracing::{debug, info, warn};
 
 fn main() -> Result<(), Box<dyn Error>> {
+    logging::init();
+
     let redis_config = RedisConfig::from_env();
-    eprintln!(
-        "connecting notifications Redis client to {}:{} and publishing camera events to {}",
-        redis_config.host, redis_config.port, redis_config.events_channel
+    info!(
+        redis_host = %redis_config.host,
+        redis_port = %redis_config.port,
+        events_channel = %redis_config.events_channel,
+        "connecting notifications Redis client"
     );
 
     let redis_config = Rc::new(redis_config);
@@ -27,13 +33,22 @@ fn main() -> Result<(), Box<dyn Error>> {
     let events_channel = redis_config.events_channel.clone();
     let events_channel_remove = events_channel.clone();
 
-    eprintln!("connected notifications Redis client");
+    info!("connected notifications Redis client");
 
     pw::init();
+    debug!("initialized PipeWire");
+
     let mainloop = MainLoopRc::new(None)?;
+    debug!("created PipeWire main loop");
+
     let context = ContextRc::new(&mainloop, None)?;
+    debug!("created PipeWire context");
+
     let core = context.connect_rc(None)?;
+    debug!("connected PipeWire core");
+
     let registry = core.get_registry_rc()?;
+    debug!("acquired PipeWire registry");
 
     let camera_cache = Rc::new(RefCell::new(HashMap::<u32, CameraMetadata>::new()));
     let camera_cache_remove = Rc::clone(&camera_cache);
@@ -45,7 +60,11 @@ fn main() -> Result<(), Box<dyn Error>> {
                 let camera = CameraMetadata::from_global_object(global);
                 camera_cache.borrow_mut().insert(camera.id, camera.clone());
 
-                println!("added camera: {} - {}", camera.id, camera.name);
+                info!(
+                    camera_id = camera.id,
+                    camera_name = %camera.name,
+                    "camera connected"
+                );
 
                 publish_camera_event(
                     &redis_conn,
@@ -60,9 +79,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             let deleted_camera = { camera_cache_remove.borrow_mut().remove(&id) };
 
             if let Some(deleted_camera) = deleted_camera {
-                println!(
-                    "removed camera: {} - {}",
-                    deleted_camera.id, deleted_camera.name
+                info!(
+                    camera_id = deleted_camera.id,
+                    camera_name = %deleted_camera.name,
+                    "camera disconnected"
                 );
 
                 publish_camera_event(
@@ -76,7 +96,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         })
         .register();
 
+    debug!("registered PipeWire registry listener");
     mainloop.run();
+    debug!("PipeWire main loop returned");
     Ok(())
 }
 
@@ -96,12 +118,23 @@ fn publish_camera_event(
 
     if let Err(err) = publish_result {
         let event_label = camera_event_label(event_type);
-        eprintln!(
-            "failed to publish {event_label} notification for {}: {err}",
-            camera.id
+        warn!(
+            camera_id = camera.id,
+            camera_name = %camera.name,
+            events_channel,
+            error = %err,
+            "failed to publish {event_label} camera notification"
         );
 
         reconnect_redis_client(redis_conn, redis_config);
+    } else {
+        let event_label = camera_event_label(event_type);
+        info!(
+            camera_id = camera.id,
+            camera_name = %camera.name,
+            events_channel,
+            "published {event_label} camera notification"
+        );
     }
 }
 
@@ -116,19 +149,28 @@ pub fn reconnect_redis_client(
     redis_conn: &Rc<RefCell<::redis::Connection>>,
     redis_config: &RedisConfig,
 ) -> bool {
+    info!(
+        redis_host = %redis_config.host,
+        redis_port = %redis_config.port,
+        "reconnecting notifications Redis client"
+    );
+
     match configure_redis_conn_with_retry(redis_config) {
         Ok(new_redis_conn) => {
             *redis_conn.borrow_mut() = new_redis_conn;
-            eprintln!(
-                "reconnected notifications Redis client to {}:{}",
-                redis_config.host, redis_config.port
+            info!(
+                redis_host = %redis_config.host,
+                redis_port = %redis_config.port,
+                "reconnected notifications Redis client"
             );
             true
         }
         Err(reconnect_err) => {
-            eprintln!(
-                "failed to reconnect notifications Redis client to {}:{}: {reconnect_err}",
-                redis_config.host, redis_config.port
+            warn!(
+                redis_host = %redis_config.host,
+                redis_port = %redis_config.port,
+                error = %reconnect_err,
+                "failed to reconnect notifications Redis client"
             );
             false
         }

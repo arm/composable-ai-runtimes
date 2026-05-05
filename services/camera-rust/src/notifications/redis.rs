@@ -6,6 +6,7 @@ use redis::{
     RedisConnectionInfo, RedisError, RedisResult,
 };
 use serde::Serialize;
+use tracing::warn;
 
 const REDIS_HOST_ENV: &str = "PWC_REDIS_HOST";
 const REDIS_PORT_ENV: &str = "PWC_REDIS_PORT";
@@ -129,8 +130,10 @@ where
             Ok(conn) => return Ok(conn),
             Err(err) if err.is_io_error() => {
                 let delay = backoff.next_delay();
-                eprintln!(
-                    "failed to connect notifications Redis client: {err}; retrying in {delay:?}"
+                warn!(
+                    error = %err,
+                    retry_delay = ?delay,
+                    "failed to connect notifications Redis client; retrying"
                 );
                 sleep(delay);
             }

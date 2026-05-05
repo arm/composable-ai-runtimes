@@ -8,6 +8,7 @@ pub(super) mod pipewire {
 
 use pipewire::camera_service_server::CameraService;
 use pipewire::{ListCamerasResponse, ListRequest};
+use tracing::{debug, warn};
 
 pub struct CameraApiService;
 
@@ -21,14 +22,25 @@ pub(crate) fn map_snapshot_error(err: SnapshotError) -> Status {
 impl CameraService for CameraApiService {
     async fn list_cameras(
         &self,
-        _request: Request<ListRequest>,
+        request: Request<ListRequest>,
     ) -> Result<Response<ListCamerasResponse>, Status> {
+        let remote_addr = request.remote_addr();
+
+        debug!(?remote_addr, "listing cameras");
+
         let cameras = task::spawn_blocking(list_camera_metadata)
             .await
-            .map_err(|err| Status::unavailable(format!("camera snapshot task failed: {err}")))?
-            .map_err(map_snapshot_error)?;
+            .map_err(|err| {
+                warn!(?remote_addr, error = %err, "camera listing task failed");
+                Status::unavailable(format!("camera listing task failed: {err}"))
+            })?
+            .map_err(|err| {
+                warn!(?remote_addr, error = %err, "failed to list cameras");
+                map_snapshot_error(err)
+            })?;
+        let camera_count = cameras.len();
 
-        Ok(Response::new(ListCamerasResponse {
+        let response = Response::new(ListCamerasResponse {
             cameras: cameras
                 .into_iter()
                 .map(|camera| pipewire::Camera {
@@ -36,6 +48,10 @@ impl CameraService for CameraApiService {
                     name: camera.name,
                 })
                 .collect(),
-        }))
+        });
+
+        debug!(?remote_addr, camera_count, "listed cameras");
+
+        Ok(response)
     }
 }
