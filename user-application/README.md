@@ -16,7 +16,7 @@ The Rust SDK build also depends on protobuf source files outside `lib/`, so the 
 
 - `lib/`
 - `services/concordia/src/inference/proto/`
-- `services/camera/pipewire/proto/`
+- `services/camera-rust/proto/`
 
 into the builder stage.
 

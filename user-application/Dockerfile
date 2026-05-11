@@ -28,7 +28,7 @@ WORKDIR /src
 # The Rust SDK build depends on protobuf sources outside lib/.
 COPY lib /src/lib
 COPY services/concordia/src/inference/proto /src/services/concordia/src/inference/proto
-COPY services/camera/pipewire/proto /src/services/camera/pipewire/proto
+COPY services/camera-rust/proto /src/services/camera-rust/proto
 
 WORKDIR /src/lib
 RUN maturin build --release --auditwheel skip -o /dist

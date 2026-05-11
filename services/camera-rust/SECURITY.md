@@ -2,7 +2,9 @@
 
 ## Intro
 
-While the runtime user of the container is not root, the runtime deployment still grants it some host level privileges such as scheduling and device access. This is required in order for PipeWire, WirePlumber, libcamera, and udev-backed hotplug detection work reliably on the current Raspberry Pi target.
+The container starts as root only long enough for `permissions-set-entrypint.sh` to repair ownership on the shared PipeWire runtime directory. It then drops to the `camera-service` user before launching PipeWire, WirePlumber, the gRPC API, and notifications.
+
+Even after that privilege drop, the runtime deployment still grants the container some host level privileges such as scheduling and device access. This is required in order for PipeWire, WirePlumber, libcamera, and udev-backed hotplug detection to work reliably on the current Raspberry Pi target.
 
 One small hardening step is already in place: the device cgroup rule no longer grants `mknod`, so the container cannot create new device nodes through the current broad rule.
 

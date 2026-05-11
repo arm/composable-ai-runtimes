@@ -22,7 +22,7 @@ For production-bound changes, require explicit confirmation on requirements, edg
 
 - Treat protobuf files as the current API contracts.
 - Treat Redis channel names and payload formats as compatibility surface once documented.
-- Generated protobuf artefacts (`*_pb2.py`, `*_pb2_grpc.py`, `services/camera/pipewire/gen/*`) are version-controlled unless the project explicitly changes that policy. The Rust camera service generates its gRPC bindings from `services/camera-rust/proto/camera_service.proto` during Cargo builds rather than committing generated Rust files.
+- Generated protobuf artefacts (`*_pb2.py`, `*_pb2_grpc.py`) are version-controlled unless the project explicitly changes that policy. The Rust camera service generates its gRPC bindings from `services/camera-rust/proto/camera_service.proto` during Cargo builds rather than committing generated Rust files.
 - Do not hand-edit generated protobuf artefacts unless generation is broken; edit `.proto`, regenerate, and commit the regenerated files.
 
 ### Runtime and Reliability
@@ -76,7 +76,6 @@ Compose checks:
 ```bash
 docker compose -f services/compose.yaml config
 docker compose -f services/camera-rust/compose.yaml config
-docker compose -f services/camera/compose.yaml config
 ```
 
 Messaging service:
@@ -99,11 +98,6 @@ cargo clippy --all-targets --all-features --no-deps
 cargo test --lib --bins
 ```
 
-Legacy PipeWire camera service:
-```bash
-docker compose -f services/camera/compose.yaml up --build
-```
-
 Concordia service: (TBD)
 ```bash
 docker compose -f services/concordia/compose.yaml build
@@ -114,17 +108,6 @@ Concordia proto regeneration (only if `.proto` changed):
 ```bash
 cd services/concordia
 ./generate_proto.sh
-```
-
-Legacy PipeWire proto regeneration (only if `services/camera/pipewire/proto/*.proto` changed):
-```bash
-cd services/camera/pipewire
-make proto
-```
-
-Legacy PipeWire component build (inside `services/camera/pipewire`):
-```bash
-make clean && make
 ```
 
 Rust SDK (when touching `lib/**`):
