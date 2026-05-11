@@ -12,8 +12,7 @@ types = ["text"]
 exclude = '''(?x)^(
   docs-website/pnpm-lock\.yaml|
   lib/Cargo\.lock|
-  services/camera-rust/Cargo\.lock|
-  services/camera/pipewire/gen/|
+  services/camera/Cargo\.lock|
   services/concordia/src/inference/proto/concordia_pb2(_grpc)?\.pyi?$
 )'''
 
@@ -23,8 +22,7 @@ types = ["text"]
 exclude = '''(?x)^(
   docs-website/pnpm-lock\.yaml|
   lib/Cargo\.lock|
-  services/camera-rust/Cargo\.lock|
-  services/camera/pipewire/gen/|
+  services/camera/Cargo\.lock|
   services/concordia/src/inference/proto/concordia_pb2(_grpc)?\.pyi?$
 )'''
 

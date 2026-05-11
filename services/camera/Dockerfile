@@ -77,7 +77,7 @@ RUN arch="$(dpkg-architecture -qDEB_HOST_MULTIARCH)" \
   && meson compile -C build \
   && DESTDIR=/opt/pipewire-root meson install -C build
 
-FROM ${RUST_IMAGE} AS camera-service-rust-build
+FROM ${RUST_IMAGE} AS camera-service-build
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -148,8 +148,8 @@ ENV HOME=/home/camera-service \
 COPY config/libcamera/configuration.yaml /etc/libcamera/configuration.yaml
 COPY config/pipewire/ /etc/pipewire/pipewire.conf.d/
 COPY config/wireplumber/ /etc/wireplumber/wireplumber.conf.d/
-COPY --from=camera-service-rust-build /src/target/release/api /usr/local/bin/api
-COPY --from=camera-service-rust-build /src/target/release/notifications /usr/local/bin/notifications
+COPY --from=camera-service-build /src/target/release/api /usr/local/bin/api
+COPY --from=camera-service-build /src/target/release/notifications /usr/local/bin/notifications
 COPY scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY scripts/permissions-set-entrypint.sh /usr/local/bin/permissions-set-entrypint.sh
 

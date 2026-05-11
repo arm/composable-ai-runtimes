@@ -1,5 +1,5 @@
-pub use camera_rust::camera_metadata::CameraMetadata;
-use camera_rust::helpers::is_camera_node;
+pub use camera::camera_metadata::CameraMetadata;
+use camera::helpers::is_camera_node;
 use pipewire as pw;
 use std::cell::RefCell;
 use std::collections::HashMap;

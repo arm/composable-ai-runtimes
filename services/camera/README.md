@@ -20,7 +20,7 @@ To build the API binary locally:
 cargo build --release --bin api
 ```
 
-The `api` binary compiles `services/camera-rust/proto/camera_service.proto` during the Cargo build and serves the `CameraService` gRPC API.
+The `api` binary compiles `services/camera/proto/camera_service.proto` during the Cargo build and serves the `CameraService` gRPC API.
 
 To run the API server locally:
 

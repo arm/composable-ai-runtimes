@@ -9,7 +9,7 @@ on:
       - reopened
     paths:
       - "lib/**"
-      - "services/camera-rust/proto/**"
+      - "services/camera/proto/**"
       - "services/concordia/src/inference/proto/**"
 
 jobs:

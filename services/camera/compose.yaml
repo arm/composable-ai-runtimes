@@ -1,8 +1,8 @@
 services:
-  camera-service-rust:
+  camera-service:
     build:
       context: .
-    image: camera-service-rust:latest
+    image: camera-service:latest
     user: root
     entrypoint: ["/usr/local/bin/permissions-set-entrypint.sh"]
     # The Camera service needs access to host uevents for device hotplug handling.

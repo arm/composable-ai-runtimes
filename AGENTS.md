@@ -22,7 +22,7 @@ For production-bound changes, require explicit confirmation on requirements, edg
 
 - Treat protobuf files as the current API contracts.
 - Treat Redis channel names and payload formats as compatibility surface once documented.
-- Generated protobuf artefacts (`*_pb2.py`, `*_pb2_grpc.py`) are version-controlled unless the project explicitly changes that policy. The Rust camera service generates its gRPC bindings from `services/camera-rust/proto/camera_service.proto` during Cargo builds rather than committing generated Rust files.
+- Generated protobuf artefacts (`*_pb2.py`, `*_pb2_grpc.py`) are version-controlled unless the project explicitly changes that policy. The camera service generates its gRPC bindings from `services/camera/proto/camera_service.proto` during Cargo builds rather than committing generated Rust files.
 - Do not hand-edit generated protobuf artefacts unless generation is broken; edit `.proto`, regenerate, and commit the regenerated files.
 
 ### Runtime and Reliability
@@ -75,7 +75,7 @@ prek run --all-files --stage pre-push
 Compose checks:
 ```bash
 docker compose -f services/compose.yaml config
-docker compose -f services/camera-rust/compose.yaml config
+docker compose -f services/camera/compose.yaml config
 ```
 
 Messaging service:
@@ -87,12 +87,12 @@ docker compose -f services/compose.yaml up -d messaging
 Camera service (current SDK default, Rust implementation):
 ```bash
 docker compose -f services/compose.yaml build camera-service
-docker compose -f services/camera-rust/compose.yaml up --build
+docker compose -f services/camera/compose.yaml up --build
 ```
 
-Rust camera service proto and binary checks (when touching `services/camera-rust/**`):
+Camera service proto and binary checks (when touching `services/camera/**`):
 ```bash
-cd services/camera-rust
+cd services/camera
 cargo fmt --all -- --check
 cargo clippy --all-targets --all-features --no-deps
 cargo test --lib --bins

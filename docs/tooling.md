@@ -28,10 +28,10 @@ Tool: `uv`
 Tool: `pytest`  
 `pytest` handles Concordia test execution, especially gRPC integration checks. It is appropriate because the test suite already uses pytest conventions (assertions, skipping, discovery), so no extra test harness is needed.
 
-### Build the camera PipeWire monitor scaffold (`services/camera/pipewire/`)
+### Build and validate the camera service (`services/camera/`)
 
-Tool: `make`  
-`make` drives C monitor compile and proto helper targets in `pipewire/`. It is appropriate because it is lightweight, widely available, and good for small C projects where explicit target/dependency rules and incremental rebuilds are preferred over a heavier build system.
+Tool: `cargo` and `docker compose`  
+`cargo` handles the Rust camera service binaries, tests, clippy, rustfmt, and gRPC code generation from `services/camera/proto/camera_service.proto`. `docker compose` validates and runs the container workflow that includes PipeWire, WirePlumber, host device mounts, Redis notification settings, and the `camera-service` image.
 
 ### Develop and build documentation site (`docs-website/`)
 

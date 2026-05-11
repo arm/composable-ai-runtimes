@@ -1,6 +1,6 @@
 use std::{env, error::Error, thread, time::Duration};
 
-use camera_rust::camera_metadata::CameraMetadata;
+use camera::camera_metadata::CameraMetadata;
 use redis::{
     Client, Commands, Connection, ConnectionAddr, ConnectionInfo, ErrorKind, IntoConnectionInfo,
     RedisConnectionInfo, RedisError, RedisResult,

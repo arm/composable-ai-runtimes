@@ -7,9 +7,9 @@ use std::{cell::RefCell, collections::HashMap, error::Error, rc::Rc};
 use crate::redis::{
     CameraEventType, RedisConfig, configure_redis_conn_with_retry, send_camera_event,
 };
-use camera_rust::camera_metadata::CameraMetadata;
-use camera_rust::helpers::is_camera_node;
-use camera_rust::logging;
+use camera::camera_metadata::CameraMetadata;
+use camera::helpers::is_camera_node;
+use camera::logging;
 use pipewire::{self as pw, context::ContextRc, main_loop::MainLoopRc};
 use tracing::{debug, info, warn};
 

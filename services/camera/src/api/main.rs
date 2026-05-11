@@ -10,7 +10,7 @@ mod snapshot_test;
 
 use std::error::Error;
 
-use camera_rust::logging;
+use camera::logging;
 use config::api_listen_addr;
 use service::CameraApiService;
 use service::pipewire::camera_service_server::CameraServiceServer;

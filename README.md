@@ -4,7 +4,7 @@
 
 Cairn SDK currently provides the following modules to simplify your development journey:
 
-• 📷 [Camera](./services/camera-rust/README.md)
+• 📷 [Camera](./services/camera/README.md)
 
 • 📡 [Messaging](./services/messaging/README.md)
 
