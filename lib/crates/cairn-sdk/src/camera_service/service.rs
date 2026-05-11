@@ -10,7 +10,7 @@ pub(super) mod pipewire {
 }
 
 use pipewire::ListRequest;
-use pipewire::pipewire_service_client::PipewireServiceClient;
+use pipewire::camera_service_client::CameraServiceClient;
 
 const DEFAULT_CAMERA_SERVICE_ENDPOINT: &str = "http://127.0.0.1:50051";
 
@@ -61,13 +61,13 @@ impl Camera {
 }
 
 pub struct CameraService {
-    client: PipewireServiceClient<Channel>,
+    client: CameraServiceClient<Channel>,
 }
 
 impl CameraService {
     pub async fn new(endpoint: Option<String>) -> Result<Self, CameraServiceError> {
         let endpoint = endpoint.unwrap_or_else(|| DEFAULT_CAMERA_SERVICE_ENDPOINT.to_string());
-        let client = PipewireServiceClient::connect(endpoint)
+        let client = CameraServiceClient::connect(endpoint)
             .await
             .map_err(|error| transport_error(error.to_string()))?;
 

@@ -17,8 +17,8 @@ services:
 
   camera-service:
     extends:
-      file: camera/compose.yaml
-      service: camera-service
+      file: camera-rust/compose.yaml
+      service: camera-service-rust
     depends_on:
       messaging-service:
         condition: service_healthy

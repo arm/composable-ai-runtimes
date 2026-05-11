@@ -5,17 +5,16 @@ use tonic::transport::Server;
 use tonic::transport::server::TcpIncoming;
 use tonic::{Response, Status};
 
-use super::service::pipewire::pipewire_service_server::{PipewireService, PipewireServiceServer};
-use super::service::pipewire::{
-    Camera as ProtoCamera, ListCamerasResponse, ListRequest, ListStreamsResponse,
-    Stream as ProtoStream,
+use super::service::pipewire::camera_service_server::{
+    CameraService as ProtoCameraService, CameraServiceServer,
 };
+use super::service::pipewire::{Camera as ProtoCamera, ListCamerasResponse, ListRequest};
 use super::*;
 
-struct MockPipewireService;
+struct MockCameraService;
 
 #[tonic::async_trait]
-impl PipewireService for MockPipewireService {
+impl ProtoCameraService for MockCameraService {
     async fn list_cameras(
         &self,
         _request: Request<ListRequest>,
@@ -29,30 +28,6 @@ impl PipewireService for MockPipewireService {
                 ProtoCamera {
                     id: 99,
                     name: "rear".to_string(),
-                },
-            ],
-        }))
-    }
-
-    async fn list_streams(
-        &self,
-        _request: Request<ListRequest>,
-    ) -> Result<Response<ListStreamsResponse>, Status> {
-        Ok(Response::new(ListStreamsResponse {
-            streams: vec![
-                ProtoStream {
-                    link_id: 10,
-                    camera_node_id: 20,
-                    consumer_node_id: 30,
-                    camera_name: "front".to_string(),
-                    consumer_name: "inference".to_string(),
-                },
-                ProtoStream {
-                    link_id: 11,
-                    camera_node_id: 21,
-                    consumer_node_id: 31,
-                    camera_name: "rear".to_string(),
-                    consumer_name: "recording".to_string(),
                 },
             ],
         }))
@@ -90,7 +65,7 @@ async fn start_mock_server() -> MockServerHandle {
     let (shutdown_sender, shutdown_receiver) = oneshot::channel::<()>();
     let task = tokio::spawn(async move {
         Server::builder()
-            .add_service(PipewireServiceServer::new(MockPipewireService))
+            .add_service(CameraServiceServer::new(MockCameraService))
             .serve_with_incoming_shutdown(incoming, async move {
                 let _ = shutdown_receiver.await;
             })

@@ -22,7 +22,7 @@ For production-bound changes, require explicit confirmation on requirements, edg
 
 - Treat protobuf files as the current API contracts.
 - Treat Redis channel names and payload formats as compatibility surface once documented.
-- Generated protobuf artefacts (`*_pb2.py`, `*_pb2_grpc.py`, `services/camera/pipewire/gen/*`) are version-controlled unless the project explicitly changes that policy.
+- Generated protobuf artefacts (`*_pb2.py`, `*_pb2_grpc.py`, `services/camera/pipewire/gen/*`) are version-controlled unless the project explicitly changes that policy. The Rust camera service generates its gRPC bindings from `services/camera-rust/proto/camera_service.proto` during Cargo builds rather than committing generated Rust files.
 - Do not hand-edit generated protobuf artefacts unless generation is broken; edit `.proto`, regenerate, and commit the regenerated files.
 
 ### Runtime and Reliability
@@ -75,6 +75,7 @@ prek run --all-files --stage pre-push
 Compose checks:
 ```bash
 docker compose -f services/compose.yaml config
+docker compose -f services/camera-rust/compose.yaml config
 docker compose -f services/camera/compose.yaml config
 ```
 
@@ -84,7 +85,21 @@ docker compose -f services/compose.yaml build messaging
 docker compose -f services/compose.yaml up -d messaging
 ```
 
-Camera service:
+Camera service (current SDK default, Rust implementation):
+```bash
+docker compose -f services/compose.yaml build camera-service
+docker compose -f services/camera-rust/compose.yaml up --build
+```
+
+Rust camera service proto and binary checks (when touching `services/camera-rust/**`):
+```bash
+cd services/camera-rust
+cargo fmt --all -- --check
+cargo clippy --all-targets --all-features --no-deps
+cargo test --lib --bins
+```
+
+Legacy PipeWire camera service:
 ```bash
 docker compose -f services/camera/compose.yaml up --build
 ```
@@ -101,13 +116,13 @@ cd services/concordia
 ./generate_proto.sh
 ```
 
-PipeWire proto regeneration (only if `.proto` changed):
+Legacy PipeWire proto regeneration (only if `services/camera/pipewire/proto/*.proto` changed):
 ```bash
 cd services/camera/pipewire
 make proto
 ```
 
-PipeWire component build (inside `services/camera/pipewire`):
+Legacy PipeWire component build (inside `services/camera/pipewire`):
 ```bash
 make clean && make
 ```
