@@ -26,8 +26,18 @@ const sidebars: SidebarsConfig = {
 					id: "modules/inference",
 				},
 				{
-					type: "doc",
-					id: "modules/vision",
+					type: "category",
+					label: "Perception Module (Proposed)",
+					link: {
+						type: "doc",
+						id: "modules/vision",
+					},
+					items: [
+						{
+							type: "doc",
+							id: "modules/vision-escape-hatch",
+						},
+					],
 				},
 			],
 		},

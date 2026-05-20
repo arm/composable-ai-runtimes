@@ -164,3 +164,16 @@ body {
     max-width: 100%;
     height: auto;
 }
+
+.theme-doc-markdown .mermaid-compact {
+    max-width: 70rem;
+    margin: 0 auto;
+}
+
+.theme-doc-markdown .mermaid-compact .mermaid {
+    padding: 0.65rem;
+}
+
+.theme-doc-markdown .mermaid-compact .mermaid svg {
+    width: 100% !important;
+}
