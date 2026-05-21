@@ -9,8 +9,8 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates=20250419 \
-    curl=8.14.1-2+deb13u2 \
-    gpg=2.4.7-21+deb13u1+b2 \
+    curl=8.14.1-2+deb13u3 \
+    gpg=2.4.7-21+deb13u1+b3 \
   && rm -rf /var/lib/apt/lists/*
 
 # Prefer the Raspberry Pi package line for the camera stack.
@@ -48,12 +48,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential=12.12 \
     gettext-base=0.23.1-2 \
     git=1:2.47.3-0+deb13u1 \
-    libcamera-dev=0.7.0+rpt20260205-1 \
+    libcamera-dev=0.7.1+rpt20260429-1 \
     libdbus-1-dev=1.16.2-2 \
-    libglib2.0-dev=2.84.4-3~deb13u2 \
-    libudev-dev=257.9-1~deb13u1 \
+    libglib2.0-dev=2.84.4-3~deb13u3 \
+    libudev-dev=257.13-1~deb13u1 \
     meson=1.7.0-1 \
-    ninja-build=1.12.1-1 \
+    ninja-build=1.12.1-1+b1 \
     pkg-config=1.8.1-4 \
   && rm -rf /var/lib/apt/lists/*
 
@@ -86,11 +86,11 @@ WORKDIR /src
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential=12.12 \
     libdbus-1-dev=1.16.2-2 \
-    libglib2.0-dev=2.84.4-3~deb13u2 \
+    libglib2.0-dev=2.84.4-3~deb13u3 \
     libclang-common-19-dev=1:19.1.7-3+b1 \
     libclang1-19=1:19.1.7-3+b1 \
     protobuf-compiler=3.21.12-11 \
-    libudev-dev=257.9-1~deb13u1 \
+    libudev-dev=257.13-1~deb13u1 \
     pkg-config=1.8.1-4 \
   && rm -rf /var/lib/apt/lists/*
 
@@ -110,17 +110,17 @@ ARG CAMERA_SERVICE_GID=10001
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libasound2t64=1.2.14-1 \
     libavahi-client3=0.8-16 \
-    libcap2-bin=1:2.75-10+b8 \
+    libcap2-bin=1:2.75-10+deb13u1+b1 \
     libdbus-1-3=1.16.2-2 \
     libdrm2=2.4.124-2 \
     libgbm1=25.0.7-2 \
-    libglib2.0-0t64=2.84.4-3~deb13u2 \
-    libcamera-ipa=0.7.0+rpt20260205-1 \
-    libcamera-v4l2=0.7.0+rpt20260205-1 \
-    libcamera0.7=0.7.0+rpt20260205-1 \
-    libpisp1=1.4.0-1 \
-    libsystemd0=257.9-1~deb13u1 \
-    libudev1=257.9-1~deb13u1 \
+    libglib2.0-0t64=2.84.4-3~deb13u3 \
+    libcamera-ipa=0.7.1+rpt20260429-1 \
+    libcamera-v4l2=0.7.1+rpt20260429-1 \
+    libcamera0.7=0.7.1+rpt20260429-1 \
+    libpisp1=1.5.0-1 \
+    libsystemd0=257.13-1~deb13u1 \
+    libudev1=257.13-1~deb13u1 \
     libunwind8=1.8.1-0.1 \
     libv4l-0t64=1.30.1-1 \
     wireplumber=0.5.8-2 \
