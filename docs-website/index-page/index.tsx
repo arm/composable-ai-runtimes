@@ -1,14 +1,19 @@
-import clsx from "clsx";
 import Link from "@docusaurus/Link";
 import Layout from "@theme/Layout";
 import type { ReactElement } from "react";
-import { homepageContent } from "../data/homepage";
+
+import { homepageContent } from "./_homepage";
 import styles from "./index.module.css";
+
+function joinClasses(...parts: Array<string | undefined | false>): string {
+  return parts.filter(Boolean).join(" ");
+}
 
 export default function Home(): ReactElement {
   const tutorialCards = homepageContent.bottomCards.filter((card) =>
     (card.to ?? "").startsWith("/tutorials/"),
   );
+
   const otherCards = homepageContent.bottomCards.filter(
     (card) => !(card.to ?? "").startsWith("/tutorials/"),
   );
@@ -28,10 +33,7 @@ export default function Home(): ReactElement {
               {homepageContent.heroLinks.map((link) => (
                 <Link
                   key={link.label}
-                  className={clsx(
-                    `button button--${link.variant}`,
-                    styles.button,
-                  )}
+                  className={joinClasses(`button button--${link.variant}`, styles.button)}
                   to={link.to}
                 >
                   {link.label}
@@ -39,10 +41,9 @@ export default function Home(): ReactElement {
               ))}
             </div>
           </div>
+
           <div className={styles.heroCard}>
-            <div className={styles.cardHeader}>
-              {homepageContent.installTitle}
-            </div>
+            <div className={styles.cardHeader}>{homepageContent.installTitle}</div>
             <pre className={styles.codeBlock}>
               {homepageContent.installCommands.map((cmd) => (
                 <div key={cmd}>
@@ -53,7 +54,7 @@ export default function Home(): ReactElement {
             <div className={styles.installActions}>
               <Link
                 to={homepageContent.installCta.to}
-                className={clsx(
+                className={joinClasses(
                   "button button--sm button--primary",
                   styles.installCta,
                 )}
@@ -64,7 +65,7 @@ export default function Home(): ReactElement {
                 href={homepageContent.installLink.href}
                 target="_blank"
                 rel="noreferrer"
-                className={clsx(
+                className={joinClasses(
                   "button button--sm button--secondary",
                   styles.installLink,
                 )}
@@ -85,7 +86,7 @@ export default function Home(): ReactElement {
               </div>
               {card.disabled ? (
                 <span
-                  className={clsx(
+                  className={joinClasses(
                     "button button--sm",
                     `button--${card.variant}`,
                     styles.buttonDisabled,
@@ -98,22 +99,14 @@ export default function Home(): ReactElement {
                   href={card.href}
                   target="_blank"
                   rel="noreferrer"
-                  className={clsx(
-                    "button button--sm",
-                    `button--${card.variant}`,
-                  )}
+                  className={joinClasses("button button--sm", `button--${card.variant}`)}
                 >
                   {card.cta}
                 </a>
               ) : (
                 <Link
-                  to={
-                    card.to ?? "/tutorials/getting-started/your-first-program"
-                  }
-                  className={clsx(
-                    "button button--sm",
-                    `button--${card.variant}`,
-                  )}
+                  to={card.to ?? "/tutorials/getting-started/your-first-program"}
+                  className={joinClasses("button button--sm", `button--${card.variant}`)}
                 >
                   {card.cta}
                 </Link>
@@ -140,7 +133,7 @@ export default function Home(): ReactElement {
                         href={card.href}
                         target="_blank"
                         rel="noreferrer"
-                        className={clsx(
+                        className={joinClasses(
                           "button button--sm",
                           `button--${card.variant}`,
                         )}
@@ -149,11 +142,8 @@ export default function Home(): ReactElement {
                       </a>
                     ) : (
                       <Link
-                        to={
-                          card.to ??
-                          "/tutorials/getting-started/your-first-program"
-                        }
-                        className={clsx(
+                        to={card.to ?? "/tutorials/getting-started/your-first-program"}
+                        className={joinClasses(
                           "button button--sm",
                           `button--${card.variant}`,
                         )}

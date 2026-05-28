@@ -1,23 +1,15 @@
 .page {
-    background:
-        radial-gradient(
-            circle at 52% -12%,
-            rgba(74, 210, 134, 0.18),
-            transparent 40%
-        ),
-        radial-gradient(
-            circle at 20% 20%,
-            rgba(0, 179, 159, 0.16),
-            transparent 36%
-        ),
-        radial-gradient(
-            circle at 82% 4%,
-            rgba(0, 58, 135, 0.28),
-            transparent 34%
-        ),
-        #0a1a38;
-    color: #e6edf5;
+    background: var(--ifm-background-color);
+    color: var(--ifm-font-color-base);
     min-height: 100vh;
+}
+
+.page h1,
+.page h2,
+.page h3,
+.page h4 {
+    color: var(--ifm-heading-color);
+    line-height: 1.2;
 }
 
 .hero {
@@ -30,31 +22,16 @@
     overflow: hidden;
 }
 
-.hero::before {
-    content: "";
-    position: absolute;
-    width: 520px;
-    height: 520px;
-    right: -120px;
-    top: -210px;
-    background: radial-gradient(
-        circle,
-        rgba(123, 231, 213, 0.24),
-        transparent 65%
-    );
-    filter: blur(1px);
-    pointer-events: none;
-}
-
 .heroContent h1 {
     margin: 0.4rem 0 0.6rem;
     font-size: clamp(2.6rem, 4vw, 3.4rem);
     letter-spacing: -0.02em;
+    line-height: 1.2;
 }
 
 .lead {
     max-width: 640px;
-    color: #c9d5ec;
+    color: var(--ifm-color-emphasis-700);
     font-size: 1.05rem;
     line-height: 1.6;
     margin-bottom: 1.5rem;
@@ -65,11 +42,11 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.35rem 0.9rem;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(123, 231, 213, 0.28);
+    background: var(--ifm-color-emphasis-100);
+    border: 1px solid var(--ifm-color-emphasis-300);
     border-radius: 999px;
     font-size: 0.85rem;
-    color: #b7c6e5;
+    color: var(--ifm-color-emphasis-700);
 }
 
 .actions {
@@ -82,6 +59,17 @@
     font-weight: 600;
 }
 
+:global(html[data-theme="dark"]) .page :global(.button--primary:hover),
+:global(html[data-theme="dark"]) .page :global(.button--primary:focus) {
+    --ifm-button-background-color: #b998fb;
+    --ifm-button-border-color: #b998fb;
+}
+
+:global(html[data-theme="dark"]) .page :global(.button--primary:active) {
+    --ifm-button-background-color: #aa83fa;
+    --ifm-button-border-color: #aa83fa;
+}
+
 .buttonDisabled {
     cursor: not-allowed;
     pointer-events: none;
@@ -89,11 +77,11 @@
 }
 
 .heroCard {
-    background: rgba(8, 24, 50, 0.82);
-    border: 1px solid rgba(123, 231, 213, 0.24);
-    border-radius: 16px;
+    background: var(--ifm-card-background-color);
+    border: 1px solid var(--ifm-color-emphasis-200);
+    border-radius: var(--ifm-card-border-radius);
     padding: 1.4rem 1.6rem;
-    box-shadow: 0 18px 48px rgba(0, 8, 20, 0.4);
+    box-shadow: var(--ifm-global-shadow-md);
     display: flex;
     flex-direction: column;
     gap: 0.8rem;
@@ -105,17 +93,15 @@
     letter-spacing: 0.06em;
     text-transform: uppercase;
     font-size: 0.8rem;
-    color: #d8ebff;
+    color: var(--ifm-color-emphasis-700);
 }
 
 .codeBlock {
-    background: #09152d;
-    border: 1px solid rgba(123, 231, 213, 0.22);
-    border-radius: 12px;
+    background: var(--ifm-code-background);
+    border: 1px solid var(--ifm-color-emphasis-200);
+    border-radius: var(--ifm-code-border-radius);
     padding: 0.9rem 1rem;
-    font-family:
-        "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-    color: #d8e5ff;
+    color: var(--ifm-code-color);
     margin: 0;
 }
 
@@ -139,14 +125,14 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: #a6b6d7;
+    color: var(--ifm-color-emphasis-600);
     font-size: 0.92rem;
 }
 
 .dot {
     width: 6px;
     height: 6px;
-    background: #7bd7ff;
+    background: var(--ifm-color-primary);
     border-radius: 50%;
     display: inline-block;
 }
@@ -164,19 +150,18 @@
     margin: 0 0 0.2rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: #84e7d7;
+    color: var(--ifm-color-primary);
     font-size: 0.78rem;
 }
 
 .codeIntro h2 {
     margin: 0 0 0.4rem;
-    color: #f0f6ff;
     font-size: clamp(1.45rem, 2vw, 1.9rem);
 }
 
 .codeIntro p {
     margin: 0;
-    color: #bfd0ea;
+    color: var(--ifm-color-emphasis-700);
     line-height: 1.5;
 }
 
@@ -187,14 +172,10 @@
 }
 
 .exampleCard {
-    background: linear-gradient(
-        180deg,
-        rgba(10, 20, 38, 0.92),
-        rgba(11, 24, 45, 0.9)
-    );
-    border: 1px solid rgba(123, 231, 213, 0.26);
-    border-radius: 14px;
-    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.3);
+    background: var(--ifm-card-background-color);
+    border: 1px solid var(--ifm-color-emphasis-200);
+    border-radius: var(--ifm-card-border-radius);
+    box-shadow: var(--ifm-global-shadow-lw);
     overflow: hidden;
 }
 
@@ -209,20 +190,19 @@
     border-radius: 999px;
     font-size: 0.73rem;
     letter-spacing: 0.05em;
-    color: #d9fff8;
-    background: rgba(0, 179, 159, 0.24);
-    border: 1px solid rgba(123, 231, 213, 0.44);
+    color: var(--ifm-button-color);
+    background: var(--ifm-color-primary);
+    border: 1px solid var(--ifm-color-primary);
 }
 
 .exampleHead h3 {
     margin: 0 0 0.35rem;
-    color: #e9f3ff;
     font-size: 1.02rem;
 }
 
 .exampleHead p {
     margin: 0;
-    color: #aec3e2;
+    color: var(--ifm-color-emphasis-700);
     font-size: 0.9rem;
     line-height: 1.45;
 }
@@ -230,16 +210,14 @@
 .exampleCode {
     margin: 0;
     padding: 1rem;
-    background: rgba(8, 14, 27, 0.95);
-    border-top: 1px solid rgba(123, 231, 213, 0.2);
-    border-bottom: 1px solid rgba(123, 231, 213, 0.2);
+    background: var(--ifm-code-background);
+    border-top: 1px solid var(--ifm-color-emphasis-200);
+    border-bottom: 1px solid var(--ifm-color-emphasis-200);
     overflow: auto;
 }
 
 .exampleCode code {
-    font-family:
-        "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-    color: #d7e8ff;
+    color: var(--ifm-code-color);
     font-size: 0.83rem;
     line-height: 1.5;
     white-space: pre;
@@ -248,7 +226,7 @@
 .exampleLang {
     margin: 0;
     padding: 0.55rem 1rem 0.7rem;
-    color: #8ea8cb;
+    color: var(--ifm-color-emphasis-600);
     font-size: 0.78rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -262,30 +240,27 @@
 }
 
 .bottomCard {
-    background: linear-gradient(
-        135deg,
-        rgba(16, 67, 119, 0.36),
-        rgba(8, 35, 66, 0.42)
-    );
-    border: 1px solid rgba(123, 231, 213, 0.24);
-    border-radius: 16px;
+    background: var(--ifm-card-background-color);
+    border: 1px solid var(--ifm-color-emphasis-200);
+    border-radius: var(--ifm-card-border-radius);
     padding: 1.4rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 1rem;
-    color: #eaf2ff;
+    box-shadow: var(--ifm-global-shadow-lw);
+}
+
+.bottomCard h4 {
+    margin: 0 0 1rem;
 }
 
 .tutorialsBox {
-    background: linear-gradient(
-        135deg,
-        rgba(22, 83, 120, 0.32),
-        rgba(10, 42, 79, 0.42)
-    );
-    border: 1px solid rgba(123, 231, 213, 0.28);
-    border-radius: 16px;
+    background: var(--ifm-card-background-color);
+    border: 1px solid var(--ifm-color-emphasis-200);
+    border-radius: var(--ifm-card-border-radius);
     padding: 1.2rem;
+    box-shadow: var(--ifm-global-shadow-lw);
 }
 
 .tutorialsHeader {
@@ -294,7 +269,6 @@
 
 .tutorialsHeader h4 {
     margin: 0;
-    color: #eaf2ff;
 }
 
 .tutorialsGrid {
@@ -307,12 +281,12 @@
     text-transform: uppercase;
     letter-spacing: 0.08em;
     font-size: 0.75rem;
-    color: #a9e8df;
+    color: var(--ifm-color-primary);
     margin: 0 0 0.2rem;
 }
 
 .small {
-    color: #c7d6f1;
+    color: var(--ifm-color-emphasis-700);
     margin: 0.1rem 0 0;
     line-height: 1.4;
 }

@@ -30,7 +30,7 @@ Tool: `pytest`
 
 ### Build and validate the camera service (`services/camera/`)
 
-Tool: `cargo` and `docker compose`  
+Tool: `cargo` and `docker compose`
 `cargo` handles the Rust camera service binaries, tests, clippy, rustfmt, and gRPC code generation from `services/camera/proto/camera_service.proto`. `docker compose` validates and runs the container workflow that includes PipeWire, WirePlumber, host device mounts, Redis notification settings, and the `camera-service` image.
 
 ### Develop and build documentation site (`docs-website/`)
