@@ -73,11 +73,15 @@ class CameraMetadata:
         Camera identifier used when opening the camera.
     name:
         Human-readable camera name.
+    supported_formats:
+        Pixel formats reported by the camera service.
     """
     @property
     def id(self) -> builtins.int: ...
     @property
     def name(self) -> builtins.str: ...
+    @property
+    def supported_formats(self) -> builtins.list[builtins.str]: ...
 
 @typing.final
 class CameraService:

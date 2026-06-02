@@ -1,8 +1,10 @@
 use super::snapshot::{
-    CameraMetadata, SnapshotError, SnapshotState, append_camera_metadata, finish_snapshot,
-    is_pending_sync_complete, record_snapshot_timeout, remove_camera_metadata,
+    SnapshotCamera, SnapshotError, SnapshotPhase, SnapshotState, SnapshotSupportedFormat,
+    append_camera_metadata, is_pending_sync_complete,
 };
 use pipewire as pw;
+use pw::spa::param::format::MediaSubtype;
+use pw::spa::param::video::VideoFormat;
 use std::collections::HashMap;
 
 #[test]
@@ -10,6 +12,18 @@ fn snapshot_error_displays_message() {
     let error = SnapshotError::Unavailable("pipewire unavailable".to_string());
 
     assert_eq!(error.to_string(), "pipewire unavailable");
+}
+
+#[test]
+fn snapshot_supported_format_displays_pipewire_format_name() {
+    assert_eq!(
+        SnapshotSupportedFormat::RawVideo(VideoFormat::RGB).to_string(),
+        "RGB"
+    );
+    assert_eq!(
+        SnapshotSupportedFormat::EncodedVideo(MediaSubtype::Mjpg).to_string(),
+        "Mjpg"
+    );
 }
 
 fn node_global_factory(
@@ -42,7 +56,7 @@ fn node_global_factory(
 }
 
 #[test]
-fn append_camera_metadata_records_only_camera_nodes() {
+fn append_camera_metadata_records_camera_node() {
     let mut cameras = HashMap::new();
     let camera = node_global_factory(
         7,
@@ -50,39 +64,18 @@ fn append_camera_metadata_records_only_camera_nodes() {
         Some("Video/Source"),
         Some("front"),
     );
-    let audio = node_global_factory(
-        8,
-        pw::types::ObjectType::Node,
-        Some("Audio/Source"),
-        Some("mic"),
-    );
 
     append_camera_metadata(&mut cameras, &camera);
-    append_camera_metadata(&mut cameras, &audio);
 
     assert_eq!(
         cameras.get(&7),
-        Some(&CameraMetadata {
+        Some(&SnapshotCamera {
             id: 7,
             name: "front".to_string(),
+            supported_formats: vec![],
         })
     );
     assert_eq!(cameras.len(), 1);
-}
-
-#[test]
-fn remove_camera_metadata_drops_camera_by_id() {
-    let mut cameras = HashMap::from([(
-        7,
-        CameraMetadata {
-            id: 7,
-            name: "front".to_string(),
-        },
-    )]);
-
-    remove_camera_metadata(&mut cameras, 7);
-
-    assert!(cameras.is_empty());
 }
 
 #[test]
@@ -101,21 +94,22 @@ fn is_pending_sync_complete_only_for_matching_pending_sync() {
 }
 
 #[test]
-fn finish_snapshot_returns_recorded_failure() {
+fn take_result_returns_recorded_failure() {
+    let mut state = SnapshotState::default();
+    state.error = Some(SnapshotError::Unavailable("boom".to_string()));
+
     assert_eq!(
-        finish_snapshot(
-            HashMap::new(),
-            Some(SnapshotError::Unavailable("boom".to_string())),
-            false,
-        ),
+        state.take_result(),
         Err(SnapshotError::Unavailable("boom".to_string()))
     );
 }
 
 #[test]
-fn finish_snapshot_returns_incomplete_when_never_completed() {
+fn take_result_returns_incomplete_when_never_completed() {
+    let mut state = SnapshotState::default();
+
     assert_eq!(
-        finish_snapshot(HashMap::new(), None, false),
+        state.take_result(),
         Err(SnapshotError::Unavailable(
             "PipeWire snapshot did not complete".to_string()
         ))
@@ -123,38 +117,29 @@ fn finish_snapshot_returns_incomplete_when_never_completed() {
 }
 
 #[test]
-fn record_snapshot_timeout_sets_timeout_error_when_snapshot_is_pending() {
-    let mut state = SnapshotState::default();
+fn is_pending_without_error_returns_true_when_snapshot_is_pending() {
+    let state = SnapshotState::default();
 
-    assert!(record_snapshot_timeout(&mut state));
-    assert_eq!(
-        state.error,
-        Some(SnapshotError::Unavailable(
-            "PipeWire snapshot timed out".to_string()
-        ))
-    );
-}
-
-#[test]
-fn record_snapshot_timeout_ignores_completed_snapshot() {
-    let mut state = SnapshotState {
-        done: true,
-        ..SnapshotState::default()
-    };
-
-    assert!(!record_snapshot_timeout(&mut state));
+    assert!(state.is_pending_without_error());
     assert_eq!(state.error, None);
 }
 
 #[test]
-fn record_snapshot_timeout_preserves_existing_error() {
-    let existing_error_message = "PipeWire core error: boom".to_string();
-    let mut state = SnapshotState {
-        error: Some(SnapshotError::Unavailable(existing_error_message.clone())),
-        ..SnapshotState::default()
-    };
+fn is_pending_without_error_returns_false_for_completed_snapshot() {
+    let mut state = SnapshotState::default();
+    state.phase = SnapshotPhase::Complete;
 
-    assert!(!record_snapshot_timeout(&mut state));
+    assert!(!state.is_pending_without_error());
+    assert_eq!(state.error, None);
+}
+
+#[test]
+fn is_pending_without_error_returns_false_for_existing_error() {
+    let existing_error_message = "PipeWire core error: boom".to_string();
+    let mut state = SnapshotState::default();
+    state.error = Some(SnapshotError::Unavailable(existing_error_message.clone()));
+
+    assert!(!state.is_pending_without_error());
     assert_eq!(
         state.error,
         Some(SnapshotError::Unavailable(existing_error_message))
@@ -162,7 +147,7 @@ fn record_snapshot_timeout_preserves_existing_error() {
 }
 
 #[test]
-fn finish_snapshot_sorts_cameras_by_id_before_returning() {
+fn take_result_sorts_cameras_by_id_before_returning() {
     let camera_b = node_global_factory(
         11,
         pw::types::ObjectType::Node,
@@ -176,53 +161,60 @@ fn finish_snapshot_sorts_cameras_by_id_before_returning() {
         Some("front"),
     );
 
-    let cameras = finish_snapshot(
-        HashMap::from([
-            (
-                camera_b.id,
-                CameraMetadata {
-                    id: camera_b.id,
-                    name: "rear".to_string(),
-                },
-            ),
-            (
-                camera_a.id,
-                CameraMetadata {
-                    id: camera_a.id,
-                    name: "front".to_string(),
-                },
-            ),
-        ]),
-        None,
-        true,
-    )
-    .unwrap();
+    let mut state = SnapshotState::default();
+    state.phase = SnapshotPhase::Complete;
+    state.cameras = HashMap::from([
+        (
+            camera_b.id,
+            SnapshotCamera {
+                id: camera_b.id,
+                name: "rear".to_string(),
+                supported_formats: vec![],
+            },
+        ),
+        (
+            camera_a.id,
+            SnapshotCamera {
+                id: camera_a.id,
+                name: "front".to_string(),
+                supported_formats: vec![],
+            },
+        ),
+    ]);
+
+    let cameras = state.take_result().unwrap();
     assert_eq!(cameras[0].id, 7);
     assert_eq!(cameras[1].id, 11);
 }
 
 #[test]
-fn finish_snapshot_omits_removed_cameras() {
+fn take_result_omits_removed_cameras() {
     let mut cameras = HashMap::from([
         (
             7,
-            CameraMetadata {
+            SnapshotCamera {
                 id: 7,
                 name: "front".to_string(),
+                supported_formats: vec![],
             },
         ),
         (
             11,
-            CameraMetadata {
+            SnapshotCamera {
                 id: 11,
                 name: "rear".to_string(),
+                supported_formats: vec![],
             },
         ),
     ]);
 
-    remove_camera_metadata(&mut cameras, 7);
+    cameras.remove(&7);
 
-    let cameras = finish_snapshot(cameras, None, true).unwrap();
+    let mut state = SnapshotState::default();
+    state.phase = SnapshotPhase::Complete;
+    state.cameras = cameras;
+
+    let cameras = state.take_result().unwrap();
 
     assert_eq!(cameras.len(), 1);
     assert_eq!(cameras[0].id, 11);

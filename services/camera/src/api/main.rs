@@ -1,6 +1,10 @@
+mod camera_node_watch;
 mod config;
 #[cfg(test)]
 mod config_test;
+mod parameters;
+#[cfg(test)]
+mod parameters_test;
 mod service;
 #[cfg(test)]
 mod service_test;

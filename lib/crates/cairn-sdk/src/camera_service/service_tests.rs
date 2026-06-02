@@ -24,10 +24,12 @@ impl ProtoCameraService for MockCameraService {
                 ProtoCamera {
                     id: 7,
                     name: "front".to_string(),
+                    supported_formats: vec!["RGB".to_string(), "YUY2".to_string()],
                 },
                 ProtoCamera {
                     id: 99,
                     name: "rear".to_string(),
+                    supported_formats: Vec::new(),
                 },
             ],
         }))
@@ -94,8 +96,10 @@ async fn list_cameras_maps_proto_to_library_type() {
     assert_eq!(cameras.len(), 2);
     assert_eq!(cameras[0].id, 7);
     assert_eq!(cameras[0].name, "front");
+    assert_eq!(cameras[0].supported_formats, ["RGB", "YUY2"]);
     assert_eq!(cameras[1].id, 99);
     assert_eq!(cameras[1].name, "rear");
+    assert!(cameras[1].supported_formats.is_empty());
 
     server.stop_server().await;
 }

@@ -16,7 +16,10 @@ async fn main() {
     match service.list_camera_metadata().await {
         Ok(cameras) => {
             for camera in cameras {
-                println!("camera id={} name={}", camera.id, camera.name);
+                println!(
+                    "camera id={} name={} supported_formats={:?}",
+                    camera.id, camera.name, camera.supported_formats
+                );
             }
         }
         Err(err) => {

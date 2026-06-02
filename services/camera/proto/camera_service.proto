@@ -15,4 +15,5 @@ message ListCamerasResponse {
 message Camera {
   uint32 id = 1;
   string name = 2;
+  repeated string supported_formats = 3;
 }

@@ -46,6 +46,11 @@ impl CameraService for CameraApiService {
                 .map(|camera| pipewire::Camera {
                     id: camera.id,
                     name: camera.name,
+                    supported_formats: camera
+                        .supported_formats
+                        .into_iter()
+                        .map(|format| format.to_string())
+                        .collect(),
                 })
                 .collect(),
         });

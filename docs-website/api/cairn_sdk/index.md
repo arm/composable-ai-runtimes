@@ -41,6 +41,7 @@ Information about a camera returned by `CameraService.list_camera_metadata()`.
 
 - `id`: Camera identifier used when opening the camera.
 - `name`: Human-readable camera name.
+- `supported_formats`: supported formats reported by the camera service.
 
 ## CameraService
 

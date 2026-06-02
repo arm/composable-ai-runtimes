@@ -46,6 +46,8 @@ fn pixel_format_name(pixel_format: camera_service::CapturePixelFormat) -> &'stat
 ///     Camera identifier used when opening the camera.
 /// name:
 ///     Human-readable camera name.
+/// supported_formats:
+///     Pixel formats reported by the camera service.
 #[gen_stub_pyclass]
 #[pyclass(skip_from_py_object, module = "cairn_sdk", name = "CameraMetadata")]
 #[derive(Clone)]
@@ -54,6 +56,8 @@ pub struct PyCameraMetadata {
     id: u32,
     #[pyo3(get)]
     name: String,
+    #[pyo3(get)]
+    supported_formats: Vec<String>,
 }
 
 impl From<camera_service::CameraMetadata> for PyCameraMetadata {
@@ -61,6 +65,7 @@ impl From<camera_service::CameraMetadata> for PyCameraMetadata {
         Self {
             id: value.id,
             name: value.name,
+            supported_formats: value.supported_formats,
         }
     }
 }
@@ -70,6 +75,7 @@ impl From<&PyCameraMetadata> for camera_service::CameraMetadata {
         camera_service::CameraMetadata {
             id: value.id,
             name: value.name.clone(),
+            supported_formats: value.supported_formats.clone(),
         }
     }
 }

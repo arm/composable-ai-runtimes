@@ -40,6 +40,7 @@ fn map_tonic_status(error: tonic::Status) -> CameraServiceError {
 pub struct CameraMetadata {
     pub id: u32,
     pub name: String,
+    pub supported_formats: Vec<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -93,6 +94,7 @@ impl CameraService {
             .map(|proto_camera| CameraMetadata {
                 id: proto_camera.id,
                 name: proto_camera.name,
+                supported_formats: proto_camera.supported_formats,
             })
             .collect())
     }
