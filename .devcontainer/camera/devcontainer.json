@@ -1,0 +1,31 @@
+{
+	"name": "Camera Service Development Container",
+	"dockerComposeFile": "docker-compose.yaml",
+	"service": "camera-service",
+	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+	"shutdownAction": "stopCompose",
+	"features": {
+		"ghcr.io/devcontainers/features/git:1": {}
+	},
+	"remoteEnv": {
+		"PATH": "/usr/local/cargo/bin:${containerEnv:PATH}",
+		"XDG_RUNTIME_DIR": "/run/pipewire"
+	},
+	"postCreateCommand": "/bin/bash /workspaces/cairn-sdk/.devcontainer/camera/post-create.sh",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"rust-lang.rust-analyzer",
+				"vadimcn.vscode-lldb",
+				"tamasfe.even-better-toml"
+			],
+			"settings": {
+				"rust-analyzer.linkedProjects": [
+					"/workspaces/cairn-sdk/services/camera/Cargo.toml"
+				],
+				"rust-analyzer.check.command": "clippy",
+				"rust-analyzer.cargo.buildScripts.enable": true
+			}
+		}
+	}
+}

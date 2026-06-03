@@ -4,6 +4,8 @@ The Camera Service is responsible for management of connected cameras, as well a
 
 This Rust port is still early-stage. The container image is built with a Debian `trixie` multi-stage Dockerfile and starts both service binaries.
 
+For containerised camera development, you can use the `.devcontainer/camera` Dev Container; it includes Rust tooling, PipeWire/WirePlumber, GStreamer camera spoofing support, and `grpcurl`.
+
 ## Building the Camera Service
 
 The camera service consists of two binaries. One handles the API communications and the other handles notifications from PipeWire.

@@ -14,6 +14,8 @@ Cairn SDK currently provides the following modules to simplify your development 
 
 • 📚 [Documentation](./docs-website/README.md)
 
+Developer setup is available through VS Code Dev Containers for the camera service, Concordia service, and SDK library; see [`.devcontainer/README.md`](./.devcontainer/README.md).
+
 ⚠️ This project is in a proof of concept stage and not production-ready.
 
 ## Getting started

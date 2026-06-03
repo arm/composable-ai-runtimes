@@ -26,6 +26,8 @@ cargo fmt --all -- --check
 cargo clippy --workspace --all-targets --all-features --no-deps
 ```
 
+For containerised SDK development, use the `.devcontainer/lib` Dev Container; it starts the SDK workspace together with messaging, camera, and spoof camera services for end-to-end camera example validation.
+
 Python binding stub generation from the `lib` directory:
 
 ```bash
@@ -143,4 +145,5 @@ Numeric outputs exposed by the Python bindings use NumPy arrays for channel and 
 ## Example files
 
 - `crates/cairn-sdk-py/examples/list_cameras.rs`
+- `crates/cairn-sdk-py/examples/get_camera_frame.rs`
 - `crates/cairn-sdk/examples/run_brick_tts.rs`

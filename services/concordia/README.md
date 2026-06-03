@@ -12,6 +12,8 @@ In the current Cairn SDK proof of concept (PoC), it provides the initial inferen
 - [virtualenv](https://virtualenv.pypa.io/en/latest/)
 - Docker (optional, for containerized deployment)
 
+For containerised Concordia development, use the `.devcontainer/concordia` Dev Container; it runs `uv sync --active --extra dev` during post-create setup.
+
 ## Installation
 
 ### Local Setup
