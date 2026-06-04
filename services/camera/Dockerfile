@@ -53,7 +53,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-dev=2.84.4-3~deb13u3 \
     libudev-dev=257.13-1~deb13u1 \
     meson=1.7.0-1 \
-    ninja-build=1.12.1-1 \
+    ninja-build=1.12.1-1+b1 \
     pkg-config=1.8.1-4 \
   && rm -rf /var/lib/apt/lists/*
 

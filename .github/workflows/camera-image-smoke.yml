@@ -1,0 +1,26 @@
+name: Camera Image Smoke
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+    paths:
+      - .github/workflows/camera-image-smoke.yml
+      - services/camera/**
+      - services/compose.yaml
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build camera service image
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Build camera service Docker image
+        run: docker build --progress=plain --tag cairn-camera-service:smoke services/camera
