@@ -117,13 +117,13 @@ cargo test --lib
 
 ## Running with Compose
 
-Use the local Compose file in this directory to build and start the camera service container:
+From the `services/camera` directory, use the local Compose file to build and start the camera service container:
 
 ```bash
 docker compose up --build
 ```
 
-The camera Compose smoke check validates Compose configuration only. It does not start the hardware-dependent camera services:
+The camera Compose smoke check validates Compose configuration only. From the repository root, run:
 
 ```bash
 docker compose -f services/camera/compose.yaml config

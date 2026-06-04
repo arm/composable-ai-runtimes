@@ -8,6 +8,7 @@ on:
       - reopened
     paths:
       - services/camera/**
+      - services/compose.yaml
       - .github/workflows/camera-compose-config-check.yml
   workflow_dispatch:
 
@@ -17,9 +18,12 @@ permissions:
 jobs:
   compose-config:
     name: Validate camera Compose config
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
-      - name: Run camera Compose smoke check
+      - name: Run camera service Compose smoke check
         run: docker compose -f services/camera/compose.yaml config
+
+      - name: Run shared services Compose smoke check
+        run: docker compose -f services/compose.yaml config
