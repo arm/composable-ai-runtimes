@@ -30,6 +30,8 @@ This strategy defines the quality bar, validation classes, and expectations for 
 - cross-component integration and end-to-end scenarios should be owned as repository-level lane definitions.
 - those plans and lane definitions should name owners, participating components, routing rules, validation environments, and whether each lane blocks merge, `main` validation, or release.
 
+Use [docs/testing/service-test-plan-template.md](service-test-plan-template.md) when creating or refreshing a component-level service test plan.
+
 ## Strategy Summary
 
 The proposed strategy is risk-based, target-aware, and pre-merge by default. Pull-request validation provides the evidence to merge by default, while `main`, scheduled, and release lanes run required checks that do not fit the default merge gate.
