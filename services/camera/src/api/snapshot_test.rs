@@ -141,9 +141,17 @@ fn is_pending_sync_complete_rejects_matching_sequence_from_non_core_id() {
 }
 
 #[test]
-fn take_result_returns_recorded_failure() {
+fn take_result_returns_recorded_failure_when_cameras_were_collected() {
     let mut state = SnapshotState::default();
     state.error = Some(SnapshotError::Unavailable("boom".to_string()));
+    state.cameras = HashMap::from([(
+        7,
+        SnapshotCamera {
+            id: 7,
+            name: "front".to_string(),
+            supported_formats: vec![],
+        },
+    )]);
 
     assert_eq!(
         state.take_result(),
@@ -152,8 +160,16 @@ fn take_result_returns_recorded_failure() {
 }
 
 #[test]
-fn take_result_returns_incomplete_when_never_completed() {
+fn take_result_returns_incomplete_without_returning_collected_cameras() {
     let mut state = SnapshotState::default();
+    state.cameras = HashMap::from([(
+        7,
+        SnapshotCamera {
+            id: 7,
+            name: "front".to_string(),
+            supported_formats: vec![],
+        },
+    )]);
 
     assert_eq!(
         state.take_result(),
@@ -161,6 +177,38 @@ fn take_result_returns_incomplete_when_never_completed() {
             "PipeWire snapshot did not complete".to_string()
         ))
     );
+}
+
+#[test]
+fn take_result_returns_empty_vec_for_completed_empty_snapshot() {
+    let mut state = SnapshotState::default();
+    state.phase = SnapshotPhase::Complete;
+
+    assert_eq!(state.take_result(), Ok(vec![]));
+}
+
+#[test]
+fn take_result_consumes_cameras_after_successful_extraction() {
+    let mut state = SnapshotState::default();
+    state.phase = SnapshotPhase::Complete;
+    state.cameras = HashMap::from([(
+        7,
+        SnapshotCamera {
+            id: 7,
+            name: "front".to_string(),
+            supported_formats: vec![],
+        },
+    )]);
+
+    assert_eq!(
+        state.take_result(),
+        Ok(vec![SnapshotCamera {
+            id: 7,
+            name: "front".to_string(),
+            supported_formats: vec![],
+        }])
+    );
+    assert_eq!(state.take_result(), Ok(vec![]));
 }
 
 #[test]

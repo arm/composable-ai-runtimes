@@ -232,8 +232,6 @@ impl SnapshotState {
     }
 
     pub(super) fn take_result(&mut self) -> Result<Vec<SnapshotCamera>, SnapshotError> {
-        let cameras = std::mem::take(&mut self.cameras);
-
         if let Some(error) = self.error.take() {
             return Err(error);
         }
@@ -242,6 +240,7 @@ impl SnapshotState {
             return Err(unavailable("PipeWire snapshot did not complete"));
         }
 
+        let cameras = std::mem::take(&mut self.cameras);
         let mut cameras = cameras.into_values().collect::<Vec<_>>();
         cameras.sort_by_key(|camera| camera.id);
         Ok(cameras)
