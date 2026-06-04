@@ -57,11 +57,24 @@ fn main() -> Result<(), Box<dyn Error>> {
         .add_listener_local()
         .global(move |global| {
             if is_camera_node(global) {
-                let camera = CameraMetadata::from_global_object(global);
-                camera_cache.borrow_mut().insert(camera.id, camera.clone());
+                let camera = match CameraMetadata::try_from_global_object(global) {
+                    Ok(camera) => camera,
+                    Err(err) => {
+                        warn!(
+                            node_id = global.id,
+                            error = %err,
+                            "skipping camera node with invalid metadata"
+                        );
+                        return;
+                    }
+                };
+                camera_cache
+                    .borrow_mut()
+                    .insert(camera.node_id, camera.clone());
 
                 info!(
-                    camera_id = camera.id,
+                    node_id = camera.node_id,
+                    object_serial = camera.object_serial,
                     camera_name = %camera.name,
                     "camera connected"
                 );
@@ -75,12 +88,13 @@ fn main() -> Result<(), Box<dyn Error>> {
                 );
             }
         })
-        .global_remove(move |id| {
-            let deleted_camera = { camera_cache_remove.borrow_mut().remove(&id) };
+        .global_remove(move |node_id| {
+            let deleted_camera = { camera_cache_remove.borrow_mut().remove(&node_id) };
 
             if let Some(deleted_camera) = deleted_camera {
                 info!(
-                    camera_id = deleted_camera.id,
+                    node_id = deleted_camera.node_id,
+                    object_serial = deleted_camera.object_serial,
                     camera_name = %deleted_camera.name,
                     "camera disconnected"
                 );
@@ -119,7 +133,8 @@ fn publish_camera_event(
     if let Err(err) = publish_result {
         let event_label = camera_event_label(event_type);
         warn!(
-            camera_id = camera.id,
+            node_id = camera.node_id,
+            object_serial = camera.object_serial,
             camera_name = %camera.name,
             events_channel,
             error = %err,
@@ -130,7 +145,8 @@ fn publish_camera_event(
     } else {
         let event_label = camera_event_label(event_type);
         info!(
-            camera_id = camera.id,
+            node_id = camera.node_id,
+            object_serial = camera.object_serial,
             camera_name = %camera.name,
             events_channel,
             "published {event_label} camera notification"

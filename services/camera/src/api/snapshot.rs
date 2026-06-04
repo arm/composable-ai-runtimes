@@ -31,7 +31,7 @@ impl std::error::Error for SnapshotError {}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct SnapshotCamera {
-    pub(crate) id: u32,
+    pub(crate) object_serial: u64,
     pub(crate) name: String,
     pub(crate) supported_formats: Vec<SnapshotSupportedFormat>,
 }
@@ -39,7 +39,7 @@ pub(crate) struct SnapshotCamera {
 impl From<CameraMetadata> for SnapshotCamera {
     fn from(metadata: CameraMetadata) -> Self {
         Self {
-            id: metadata.id,
+            object_serial: metadata.object_serial,
             name: metadata.name,
             supported_formats: vec![],
         }
@@ -107,7 +107,7 @@ pub(crate) fn list_camera_metadata() -> Result<Vec<SnapshotCamera>, SnapshotErro
                 Ok(node) => node,
                 Err(err) => {
                     warn!(
-                        global.id,
+                        node_id = global.id,
                         error = %err,
                         "could not collect PipeWire camera node params; returning camera metadata without supported formats"
                     );
@@ -121,10 +121,10 @@ pub(crate) fn list_camera_metadata() -> Result<Vec<SnapshotCamera>, SnapshotErro
                 .camera_node_watches
                 .insert(global.id, CameraNodeWatch::new(global.id, camera_node));
         })
-        .global_remove(move |id| {
+        .global_remove(move |node_id| {
             let mut state = remove_state.borrow_mut();
-            state.cameras.remove(&id);
-            state.camera_node_watches.remove(&id);
+            state.cameras.remove(&node_id);
+            state.camera_node_watches.remove(&node_id);
         })
         .register();
 
@@ -242,13 +242,13 @@ impl SnapshotState {
 
         let cameras = std::mem::take(&mut self.cameras);
         let mut cameras = cameras.into_values().collect::<Vec<_>>();
-        cameras.sort_by_key(|camera| camera.id);
+        cameras.sort_by_key(|camera| camera.object_serial);
         Ok(cameras)
     }
 
     fn apply_collected_formats(&mut self) {
         for watch in self.camera_node_watches.values() {
-            let Some(camera) = self.cameras.get_mut(&watch.camera_id) else {
+            let Some(camera) = self.cameras.get_mut(&watch.node_id) else {
                 continue;
             };
 
@@ -305,8 +305,18 @@ pub(crate) fn append_camera_metadata<P>(
 ) where
     P: AsRef<pw::spa::utils::dict::DictRef>,
 {
-    let camera = SnapshotCamera::from(CameraMetadata::from_global_object(global));
-    cameras.insert(camera.id, camera);
+    let camera = match CameraMetadata::try_from_global_object(global) {
+        Ok(camera) => camera,
+        Err(err) => {
+            warn!(
+                node_id = global.id,
+                error = %err,
+                "skipping camera node with invalid metadata"
+            );
+            return;
+        }
+    };
+    cameras.insert(camera.node_id, SnapshotCamera::from(camera));
 }
 
 pub(crate) fn is_pending_sync_complete(

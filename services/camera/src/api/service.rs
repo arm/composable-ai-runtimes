@@ -44,7 +44,7 @@ impl CameraService for CameraApiService {
             cameras: cameras
                 .into_iter()
                 .map(|camera| pipewire::Camera {
-                    id: camera.id,
+                    id: camera.object_serial,
                     name: camera.name,
                     supported_formats: camera
                         .supported_formats

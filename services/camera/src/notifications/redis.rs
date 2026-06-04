@@ -50,11 +50,26 @@ pub enum CameraEventType {
     Disconnected,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub struct EventCamera {
+    pub id: u64,
+    pub name: String,
+}
+
+impl From<&CameraMetadata> for EventCamera {
+    fn from(camera: &CameraMetadata) -> Self {
+        Self {
+            id: camera.object_serial,
+            name: camera.name.clone(),
+        }
+    }
+}
+
 #[derive(Debug, Serialize)]
-struct CameraEvent<'a> {
+struct CameraEvent {
     event_type: CameraEventType,
     #[serde(flatten)]
-    camera: &'a CameraMetadata,
+    camera: EventCamera,
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -148,7 +163,10 @@ pub fn send_camera_event(
     camera: &CameraMetadata,
     events_channel: &str,
 ) -> Result<(), Box<dyn Error>> {
-    let payload = serde_json::to_string(&CameraEvent { event_type, camera })?;
+    let payload = serde_json::to_string(&CameraEvent {
+        event_type,
+        camera: EventCamera::from(camera),
+    })?;
     let _: usize = redis_conn.publish(events_channel, payload)?;
 
     Ok(())

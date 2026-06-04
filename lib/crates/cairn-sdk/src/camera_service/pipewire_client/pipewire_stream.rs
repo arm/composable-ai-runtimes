@@ -26,7 +26,7 @@ impl Default for CameraOptions {
 }
 
 pub(crate) fn validate_camera_options(
-    camera_id: u32,
+    camera_id: u64,
     options: &CameraOptions,
 ) -> Result<(), CameraError> {
     if camera_id == 0 {
@@ -182,7 +182,7 @@ fn handle_stream_process(
 }
 
 pub(crate) fn capture_single_frame(
-    camera_id: u32,
+    camera_id: u64,
     options: &CameraOptions,
 ) -> Result<CapturedFrame, CameraError> {
     const POLL_INTERVAL: Duration = Duration::from_millis(100);
@@ -205,6 +205,7 @@ pub(crate) fn capture_single_frame(
             *pw::keys::MEDIA_ROLE => "Camera",
             *pw::keys::NODE_DONT_RECONNECT => "true",
             *pw::keys::OBJECT_LINGER => "true",
+            *pw::keys::TARGET_OBJECT => camera_id.to_string(),
         },
     )?;
 
@@ -257,7 +258,7 @@ pub(crate) fn capture_single_frame(
 
     stream.connect(
         spa::utils::Direction::Input,
-        Some(camera_id),
+        None, // Target is defined using the TARGET_OBJECT property.
         pw::stream::StreamFlags::AUTOCONNECT | pw::stream::StreamFlags::MAP_BUFFERS,
         &mut params,
     )?;

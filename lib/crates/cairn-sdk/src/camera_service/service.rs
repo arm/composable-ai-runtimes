@@ -38,19 +38,19 @@ fn map_tonic_status(error: tonic::Status) -> CameraServiceError {
 }
 
 pub struct CameraMetadata {
-    pub id: u32,
+    pub id: u64,
     pub name: String,
     pub supported_formats: Vec<String>,
 }
 
 #[derive(Debug, Clone)]
 pub struct Camera {
-    camera_id: u32,
+    camera_id: u64,
     options: CameraOptions,
 }
 
 impl Camera {
-    pub fn new(camera_id: u32, options: CameraOptions) -> Result<Self, CameraError> {
+    pub fn new(camera_id: u64, options: CameraOptions) -> Result<Self, CameraError> {
         validate_camera_options(camera_id, &options)?;
 
         Ok(Self { camera_id, options })

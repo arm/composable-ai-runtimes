@@ -2,8 +2,11 @@ use std::cell::{Cell, RefCell};
 use std::io;
 use std::time::Duration;
 
+use crate::redis::EventCamera;
+
 use super::redis::RedisConfig;
 use super::redis::retry_with_fibonacci;
+use camera::camera_metadata::CameraMetadata;
 use redis::{ConnectionAddr, ErrorKind, IntoConnectionInfo, RedisError, RedisResult};
 
 const CAMERA_EVENTS_CHANNEL: &str = "camera.events";
@@ -139,4 +142,21 @@ fn test_retry_with_fibonacci_does_not_retry_non_io_errors() {
     assert_eq!(err.kind(), ErrorKind::InvalidClientConfig);
     assert_eq!(attempts.get(), 1);
     assert!(delays.borrow().is_empty());
+}
+
+#[test]
+fn test_camera_event_payload_from_camera_metadata_exposes_object_serial() {
+    let camera = CameraMetadata {
+        node_id: 7,
+        object_serial: 42,
+        name: "front-camera".to_string(),
+    };
+
+    assert_eq!(
+        EventCamera::from(&camera),
+        EventCamera {
+            id: 42,
+            name: "front-camera".to_string(),
+        }
+    );
 }

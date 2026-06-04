@@ -53,7 +53,7 @@ fn pixel_format_name(pixel_format: camera_service::CapturePixelFormat) -> &'stat
 #[derive(Clone)]
 pub struct PyCameraMetadata {
     #[pyo3(get)]
-    id: u32,
+    id: u64,
     #[pyo3(get)]
     name: String,
     #[pyo3(get)]

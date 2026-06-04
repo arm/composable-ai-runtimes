@@ -3,7 +3,7 @@ use super::helpers::is_camera_node;
 use pipewire as pw;
 
 fn node_global_factory(
-    id: u32,
+    node_id: u32,
     type_: pw::types::ObjectType,
     media_class: Option<&str>,
 ) -> pw::registry::GlobalObject<pw::properties::PropertiesBox> {
@@ -14,7 +14,7 @@ fn node_global_factory(
     });
 
     pw::registry::GlobalObject {
-        id,
+        id: node_id,
         permissions: pw::permissions::PermissionFlags::all(),
         type_,
         version: 0,

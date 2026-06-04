@@ -27,27 +27,34 @@ fn snapshot_supported_format_displays_pipewire_format_name() {
 }
 
 fn node_global_factory(
-    id: u32,
+    node_id: u32,
+    object_serial: impl ToString,
     type_: pw::types::ObjectType,
     media_class: Option<&str>,
     nick: Option<&str>,
 ) -> pw::registry::GlobalObject<pw::properties::PropertiesBox> {
+    let object_serial = object_serial.to_string();
     let props = match (media_class, nick) {
         (Some(media_class), Some(nick)) => Some(pw::properties::properties! {
+            *pw::keys::OBJECT_SERIAL => object_serial.as_str(),
             *pw::keys::MEDIA_CLASS => media_class,
             *pw::keys::NODE_NICK => nick
         }),
         (Some(media_class), None) => Some(pw::properties::properties! {
+            *pw::keys::OBJECT_SERIAL => object_serial.as_str(),
             *pw::keys::MEDIA_CLASS => media_class
         }),
         (None, Some(nick)) => Some(pw::properties::properties! {
+            *pw::keys::OBJECT_SERIAL => object_serial.as_str(),
             *pw::keys::NODE_NICK => nick
         }),
-        (None, None) => None,
+        (None, None) => Some(pw::properties::properties! {
+            *pw::keys::OBJECT_SERIAL => object_serial.as_str()
+        }),
     };
 
     pw::registry::GlobalObject {
-        id,
+        id: node_id,
         permissions: pw::permissions::PermissionFlags::all(),
         type_,
         version: 0,
@@ -68,6 +75,7 @@ fn append_camera_metadata_records_camera_node() {
     let mut cameras = HashMap::new();
     let camera = node_global_factory(
         7,
+        42,
         pw::types::ObjectType::Node,
         Some("Video/Source"),
         Some("front"),
@@ -78,7 +86,7 @@ fn append_camera_metadata_records_camera_node() {
     assert_eq!(
         cameras.get(&7),
         Some(&SnapshotCamera {
-            id: 7,
+            object_serial: 42,
             name: "front".to_string(),
             supported_formats: vec![],
         })
@@ -87,16 +95,53 @@ fn append_camera_metadata_records_camera_node() {
 }
 
 #[test]
-fn append_camera_metadata_replaces_existing_camera_for_same_id() {
+fn append_camera_metadata_ignores_camera_nodes_without_serial() {
+    let mut cameras = HashMap::new();
+    let camera = pw::registry::GlobalObject {
+        id: 7,
+        permissions: pw::permissions::PermissionFlags::all(),
+        type_: pw::types::ObjectType::Node,
+        version: 0,
+        props: Some(pw::properties::properties! {
+            *pw::keys::MEDIA_CLASS => "Video/Source",
+            *pw::keys::NODE_NICK => "front"
+        }),
+    };
+
+    append_camera_metadata(&mut cameras, &camera);
+
+    assert!(cameras.is_empty());
+}
+
+#[test]
+fn append_camera_metadata_ignores_camera_nodes_with_invalid_serial() {
+    let mut cameras = HashMap::new();
+    let camera = node_global_factory(
+        7,
+        "not-a-number",
+        pw::types::ObjectType::Node,
+        Some("Video/Source"),
+        Some("front"),
+    );
+
+    append_camera_metadata(&mut cameras, &camera);
+
+    assert!(cameras.is_empty());
+}
+
+#[test]
+fn append_camera_metadata_replaces_existing_camera_for_same_node_id() {
     let mut cameras = HashMap::new();
     let initial_camera = node_global_factory(
         7,
+        42,
         pw::types::ObjectType::Node,
         Some("Video/Source"),
         Some("front"),
     );
     let replacement_camera = node_global_factory(
         7,
+        43,
         pw::types::ObjectType::Node,
         Some("Video/Source"),
         Some("front-updated"),
@@ -109,7 +154,7 @@ fn append_camera_metadata_replaces_existing_camera_for_same_id() {
     assert_eq!(
         cameras.get(&7),
         Some(&SnapshotCamera {
-            id: 7,
+            object_serial: 43,
             name: "front-updated".to_string(),
             supported_formats: vec![],
         })
@@ -147,7 +192,7 @@ fn take_result_returns_recorded_failure_when_cameras_were_collected() {
     state.cameras = HashMap::from([(
         7,
         SnapshotCamera {
-            id: 7,
+            object_serial: 42,
             name: "front".to_string(),
             supported_formats: vec![],
         },
@@ -165,7 +210,7 @@ fn take_result_returns_incomplete_without_returning_collected_cameras() {
     state.cameras = HashMap::from([(
         7,
         SnapshotCamera {
-            id: 7,
+            object_serial: 42,
             name: "front".to_string(),
             supported_formats: vec![],
         },
@@ -194,7 +239,7 @@ fn take_result_consumes_cameras_after_successful_extraction() {
     state.cameras = HashMap::from([(
         7,
         SnapshotCamera {
-            id: 7,
+            object_serial: 42,
             name: "front".to_string(),
             supported_formats: vec![],
         },
@@ -203,7 +248,7 @@ fn take_result_consumes_cameras_after_successful_extraction() {
     assert_eq!(
         state.take_result(),
         Ok(vec![SnapshotCamera {
-            id: 7,
+            object_serial: 42,
             name: "front".to_string(),
             supported_formats: vec![],
         }])
@@ -242,15 +287,17 @@ fn is_pending_without_error_returns_false_for_existing_error() {
 }
 
 #[test]
-fn take_result_sorts_cameras_by_id_before_returning() {
+fn take_result_sorts_cameras_by_object_serial_before_returning() {
     let camera_b = node_global_factory(
         11,
+        100,
         pw::types::ObjectType::Node,
         Some("Video/Source"),
         Some("rear"),
     );
     let camera_a = node_global_factory(
         7,
+        50,
         pw::types::ObjectType::Node,
         Some("Video/Source"),
         Some("front"),
@@ -262,7 +309,7 @@ fn take_result_sorts_cameras_by_id_before_returning() {
         (
             camera_b.id,
             SnapshotCamera {
-                id: camera_b.id,
+                object_serial: 100,
                 name: "rear".to_string(),
                 supported_formats: vec![],
             },
@@ -270,7 +317,7 @@ fn take_result_sorts_cameras_by_id_before_returning() {
         (
             camera_a.id,
             SnapshotCamera {
-                id: camera_a.id,
+                object_serial: 50,
                 name: "front".to_string(),
                 supported_formats: vec![],
             },
@@ -278,8 +325,8 @@ fn take_result_sorts_cameras_by_id_before_returning() {
     ]);
 
     let cameras = state.take_result().unwrap();
-    assert_eq!(cameras[0].id, 7);
-    assert_eq!(cameras[1].id, 11);
+    assert_eq!(cameras[0].object_serial, 50);
+    assert_eq!(cameras[1].object_serial, 100);
 }
 
 #[test]
@@ -288,7 +335,7 @@ fn take_result_omits_removed_cameras() {
         (
             7,
             SnapshotCamera {
-                id: 7,
+                object_serial: 42,
                 name: "front".to_string(),
                 supported_formats: vec![],
             },
@@ -296,7 +343,7 @@ fn take_result_omits_removed_cameras() {
         (
             11,
             SnapshotCamera {
-                id: 11,
+                object_serial: 84,
                 name: "rear".to_string(),
                 supported_formats: vec![],
             },
@@ -312,5 +359,5 @@ fn take_result_omits_removed_cameras() {
     let cameras = state.take_result().unwrap();
 
     assert_eq!(cameras.len(), 1);
-    assert_eq!(cameras[0].id, 11);
+    assert_eq!(cameras[0].object_serial, 84);
 }
