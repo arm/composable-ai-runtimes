@@ -123,10 +123,10 @@ Use the local Compose file in this directory to build and start the camera servi
 docker compose up --build
 ```
 
-To validate the Compose configuration without starting the service:
+The camera Compose smoke check validates Compose configuration only. It does not start the hardware-dependent camera services:
 
 ```bash
-docker compose config
+docker compose -f services/camera/compose.yaml config
 ```
 
 The default container entrypoint starts both service binaries. The `notifications` binary applies its Redis defaults before connecting, retries Redis connection failures with capped Fibonacci backoff, and also depends on PipeWire. The Compose setup mounts the required host runtime and device paths for that workflow.

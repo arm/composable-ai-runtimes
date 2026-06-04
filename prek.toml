@@ -64,18 +64,3 @@ id = "detect-private-key"
 
 [[repos.hooks]]
 id = "check-executables-have-shebangs"
-
-[[repos]]
-repo = "local"
-
-[[repos.hooks]]
-id = "docker-compose-config"
-name = "docker compose config"
-language = "system"
-entry = '''
-for compose_file in "$@"; do
-  docker compose -f "$compose_file" config
-done
-'''
-shell = "sh"
-files = { glob = ["**/compose.yaml"] }

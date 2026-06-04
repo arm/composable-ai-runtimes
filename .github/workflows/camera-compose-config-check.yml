@@ -1,0 +1,25 @@
+name: Camera Compose Config Check
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+    paths:
+      - services/camera/**
+      - .github/workflows/camera-compose-config-check.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compose-config:
+    name: Validate camera Compose config
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Run camera Compose smoke check
+        run: docker compose -f services/camera/compose.yaml config
