@@ -87,6 +87,36 @@ fn append_camera_metadata_records_camera_node() {
 }
 
 #[test]
+fn append_camera_metadata_replaces_existing_camera_for_same_id() {
+    let mut cameras = HashMap::new();
+    let initial_camera = node_global_factory(
+        7,
+        pw::types::ObjectType::Node,
+        Some("Video/Source"),
+        Some("front"),
+    );
+    let replacement_camera = node_global_factory(
+        7,
+        pw::types::ObjectType::Node,
+        Some("Video/Source"),
+        Some("front-updated"),
+    );
+
+    append_camera_metadata(&mut cameras, &initial_camera);
+    append_camera_metadata(&mut cameras, &replacement_camera);
+
+    assert_eq!(cameras.len(), 1);
+    assert_eq!(
+        cameras.get(&7),
+        Some(&SnapshotCamera {
+            id: 7,
+            name: "front-updated".to_string(),
+            supported_formats: vec![],
+        })
+    );
+}
+
+#[test]
 fn is_pending_sync_complete_only_for_matching_pending_sync() {
     assert!(!is_pending_sync_complete(
         pw::core::PW_ID_CORE,
