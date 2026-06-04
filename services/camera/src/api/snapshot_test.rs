@@ -55,6 +55,14 @@ fn node_global_factory(
     }
 }
 
+fn async_seq_factory(seq: i32) -> pw::spa::utils::result::AsyncSeq {
+    pw::spa::utils::result::AsyncSeq::from_seq(seq)
+}
+
+fn non_core_pipewire_id_factory() -> u32 {
+    pw::core::PW_ID_CORE + 1
+}
+
 #[test]
 fn append_camera_metadata_records_camera_node() {
     let mut cameras = HashMap::new();
@@ -82,14 +90,23 @@ fn append_camera_metadata_records_camera_node() {
 fn is_pending_sync_complete_only_for_matching_pending_sync() {
     assert!(!is_pending_sync_complete(
         pw::core::PW_ID_CORE,
-        pw::spa::utils::result::AsyncSeq::from_seq(4),
-        pw::spa::utils::result::AsyncSeq::from_seq(5),
+        async_seq_factory(4),
+        async_seq_factory(5),
     ));
 
     assert!(is_pending_sync_complete(
         pw::core::PW_ID_CORE,
-        pw::spa::utils::result::AsyncSeq::from_seq(5),
-        pw::spa::utils::result::AsyncSeq::from_seq(5),
+        async_seq_factory(5),
+        async_seq_factory(5),
+    ));
+}
+
+#[test]
+fn is_pending_sync_complete_rejects_matching_sequence_from_non_core_id() {
+    assert!(!is_pending_sync_complete(
+        non_core_pipewire_id_factory(),
+        async_seq_factory(5),
+        async_seq_factory(5),
     ));
 }
 
