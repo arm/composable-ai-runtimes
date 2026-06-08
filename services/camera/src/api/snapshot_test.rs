@@ -1,6 +1,6 @@
 use super::snapshot::{
     SnapshotCamera, SnapshotError, SnapshotPhase, SnapshotState, SnapshotSupportedFormat,
-    append_camera_metadata, is_pending_sync_complete,
+    append_camera_metadata, check_timeout_error, is_pending_sync_complete,
 };
 use pipewire as pw;
 use pw::spa::param::format::MediaSubtype;
@@ -257,6 +257,19 @@ fn take_result_consumes_cameras_after_successful_extraction() {
 }
 
 #[test]
+fn take_result_returns_timeout_after_timeout_error_is_recorded() {
+    let mut state = SnapshotState::default();
+    state.error = check_timeout_error(&state);
+
+    assert_eq!(
+        state.take_result(),
+        Err(SnapshotError::Unavailable(
+            "PipeWire snapshot timed out".to_string()
+        ))
+    );
+}
+
+#[test]
 fn is_pending_without_error_returns_true_when_snapshot_is_pending() {
     let state = SnapshotState::default();
 
@@ -284,6 +297,36 @@ fn is_pending_without_error_returns_false_for_existing_error() {
         state.error,
         Some(SnapshotError::Unavailable(existing_error_message))
     );
+}
+
+#[test]
+fn check_timeout_error_returns_timeout_for_pending_snapshot() {
+    let state = SnapshotState::default();
+
+    assert_eq!(
+        check_timeout_error(&state),
+        Some(SnapshotError::Unavailable(
+            "PipeWire snapshot timed out".to_string()
+        ))
+    );
+}
+
+#[test]
+fn check_timeout_error_returns_none_for_completed_snapshot() {
+    let mut state = SnapshotState::default();
+    state.phase = SnapshotPhase::Complete;
+
+    assert_eq!(check_timeout_error(&state), None);
+}
+
+#[test]
+fn check_timeout_error_returns_none_for_existing_error() {
+    let mut state = SnapshotState::default();
+    state.error = Some(SnapshotError::Unavailable(
+        "PipeWire core error: boom".to_string(),
+    ));
+
+    assert_eq!(check_timeout_error(&state), None);
 }
 
 #[test]

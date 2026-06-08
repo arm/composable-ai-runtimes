@@ -269,6 +269,14 @@ impl SnapshotState {
     }
 }
 
+pub(super) fn check_timeout_error(state: &SnapshotState) -> Option<SnapshotError> {
+    if state.is_pending_without_error() {
+        return Some(unavailable("PipeWire snapshot timed out"));
+    }
+
+    None
+}
+
 fn request_snapshot_sync(
     sync_core: &pw::core::CoreRc,
     error_message: &'static str,
@@ -284,11 +292,12 @@ fn register_snapshot_timeout_timer<'a>(
     timeout_loop: pw::main_loop::MainLoopRc,
 ) -> Result<pw::loop_::TimerSource<'a>, SnapshotError> {
     let timeout_timer = mainloop.loop_().add_timer(move |_| {
-        let state = state.borrow();
-        if !state.is_pending_without_error() {
+        let mut state = state.borrow_mut();
+        let Some(error) = check_timeout_error(&state) else {
             return;
-        }
+        };
 
+        state.error = Some(error);
         timeout_loop.quit();
     });
     timeout_timer
