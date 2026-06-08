@@ -247,19 +247,12 @@ impl SnapshotState {
     }
 
     fn apply_collected_formats(&mut self) {
-        for watch in self.camera_node_watches.values() {
-            let Some(camera) = self.cameras.get_mut(&watch.node_id) else {
-                continue;
-            };
+        let collected_formats = self
+            .camera_node_watches
+            .values()
+            .map(|watch| (watch.node_id, watch.take_collected_formats()));
 
-            camera.supported_formats = watch.take_collected_formats();
-            camera
-                .supported_formats
-                .sort_by_cached_key(SnapshotSupportedFormat::sort_key);
-            camera
-                .supported_formats
-                .dedup_by(|left, right| left.has_same_name(right));
-        }
+        apply_collected_formats_to_cameras(&mut self.cameras, collected_formats);
     }
 
     fn request_camera_node_params(&self) {
@@ -275,6 +268,21 @@ pub(super) fn check_timeout_error(state: &SnapshotState) -> Option<SnapshotError
     }
 
     None
+}
+
+pub(super) fn apply_collected_formats_to_cameras(
+    cameras: &mut HashMap<u32, SnapshotCamera>,
+    collected_formats: impl IntoIterator<Item = (u32, Vec<SnapshotSupportedFormat>)>,
+) {
+    for (node_id, mut supported_formats) in collected_formats {
+        let Some(camera) = cameras.get_mut(&node_id) else {
+            continue;
+        };
+
+        supported_formats.sort_by_cached_key(SnapshotSupportedFormat::sort_key);
+        supported_formats.dedup_by(|left, right| left.has_same_name(right));
+        camera.supported_formats = supported_formats;
+    }
 }
 
 fn request_snapshot_sync(

@@ -1,6 +1,7 @@
 use super::snapshot::{
     SnapshotCamera, SnapshotError, SnapshotPhase, SnapshotState, SnapshotSupportedFormat,
-    append_camera_metadata, check_timeout_error, is_pending_sync_complete,
+    append_camera_metadata, apply_collected_formats_to_cameras, check_timeout_error,
+    is_pending_sync_complete,
 };
 use pipewire as pw;
 use pw::spa::param::format::MediaSubtype;
@@ -23,6 +24,126 @@ fn snapshot_supported_format_displays_pipewire_format_name() {
     assert_eq!(
         SnapshotSupportedFormat::EncodedVideo(MediaSubtype::Mjpg).to_string(),
         "Mjpg"
+    );
+}
+
+#[test]
+fn apply_collected_formats_to_cameras_sorts_formats() {
+    let mut cameras = HashMap::from([(
+        7,
+        SnapshotCamera {
+            object_serial: 42,
+            name: "front".to_string(),
+            supported_formats: vec![],
+        },
+    )]);
+
+    apply_collected_formats_to_cameras(
+        &mut cameras,
+        [(
+            7,
+            vec![
+                SnapshotSupportedFormat::RawVideo(VideoFormat::RGB),
+                SnapshotSupportedFormat::EncodedVideo(MediaSubtype::Mjpg),
+            ],
+        )],
+    );
+
+    assert_eq!(
+        cameras.get(&7).unwrap().supported_formats,
+        vec![
+            SnapshotSupportedFormat::EncodedVideo(MediaSubtype::Mjpg),
+            SnapshotSupportedFormat::RawVideo(VideoFormat::RGB),
+        ]
+    );
+}
+
+#[test]
+fn apply_collected_formats_to_cameras_deduplicates_formats() {
+    let mut cameras = HashMap::from([(
+        7,
+        SnapshotCamera {
+            object_serial: 42,
+            name: "front".to_string(),
+            supported_formats: vec![],
+        },
+    )]);
+
+    apply_collected_formats_to_cameras(
+        &mut cameras,
+        [(
+            7,
+            vec![
+                SnapshotSupportedFormat::RawVideo(VideoFormat::RGB),
+                SnapshotSupportedFormat::RawVideo(VideoFormat::RGB),
+            ],
+        )],
+    );
+
+    assert_eq!(
+        cameras.get(&7).unwrap().supported_formats,
+        vec![SnapshotSupportedFormat::RawVideo(VideoFormat::RGB)]
+    );
+}
+
+#[test]
+fn apply_collected_formats_to_cameras_keeps_distinct_formats_while_deduplicating() {
+    let mut cameras = HashMap::from([(
+        7,
+        SnapshotCamera {
+            object_serial: 42,
+            name: "front".to_string(),
+            supported_formats: vec![],
+        },
+    )]);
+
+    apply_collected_formats_to_cameras(
+        &mut cameras,
+        [(
+            7,
+            vec![
+                SnapshotSupportedFormat::RawVideo(VideoFormat::RGB),
+                SnapshotSupportedFormat::EncodedVideo(MediaSubtype::Mjpg),
+                SnapshotSupportedFormat::RawVideo(VideoFormat::RGB),
+            ],
+        )],
+    );
+
+    assert_eq!(
+        cameras.get(&7).unwrap().supported_formats,
+        vec![
+            SnapshotSupportedFormat::EncodedVideo(MediaSubtype::Mjpg),
+            SnapshotSupportedFormat::RawVideo(VideoFormat::RGB),
+        ]
+    );
+}
+
+#[test]
+fn apply_collected_formats_to_cameras_ignores_non_tracked_devices() {
+    let mut cameras = HashMap::from([(
+        11,
+        SnapshotCamera {
+            object_serial: 84,
+            name: "rear".to_string(),
+            supported_formats: vec![],
+        },
+    )]);
+
+    apply_collected_formats_to_cameras(
+        &mut cameras,
+        [
+            (7, vec![SnapshotSupportedFormat::RawVideo(VideoFormat::RGB)]),
+            (
+                11,
+                vec![SnapshotSupportedFormat::EncodedVideo(MediaSubtype::Mjpg)],
+            ),
+        ],
+    );
+
+    assert!(!cameras.contains_key(&7));
+    assert_eq!(
+        cameras.get(&11).unwrap().supported_formats,
+        vec![SnapshotSupportedFormat::EncodedVideo(MediaSubtype::Mjpg)]
     );
 }
 
