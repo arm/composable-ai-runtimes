@@ -1,4 +1,4 @@
-use super::snapshot::{SnapshotError, list_camera_metadata};
+use super::snapshot::{SnapshotCamera, SnapshotError, list_camera_metadata};
 use tokio::task;
 use tonic::{Request, Response, Status};
 
@@ -11,6 +11,20 @@ use pipewire::{ListCamerasResponse, ListRequest};
 use tracing::{debug, warn};
 
 pub struct CameraApiService;
+
+impl From<SnapshotCamera> for pipewire::Camera {
+    fn from(camera: SnapshotCamera) -> Self {
+        Self {
+            id: camera.object_serial,
+            name: camera.name,
+            supported_formats: camera
+                .supported_formats
+                .into_iter()
+                .map(|format| format.to_string())
+                .collect(),
+        }
+    }
+}
 
 pub(crate) fn map_snapshot_error(err: SnapshotError) -> Status {
     match err {
@@ -41,18 +55,7 @@ impl CameraService for CameraApiService {
         let camera_count = cameras.len();
 
         let response = Response::new(ListCamerasResponse {
-            cameras: cameras
-                .into_iter()
-                .map(|camera| pipewire::Camera {
-                    id: camera.object_serial,
-                    name: camera.name,
-                    supported_formats: camera
-                        .supported_formats
-                        .into_iter()
-                        .map(|format| format.to_string())
-                        .collect(),
-                })
-                .collect(),
+            cameras: cameras.into_iter().map(pipewire::Camera::from).collect(),
         });
 
         debug!(?remote_addr, camera_count, "listed cameras");
