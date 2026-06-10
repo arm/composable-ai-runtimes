@@ -1,5 +1,7 @@
 mod redis;
 #[cfg(test)]
+mod redis_contract_test;
+#[cfg(test)]
 mod redis_test;
 
 use std::{cell::RefCell, collections::HashMap, error::Error, rc::Rc};

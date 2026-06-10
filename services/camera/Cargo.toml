@@ -23,6 +23,7 @@ tonic-prost-build = "0.14.5"
 [dev-dependencies]
 tokio = { version = "1", features = ["net", "sync"] }
 tokio-stream = { version = "0.1", features = ["net"] }
+testcontainers = "0.27.3"
 
 [[bin]]
 name = 'notifications'
