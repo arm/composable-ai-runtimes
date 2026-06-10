@@ -5,7 +5,7 @@ use redis::{
     Client, Commands, Connection, ConnectionAddr, ConnectionInfo, ErrorKind, IntoConnectionInfo,
     RedisConnectionInfo, RedisError, RedisResult,
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use tracing::warn;
 
 const REDIS_HOST_ENV: &str = "PWC_REDIS_HOST";
@@ -43,14 +43,14 @@ impl FibonacciBackoff {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum CameraEventType {
     Connected,
     Disconnected,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct EventCamera {
     pub id: u64,
     pub name: String,
@@ -65,11 +65,11 @@ impl From<&CameraMetadata> for EventCamera {
     }
 }
 
-#[derive(Debug, Serialize)]
-struct CameraEvent {
-    event_type: CameraEventType,
+#[derive(Debug, Deserialize, Eq, PartialEq, Serialize)]
+pub(crate) struct CameraEvent {
+    pub(crate) event_type: CameraEventType,
     #[serde(flatten)]
-    camera: EventCamera,
+    pub(crate) camera: EventCamera,
 }
 
 #[derive(Debug, Eq, PartialEq)]

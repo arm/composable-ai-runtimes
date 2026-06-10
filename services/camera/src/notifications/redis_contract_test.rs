@@ -2,7 +2,9 @@ use std::{cell::RefCell, env, error::Error, ffi::OsString, io, rc::Rc, time::Dur
 
 use super::{
     publish_camera_event,
-    redis::{CameraEventType, RedisConfig, configure_redis_conn_with_retry},
+    redis::{
+        CameraEvent, CameraEventType, EventCamera, RedisConfig, configure_redis_conn_with_retry,
+    },
 };
 use camera::camera_metadata::CameraMetadata;
 use redis::{Client, Msg};
@@ -120,6 +122,28 @@ fn receive_message(
     Ok(message.get_payload()?)
 }
 
+fn assert_camera_event_payload(
+    payload: &str,
+    event_type: CameraEventType,
+    cam_id: u64,
+    name: &str,
+) -> Result<(), Box<dyn Error>> {
+    let payload: CameraEvent = serde_json::from_str(payload)?;
+
+    assert_eq!(
+        payload,
+        CameraEvent {
+            event_type,
+            camera: EventCamera {
+                id: cam_id,
+                name: name.to_owned(),
+            },
+        }
+    );
+
+    Ok(())
+}
+
 #[tokio::test]
 async fn test_default_channel_from_env_publishes_to_camera_events() -> Result<(), Box<dyn Error>> {
     let redis_container = start_redis_contract_test_container().await?;
@@ -155,9 +179,12 @@ async fn test_default_channel_from_env_publishes_to_camera_events() -> Result<()
     );
 
     let payload = receive_message(&mut subscriber, CAMERA_EVENTS_CHANNEL)?;
-    assert!(payload.contains(r#""event_type":"connected""#));
-    assert!(payload.contains(format!(r#""id":{cam_id}"#).as_str()));
-    assert!(payload.contains(r#""name":"default-channel-camera""#));
+    assert_camera_event_payload(
+        &payload,
+        CameraEventType::Connected,
+        cam_id,
+        "default-channel-camera",
+    )?;
 
     Ok(())
 }
@@ -199,6 +226,96 @@ async fn test_configured_channel_override_publishes_to_configured_channel()
     );
 
     receive_message(&mut subscriber, CUSTOM_CAMERA_EVENTS_CHANNEL)?;
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_connected_payload_contains_expected_fields() -> Result<(), Box<dyn Error>> {
+    let redis_container = start_redis_contract_test_container().await?;
+    let port = redis_container.port.to_string();
+
+    let redis_config = {
+        let _env_lock = REDIS_CONTRACT_TEST_ENV_LOCK.lock().await;
+        let _host_env = set_env_var(REDIS_HOST_ENV, redis_container.host.as_str());
+        let _port_env = set_env_var(REDIS_PORT_ENV, port.as_str());
+        let _password_env = remove_env_var(REDIS_PASSWORD_ENV);
+        let _events_channel_env = remove_env_var(REDIS_CHANNEL_EVENTS_ENV);
+
+        RedisConfig::from_env()
+    };
+
+    let mut subscriber = subscribe_to_channel(&redis_config, CUSTOM_CAMERA_EVENTS_CHANNEL)?;
+    let cam_id = 126;
+    let camera = CameraMetadata {
+        node_id: cam_id as u32,
+        object_serial: cam_id,
+        name: "configured-channel-camera".to_owned(),
+    };
+    let publisher = Rc::new(RefCell::new(configure_redis_conn_with_retry(
+        &redis_config,
+    )?));
+
+    publish_camera_event(
+        &publisher,
+        &redis_config,
+        CameraEventType::Connected,
+        &camera,
+        CUSTOM_CAMERA_EVENTS_CHANNEL,
+    );
+
+    let payload = receive_message(&mut subscriber, CUSTOM_CAMERA_EVENTS_CHANNEL)?;
+    assert_camera_event_payload(
+        &payload,
+        CameraEventType::Connected,
+        cam_id,
+        "configured-channel-camera",
+    )?;
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_disconnected_payload_contains_expected_fields() -> Result<(), Box<dyn Error>> {
+    let redis_container = start_redis_contract_test_container().await?;
+    let port = redis_container.port.to_string();
+
+    let redis_config = {
+        let _env_lock = REDIS_CONTRACT_TEST_ENV_LOCK.lock().await;
+        let _host_env = set_env_var(REDIS_HOST_ENV, redis_container.host.as_str());
+        let _port_env = set_env_var(REDIS_PORT_ENV, port.as_str());
+        let _password_env = remove_env_var(REDIS_PASSWORD_ENV);
+        let _events_channel_env = remove_env_var(REDIS_CHANNEL_EVENTS_ENV);
+
+        RedisConfig::from_env()
+    };
+
+    let mut subscriber = subscribe_to_channel(&redis_config, CUSTOM_CAMERA_EVENTS_CHANNEL)?;
+    let cam_id = 126;
+    let camera = CameraMetadata {
+        node_id: cam_id as u32,
+        object_serial: cam_id,
+        name: "configured-channel-camera".to_owned(),
+    };
+    let publisher = Rc::new(RefCell::new(configure_redis_conn_with_retry(
+        &redis_config,
+    )?));
+
+    publish_camera_event(
+        &publisher,
+        &redis_config,
+        CameraEventType::Disconnected,
+        &camera,
+        CUSTOM_CAMERA_EVENTS_CHANNEL,
+    );
+
+    let payload = receive_message(&mut subscriber, CUSTOM_CAMERA_EVENTS_CHANNEL)?;
+    assert_camera_event_payload(
+        &payload,
+        CameraEventType::Disconnected,
+        cam_id,
+        "configured-channel-camera",
+    )?;
 
     Ok(())
 }
