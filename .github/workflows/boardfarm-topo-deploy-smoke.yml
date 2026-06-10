@@ -1,0 +1,70 @@
+name: Boardfarm Topo Deploy Smoke
+
+on:
+  push:
+    branches:
+      - pi-board-farm
+    paths:
+      - .github/boardfarm-smoke/**
+      - .github/scripts/install-topo.sh
+      - .github/workflows/boardfarm-topo-deploy-smoke.yml
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+    paths:
+      - .github/boardfarm-smoke/**
+      - .github/scripts/install-topo.sh
+      - .github/workflows/boardfarm-topo-deploy-smoke.yml
+  workflow_dispatch:
+    inputs:
+      topo_version:
+        description: Topo version to install for the smoke deploy
+        required: false
+        default: 6.2.0
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  topo-deploy-smoke:
+    name: Topo deploy smoke
+    runs-on:
+      - self-hosted
+      - Linux
+      - ARM64
+      - boardfarm
+      - pi5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Install topo
+        env:
+          TOPO_VERSION: ${{ inputs.topo_version || '6.2.0' }}
+        run: .github/scripts/install-topo.sh "$TOPO_VERSION"
+
+      - name: Add local bin to PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Show topo and Docker versions
+        run: |
+          topo --version
+          docker version
+
+      - name: Check target health
+        working-directory: .github/boardfarm-smoke
+        run: topo health --target localhost --timeout 60s
+
+      - name: Deploy dummy stack with topo
+        working-directory: .github/boardfarm-smoke
+        run: topo deploy --target localhost
+
+      - name: Verify deployed dummy container is running
+        run: docker ps --format '{{.Image}} {{.Status}}' | grep '^cairn-boardfarm-dummy:local '
+
+      - name: Stop deployed dummy stack
+        if: always()
+        working-directory: .github/boardfarm-smoke
+        run: topo stop --target localhost || true

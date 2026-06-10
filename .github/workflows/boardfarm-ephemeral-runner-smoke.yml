@@ -1,0 +1,54 @@
+name: Boardfarm Ephemeral Runner Smoke
+
+on:
+  push:
+    branches:
+      - pi-board-farm
+    paths:
+      - .github/boardfarm-smoke/**
+      - .github/workflows/boardfarm-ephemeral-runner-smoke.yml
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+    paths:
+      - .github/boardfarm-smoke/**
+      - .github/workflows/boardfarm-ephemeral-runner-smoke.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ephemeral-runner-smoke:
+    name: Ephemeral runner smoke
+    runs-on:
+      - self-hosted
+      - Linux
+      - ARM64
+      - boardfarm
+      - pi5
+    env:
+      COMPOSE_PROJECT_NAME: boardfarm-ephemeral-${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Show runner and Docker versions
+        run: |
+          uname -a
+          docker version
+          docker compose version
+
+      - name: Build and start dummy stack on the runner
+        run: docker compose -f .github/boardfarm-smoke/compose.yaml up -d --build --wait
+
+      - name: Verify dummy stack is running
+        run: docker compose -f .github/boardfarm-smoke/compose.yaml ps
+
+      - name: Show dummy stack logs
+        run: docker compose -f .github/boardfarm-smoke/compose.yaml logs --no-color
+
+      - name: Stop dummy stack
+        if: always()
+        run: docker compose -f .github/boardfarm-smoke/compose.yaml down --volumes --remove-orphans

@@ -1,0 +1,11 @@
+services:
+  boardfarm-dummy:
+    platform: linux/arm64
+    build:
+      context: .
+    image: cairn-boardfarm-dummy:local
+    healthcheck:
+      test: ["CMD", "test", "-f", "/tmp/ready"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
