@@ -2,6 +2,7 @@ ARG BASE_IMAGE=debian:trixie@sha256:3352c2e13876c8a5c5873ef20870e1939e73cb9a3c1a
 ARG RUST_IMAGE=rust:1.93.1-trixie@sha256:ecbe59a8408895edd02d9ef422504b8501dd9fa1526de27a45b73406d734d659
 ARG PIPEWIRE_VERSION=1.4.10
 ARG PIPEWIRE_COMMIT=ced36a5315135044a22c4b373be44368d312f9c8
+ARG RPI_LIBCAMERA_VERSION=0.7.1+rpt20260609-1
 
 FROM ${BASE_IMAGE} AS raspberrypi-camera-base
 
@@ -14,41 +15,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && rm -rf /var/lib/apt/lists/*
 
 # Prefer the Raspberry Pi package line for the camera stack.
-RUN mkdir -p /usr/share/keyrings /etc/apt/sources.list.d /etc/apt/preferences.d \
-      /etc/crypto-policies/back-ends \
-  && printf '%s\n' \
-    '[hash_algorithms]' \
-    'sha1.second_preimage_resistance = 2028-02-01' \
-    > /etc/crypto-policies/back-ends/apt-sequoia.config \
-  && curl -fsSL https://archive.raspberrypi.com/debian/raspberrypi.gpg.key \
-    -o /tmp/raspberrypi.gpg.key \
-  && gpg --dearmor -o /usr/share/keyrings/raspberrypi-archive-keyring.gpg \
-    /tmp/raspberrypi.gpg.key \
-  && rm -f /tmp/raspberrypi.gpg.key \
-  && printf '%s\n' \
-    'deb [signed-by=/usr/share/keyrings/raspberrypi-archive-keyring.gpg] https://archive.raspberrypi.com/debian trixie main' \
-    > /etc/apt/sources.list.d/raspberrypi.list \
-  && printf '%s\n' \
-    'Package: *' \
-    'Pin: release o=Raspberry Pi Foundation,n=trixie' \
-    'Pin-Priority: 100' \
-    '' \
-    'Package: libcamera* libpisp* pipewire* libpipewire-* libspa-*' \
-    'Pin: release o=Raspberry Pi Foundation,n=trixie' \
-    'Pin-Priority: 700' \
-    > /etc/apt/preferences.d/raspberrypi-camera
+COPY scripts/docker-configure-raspberrypi-apt.sh /tmp/configure-raspberrypi-apt.sh
+RUN sh /tmp/configure-raspberrypi-apt.sh \
+  && rm -f /tmp/configure-raspberrypi-apt.sh
 
 FROM raspberrypi-camera-base AS pipewire-build
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG PIPEWIRE_VERSION
 ARG PIPEWIRE_COMMIT
+ARG RPI_LIBCAMERA_VERSION
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential=12.12 \
     gettext-base=0.23.1-2 \
     git=1:2.47.3-0+deb13u1 \
-    libcamera-dev=0.7.1+rpt20260609-1 \
+    libcamera-dev="${RPI_LIBCAMERA_VERSION}" \
     libdbus-1-dev=1.16.2-2 \
     libglib2.0-dev=2.84.4-3~deb13u3 \
     libudev-dev=257.13-1~deb13u1 \
@@ -85,13 +67,13 @@ WORKDIR /src
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential=12.12 \
-    libdbus-1-dev=1.16.2-2 \
-    libglib2.0-dev=2.84.4-3~deb13u3 \
     libclang-common-19-dev=1:19.1.7-3+b1 \
     libclang1-19=1:19.1.7-3+b1 \
-    protobuf-compiler=3.21.12-11 \
+    libdbus-1-dev=1.16.2-2 \
+    libglib2.0-dev=2.84.4-3~deb13u3 \
     libudev-dev=257.13-1~deb13u1 \
     pkg-config=1.8.1-4 \
+    protobuf-compiler=3.21.12-11 \
   && rm -rf /var/lib/apt/lists/*
 
 COPY --from=pipewire-build /opt/pipewire-root/usr/ /usr/
@@ -106,18 +88,19 @@ FROM raspberrypi-camera-base AS camera-service-runtime
 ARG DEBIAN_FRONTEND=noninteractive
 ARG CAMERA_SERVICE_UID=10001
 ARG CAMERA_SERVICE_GID=10001
+ARG RPI_LIBCAMERA_VERSION
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libasound2t64=1.2.14-1 \
     libavahi-client3=0.8-16 \
+    libcamera-ipa="${RPI_LIBCAMERA_VERSION}" \
+    libcamera-v4l2="${RPI_LIBCAMERA_VERSION}" \
+    libcamera0.7="${RPI_LIBCAMERA_VERSION}" \
     libcap2-bin=1:2.75-10+deb13u1+b1 \
     libdbus-1-3=1.16.2-2 \
     libdrm2=2.4.124-2 \
     libgbm1=25.0.7-2 \
     libglib2.0-0t64=2.84.4-3~deb13u3 \
-    libcamera-ipa=0.7.1+rpt20260609-1 \
-    libcamera-v4l2=0.7.1+rpt20260609-1 \
-    libcamera0.7=0.7.1+rpt20260609-1 \
     libpisp1=1.5.0-1 \
     libsystemd0=257.13-1~deb13u1 \
     libudev1=257.13-1~deb13u1 \
