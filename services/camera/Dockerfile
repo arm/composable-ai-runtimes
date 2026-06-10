@@ -48,7 +48,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential=12.12 \
     gettext-base=0.23.1-2 \
     git=1:2.47.3-0+deb13u1 \
-    libcamera-dev=0.7.1+rpt20260429-1 \
+    libcamera-dev=0.7.1+rpt20260609-1 \
     libdbus-1-dev=1.16.2-2 \
     libglib2.0-dev=2.84.4-3~deb13u3 \
     libudev-dev=257.13-1~deb13u1 \
@@ -115,9 +115,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libdrm2=2.4.124-2 \
     libgbm1=25.0.7-2 \
     libglib2.0-0t64=2.84.4-3~deb13u3 \
-    libcamera-ipa=0.7.1+rpt20260429-1 \
-    libcamera-v4l2=0.7.1+rpt20260429-1 \
-    libcamera0.7=0.7.1+rpt20260429-1 \
+    libcamera-ipa=0.7.1+rpt20260609-1 \
+    libcamera-v4l2=0.7.1+rpt20260609-1 \
+    libcamera0.7=0.7.1+rpt20260609-1 \
     libpisp1=1.5.0-1 \
     libsystemd0=257.13-1~deb13u1 \
     libudev1=257.13-1~deb13u1 \
