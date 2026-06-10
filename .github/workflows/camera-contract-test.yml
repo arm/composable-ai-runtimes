@@ -1,0 +1,38 @@
+name: Camera Contract Test
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+    paths:
+      - services/camera/src/api/**
+      - services/camera/src/lib.rs
+      - services/camera/proto/**
+      - services/camera/Cargo.toml
+      - services/camera/Cargo.lock
+      - services/camera/build.rs
+      - .github/workflows/camera-contract-test.yml
+
+permissions:
+  contents: read
+
+jobs:
+  camera-contract:
+    name: Run camera contract test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Install native test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler libpipewire-0.3-dev pkg-config
+
+      - name: Install stable Rust toolchain
+        run: rustup toolchain install stable --profile minimal --no-self-update
+
+      - name: Run camera contract test
+        run: cargo test --lib api::contract_tests
+        working-directory: services/camera

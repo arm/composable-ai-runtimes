@@ -1,5 +1,5 @@
-use crate::service::{map_snapshot_error, pipewire};
-use crate::snapshot::{SnapshotCamera, SnapshotError, SnapshotSupportedFormat};
+use super::service::{map_snapshot_error, pipewire};
+use super::snapshot::{SnapshotCamera, SnapshotError, SnapshotSupportedFormat};
 use ::pipewire::spa::param::format::MediaSubtype;
 use ::pipewire::spa::param::video::VideoFormat;
 use tonic::Code;

@@ -90,12 +90,12 @@ docker compose -f services/compose.yaml build camera-service
 docker compose -f services/camera/compose.yaml up --build
 ```
 
-Camera service proto and binary checks (when touching `services/camera/**`):
+Camera service proto, binary, and contract checks (when touching `services/camera/**`):
 ```bash
 cd services/camera
 cargo fmt --all -- --check
 cargo clippy --all-targets --all-features --no-deps
-cargo test --lib --bins
+cargo test --lib --bins --tests
 ```
 
 Concordia service: (TBD)

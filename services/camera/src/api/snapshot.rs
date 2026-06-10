@@ -1,5 +1,5 @@
-use camera::camera_metadata::CameraMetadata;
-use camera::helpers::is_camera_node;
+use crate::camera_metadata::CameraMetadata;
+use crate::helpers::is_camera_node;
 use pipewire as pw;
 use pw::spa::param::format::MediaSubtype;
 use pw::spa::param::video::VideoFormat;

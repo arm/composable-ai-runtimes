@@ -1,4 +1,4 @@
-use crate::config::parse_listen_addr_arg;
+use super::config::parse_listen_addr_arg;
 
 #[test]
 fn parse_listen_addr_arg_accepts_no_args() {

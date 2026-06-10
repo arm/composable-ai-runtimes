@@ -20,6 +20,10 @@ tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
 [build-dependencies]
 tonic-prost-build = "0.14.5"
 
+[dev-dependencies]
+tokio = { version = "1", features = ["net", "sync"] }
+tokio-stream = { version = "0.1", features = ["net"] }
+
 [[bin]]
 name = 'notifications'
 path = 'src/notifications/main.rs'

@@ -2,7 +2,7 @@ use super::snapshot::{SnapshotCamera, SnapshotError, list_camera_metadata};
 use tokio::task;
 use tonic::{Request, Response, Status};
 
-pub(super) mod pipewire {
+pub mod pipewire {
     tonic::include_proto!("camera.pipewire.v1");
 }
 
@@ -10,7 +10,23 @@ use pipewire::camera_service_server::CameraService;
 use pipewire::{ListCamerasResponse, ListRequest};
 use tracing::{debug, warn};
 
-pub struct CameraApiService;
+#[derive(Clone, Copy)]
+pub(crate) struct CameraServiceProvider {
+    pub(crate) list_cameras: fn() -> Result<Vec<SnapshotCamera>, SnapshotError>,
+}
+
+impl Default for CameraServiceProvider {
+    fn default() -> Self {
+        Self {
+            list_cameras: list_camera_metadata,
+        }
+    }
+}
+
+#[derive(Clone, Default)]
+pub struct CameraApiService {
+    pub(crate) provider: CameraServiceProvider,
+}
 
 impl From<SnapshotCamera> for pipewire::Camera {
     fn from(camera: SnapshotCamera) -> Self {
@@ -42,7 +58,7 @@ impl CameraService for CameraApiService {
 
         debug!(?remote_addr, "listing cameras");
 
-        let cameras = task::spawn_blocking(list_camera_metadata)
+        let cameras = task::spawn_blocking(self.provider.list_cameras)
             .await
             .map_err(|err| {
                 warn!(?remote_addr, error = %err, "camera listing task failed");
@@ -53,10 +69,9 @@ impl CameraService for CameraApiService {
                 map_snapshot_error(err)
             })?;
         let camera_count = cameras.len();
+        let cameras = cameras.into_iter().map(pipewire::Camera::from).collect();
 
-        let response = Response::new(ListCamerasResponse {
-            cameras: cameras.into_iter().map(pipewire::Camera::from).collect(),
-        });
+        let response = Response::new(ListCamerasResponse { cameras });
 
         debug!(?remote_addr, camera_count, "listed cameras");
 

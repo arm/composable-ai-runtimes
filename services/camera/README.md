@@ -91,10 +91,18 @@ By default it connects to Redis at `127.0.0.1:6379` and publishes camera events 
 
 Camera event publishing is best effort. If a publish fails after startup, the notification service logs the failed event and attempts to reconnect to Redis for future events, but it does not retry the failed event.
 
-To run the API tests:
+To run the API unit tests:
 
 ```bash
-cargo test --bin api
+cargo test --lib api
+```
+
+The API implementation is exposed from the library crate, while the `api` binary is a thin executable entrypoint. `cargo test --bin api` only tests that binary target and does not run the `api::*` library unit tests.
+
+To run the API contract tests:
+
+```bash
+cargo test --lib api::contract_tests
 ```
 
 To run the notifications tests:
@@ -103,10 +111,10 @@ To run the notifications tests:
 cargo test --bin notifications
 ```
 
-To run both binaries and the library tests:
+To run the binaries, library tests, and any integration tests:
 
 ```bash
-cargo test --lib --bins
+cargo test --lib --bins --tests
 ```
 
 To run only the library tests:

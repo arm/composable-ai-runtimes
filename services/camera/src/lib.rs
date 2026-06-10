@@ -1,3 +1,4 @@
+pub mod api;
 pub mod camera_metadata;
 pub mod helpers;
 pub mod logging;
