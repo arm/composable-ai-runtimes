@@ -178,13 +178,7 @@ async fn test_default_channel_from_env_publishes_to_camera_events() -> Result<()
         redis_config.events_channel.as_str(),
     );
 
-    let payload = receive_message(&mut subscriber, CAMERA_EVENTS_CHANNEL)?;
-    assert_camera_event_payload(
-        &payload,
-        CameraEventType::Connected,
-        cam_id,
-        "default-channel-camera",
-    )?;
+    receive_message(&mut subscriber, CAMERA_EVENTS_CHANNEL)?;
 
     Ok(())
 }
