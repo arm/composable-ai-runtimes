@@ -144,6 +144,26 @@ fn assert_camera_event_payload(
     Ok(())
 }
 
+fn get_redis_client_id(connection: &mut redis::Connection) -> Result<u64, Box<dyn Error>> {
+    Ok(redis::cmd("CLIENT").arg("ID").query(connection)?)
+}
+
+fn kill_redis_client(redis_config: &RedisConfig, client_id: u64) -> Result<(), Box<dyn Error>> {
+    let mut connection = Client::open(redis_config)?.get_connection()?;
+    let killed_clients: usize = redis::cmd("CLIENT")
+        .arg("KILL")
+        .arg("ID")
+        .arg(client_id)
+        .query(&mut connection)?;
+
+    assert_eq!(
+        killed_clients, 1,
+        "exactly one Redis client should have been killed"
+    );
+
+    Ok(())
+}
+
 #[tokio::test]
 async fn test_default_channel_from_env_publishes_to_camera_events() -> Result<(), Box<dyn Error>> {
     let redis_container = start_redis_contract_test_container().await?;
@@ -309,6 +329,75 @@ async fn test_disconnected_payload_contains_expected_fields() -> Result<(), Box<
         CameraEventType::Disconnected,
         cam_id,
         "configured-channel-camera",
+    )?;
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_publish_failure_reconnects_and_replaces_redis_connection()
+-> Result<(), Box<dyn Error>> {
+    let redis_container = start_redis_contract_test_container().await?;
+    let port = redis_container.port.to_string();
+
+    let redis_config = {
+        let _env_lock = REDIS_CONTRACT_TEST_ENV_LOCK.lock().await;
+        let _host_env = set_env_var(REDIS_HOST_ENV, redis_container.host.as_str());
+        let _port_env = set_env_var(REDIS_PORT_ENV, port.as_str());
+        let _password_env = remove_env_var(REDIS_PASSWORD_ENV);
+        let _events_channel_env = remove_env_var(REDIS_CHANNEL_EVENTS_ENV);
+
+        RedisConfig::from_env()
+    };
+
+    let mut subscriber = subscribe_to_channel(&redis_config, CAMERA_EVENTS_CHANNEL)?;
+    let cam_id = 126;
+    let camera = CameraMetadata {
+        node_id: cam_id as u32,
+        object_serial: cam_id,
+        name: "reconnected-camera".to_owned(),
+    };
+    let publisher = Rc::new(RefCell::new(configure_redis_conn_with_retry(
+        &redis_config,
+    )?));
+    let original_client_id = {
+        let mut connection = publisher.borrow_mut();
+        get_redis_client_id(&mut connection)?
+    };
+
+    kill_redis_client(&redis_config, original_client_id)?;
+
+    publish_camera_event(
+        &publisher,
+        &redis_config,
+        CameraEventType::Connected,
+        &camera,
+        redis_config.events_channel.as_str(),
+    );
+
+    let reconnected_client_id = {
+        let mut connection = publisher.borrow_mut();
+        get_redis_client_id(&mut connection)?
+    };
+    assert_ne!(
+        original_client_id, reconnected_client_id,
+        "a new Redis connection should have been established after the original connection was killed"
+    );
+
+    publish_camera_event(
+        &publisher,
+        &redis_config,
+        CameraEventType::Disconnected,
+        &camera,
+        redis_config.events_channel.as_str(),
+    );
+
+    let payload = receive_message(&mut subscriber, CAMERA_EVENTS_CHANNEL)?;
+    assert_camera_event_payload(
+        &payload,
+        CameraEventType::Disconnected,
+        cam_id,
+        "reconnected-camera",
     )?;
 
     Ok(())
