@@ -1,4 +1,4 @@
-name: Camera Contract Test
+name: Camera Contract Tests
 
 on:
   pull_request:
@@ -8,7 +8,11 @@ on:
       - reopened
     paths:
       - services/camera/src/api/**
+      - services/camera/src/notifications/**
+      - services/camera/src/camera_metadata.rs
+      - services/camera/src/helpers.rs
       - services/camera/src/lib.rs
+      - services/camera/src/logging.rs
       - services/camera/proto/**
       - services/camera/Cargo.toml
       - services/camera/Cargo.lock
@@ -20,7 +24,7 @@ permissions:
 
 jobs:
   camera-contract:
-    name: Run camera contract test
+    name: Run camera contract tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -33,6 +37,10 @@ jobs:
       - name: Install stable Rust toolchain
         run: rustup toolchain install stable --profile minimal --no-self-update
 
-      - name: Run camera contract test
+      - name: Run camera API contract test
         run: cargo test --lib api::contract_tests
+        working-directory: services/camera
+
+      - name: Run camera notification contract test
+        run: cargo test --bin notifications redis_contract_test
         working-directory: services/camera
