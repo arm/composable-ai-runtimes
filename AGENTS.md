@@ -31,6 +31,12 @@ For production-bound changes, require explicit confirmation on requirements, edg
 - Ensure degraded behaviour is predictable when Redis, PipeWire, or model assets are unavailable.
 - Avoid hidden background loops without observable health/failure signals.
 
+### CI Workflow Ownership
+
+- When adding or changing CI workflows, keep each workflow focused on its stated responsibility.
+- Avoid duplicating diagnostics or validation already owned by another workflow unless the duplication is intentional and documented.
+- Before preserving extra logging or checks, ask whether this workflow should be the source of truth for that failure mode. If another workflow owns it, prefer a clear failure signal here and let the owning workflow provide detailed diagnostics.
+
 ### Security and Operational Safety
 
 - Apply least privilege for container capabilities, device mounts, and volume mounts.
@@ -150,6 +156,7 @@ During editing:
 
 Before completion:
 - Run proportionate validation commands.
+- Before committing review-response changes, reread the touched function or workflow block as a whole and look for duplicated cleanup, logging, assertion, or failure-handling paths introduced by targeted fixes.
 - Compare the current branch to its base branch and reconcile affected documentation surfaces to match the branch as it exists now.
 - Update user-facing docs in `docs-website/**`, developer/operator guidance in relevant `README.md` files, and any still-necessary code comments.
 - Rewrite documents coherently instead of appending isolated notes to the end of stale content.
@@ -157,6 +164,11 @@ Before completion:
 - If contracts changed, summarise the impact and any migration expectations.
 - Summarise runtime impact (or explicitly state `no runtime behaviour change`).
 - Summarise residual risks and untested paths.
+
+### Pull Requests
+
+- Use the repository PR template and fill in each section with concrete impact and validation details.
+- Choose a PR title that satisfies the repository title validation check. For this repo, use a conventional-commit style prefix such as `docs:`, `test:`, `fix:`, `feat:`, or `chore:`, and keep the subject lowercase.
 
 ## Definition of Done
 
