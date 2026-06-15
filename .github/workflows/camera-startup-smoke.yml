@@ -1,0 +1,39 @@
+name: Camera Startup Smoke
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+    paths:
+      - .github/scripts/camera-service-startup-smoke.py
+      - services/camera/**
+      - .github/workflows/camera-startup-smoke.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  startup-smoke:
+    name: Smoke test camera service startup
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Install smoke test dependencies
+        run: python3 -m pip install pytest==8.3.5 docker==7.1.0
+
+      - name: Run camera startup smoke check
+        run: |
+          mkdir -p test-results/camera-startup-smoke
+          python3 -m pytest .github/scripts/camera-service-startup-smoke.py \
+            --junitxml=test-results/camera-startup-smoke/junit.xml
+
+      - name: Upload camera startup smoke results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: camera-startup-smoke-results
+          path: test-results/camera-startup-smoke/
