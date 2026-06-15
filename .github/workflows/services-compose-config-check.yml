@@ -1,0 +1,25 @@
+name: Services Compose Config Check
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+    paths:
+      - services/compose.yaml
+      - .github/workflows/services-compose-config-check.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compose-config:
+    name: Validate services Compose config
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Validate services Compose config
+        run: docker compose -f services/compose.yaml config
