@@ -1,0 +1,105 @@
+name: Boardfarm Topo Deploy Remote Pi Smoke
+
+on:
+  push:
+    branches:
+      - pi-board-farm
+    paths:
+      - .github/boardfarm-smoke/**
+      - .github/scripts/install-topo.sh
+      - .github/workflows/boardfarm-topo-deploy-remote-pi-smoke.yml
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+    paths:
+      - .github/boardfarm-smoke/**
+      - .github/scripts/install-topo.sh
+      - .github/workflows/boardfarm-topo-deploy-remote-pi-smoke.yml
+  workflow_dispatch:
+    inputs:
+      topo_version:
+        description: Topo version to install for the smoke deploy
+        required: false
+        default: 6.2.0
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  topo-deploy-remote-pi-smoke:
+    name: Topo deploy remote Pi smoke
+    runs-on:
+      - self-hosted-ubuntu-latest-arm64
+    env:
+      TOPO_TARGET: devx-cairn-02@10.2.5.52
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Install topo
+        env:
+          TOPO_VERSION: ${{ inputs.topo_version || '6.2.0' }}
+        run: .github/scripts/install-topo.sh "$TOPO_VERSION"
+
+      - name: Add local bin to PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Show topo and runner versions
+        run: |
+          topo --version
+          uname -a
+
+      - name: Set up topo SSH key on remote Pi
+        working-directory: .github/boardfarm-smoke
+        env:
+          TOPO_TARGET_PASSWORD: ${{ secrets.DEVX_CAIRN_02_SSH_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "${TOPO_TARGET_PASSWORD:-}" ]; then
+            echo "DEVX_CAIRN_02_SSH_PASSWORD secret is required to run topo setup-keys."
+            exit 1
+          fi
+
+          askpass_script="$RUNNER_TEMP/topo-ssh-askpass.sh"
+          cat > "$askpass_script" <<'EOF'
+          #!/usr/bin/env sh
+          printf '%s\n' "$TOPO_TARGET_PASSWORD"
+          EOF
+          chmod 700 "$askpass_script"
+
+          DISPLAY="${DISPLAY:-:0}" \
+            SSH_ASKPASS="$askpass_script" \
+            SSH_ASKPASS_REQUIRE=force \
+            setsid topo setup-keys --target "$TOPO_TARGET" </dev/null
+
+      - name: Check target health
+        working-directory: .github/boardfarm-smoke
+        run: topo health --target "$TOPO_TARGET" --timeout 60s
+
+      - name: Deploy dummy stack with topo
+        working-directory: .github/boardfarm-smoke
+        run: topo deploy --target "$TOPO_TARGET"
+
+      - name: Verify deployed dummy container is running
+        run: ssh -o BatchMode=yes "$TOPO_TARGET" "docker ps --format '{{.Image}} {{.Status}}' | grep '^cairn-boardfarm-dummy:local '"
+
+      - name: Stop deployed dummy stack
+        if: always()
+        working-directory: .github/boardfarm-smoke
+        run: topo stop --target "$TOPO_TARGET" || true
+
+      - name: Remove remote dummy image
+        if: always()
+        run: |
+          ssh -o BatchMode=yes "$TOPO_TARGET" '
+            set -eu
+            containers="$(docker ps -aq --filter ancestor=cairn-boardfarm-dummy:local)"
+            if [ -n "$containers" ]; then
+              docker rm -f $containers
+            fi
+            if docker image inspect cairn-boardfarm-dummy:local >/dev/null 2>&1; then
+              docker image rm cairn-boardfarm-dummy:local
+            fi
+          '
