@@ -12,7 +12,7 @@ Post-PoC active development: prioritise dependable, documented increments that p
 
 ## Assumption policy
 
-In all cases, avoid assumptions and prefer clarifying questions. This repository currently follows the in-between threshold by default: ask when ambiguity could affect user expectations, compatibility, operations, or quality; proceed on small internal implementation choices that do not change behaviour.
+Prefer clarifying questions over risky assumptions. This repository currently follows the in-between threshold by default: ask when ambiguity could affect user expectations, compatibility, operations, or quality; proceed on small internal implementation choices that do not change behaviour.
 
 For production-bound changes, require explicit confirmation on requirements, edge cases, compatibility expectations, and operational constraints before implementation.
 
@@ -22,8 +22,8 @@ For production-bound changes, require explicit confirmation on requirements, edg
 
 - Treat protobuf files as the current API contracts.
 - Treat Redis channel names and payload formats as compatibility surface once documented.
-- Generated protobuf artefacts (`*_pb2.py`, `*_pb2_grpc.py`) are version-controlled unless the project explicitly changes that policy. The camera service generates its gRPC bindings from `services/camera/proto/camera_service.proto` during Cargo builds rather than committing generated Rust files.
-- Do not hand-edit generated protobuf artefacts unless generation is broken; edit `.proto`, regenerate, and commit the regenerated files.
+- Follow the existing policy for generated protobuf artefacts in the area you touch: committed generated files stay committed unless the project explicitly changes that policy, while build-generated artefacts stay out of version control.
+- Do not hand-edit generated protobuf artefacts unless generation is broken; edit `.proto`, regenerate using the owning service's workflow, and commit regenerated files only where that is the established policy.
 
 ### Runtime and Reliability
 
@@ -36,6 +36,7 @@ For production-bound changes, require explicit confirmation on requirements, edg
 - When adding or changing CI workflows, keep each workflow focused on its stated responsibility.
 - Avoid duplicating diagnostics or validation already owned by another workflow unless the duplication is intentional and documented.
 - Before preserving extra logging or checks, ask whether this workflow should be the source of truth for that failure mode. If another workflow owns it, prefer a clear failure signal here and let the owning workflow provide detailed diagnostics.
+- When a workflow is triggered by a shared file, keep validation scoped to the workflow's owned surface unless the workflow explicitly owns the whole shared file. Prefer targeted checks over broad shared-file checks when they preserve the required signal.
 
 ### Security and Operational Safety
 
@@ -54,9 +55,9 @@ For production-bound changes, require explicit confirmation on requirements, edg
 - `docs-website/**` is user-facing documentation.
 - `README.md` files are developer and operator documentation.
 - Code comments are developer-facing and should stay sparse; prefer self-explanatory code, but any retained comment must remain accurate.
-- Documentation does not need to be updated on every intermediate code change while a branch is still evolving.
-- Once implementation on a branch has stabilised, run the documentation reconciliation workflow, preferably via the local `update-docs` skill, against the branch's base branch.
-- When the task is to audit documentation accuracy rather than update it, use the local `review-docs` skill.
+- Documentation does not need to be updated on every intermediate code change while a branch is still evolving, but it must be reconciled before the branch is considered ready.
+- Run full documentation reconciliation when the user asks to prepare the branch for review, merge, handoff, or completion; when responding to review feedback about documentation; or when documented behaviour, commands, APIs, or workflows changed.
+- When the task is to audit documentation accuracy rather than update it, use the repository's documentation review workflow when one is available.
 - Reconcile docs to the branch as a whole. Do not treat documentation as append-only; rewrite or remove stale content so each document tells an accurate current-state story.
 - Broader documentation audits should be pedantic about accuracy and call out stale or overstated claims.
 
@@ -70,7 +71,7 @@ During reviews you MUST ensure that:
 
 ## Build and Validation Commands
 
-Run the smallest relevant checks for the files you changed. Broaden validation for contract, runtime, service, packaging, or documentation-site changes; smoke tests alone are only sufficient when they cover the changed behaviour.
+Run the smallest relevant checks for the files you changed. Broaden validation for contract, runtime, service, packaging, or documentation-site changes; smoke tests alone are only sufficient when they cover the changed behaviour. The commands below are the current common entry points; prefer the owning area's current documented command if a service, package, or workflow moves.
 
 Repository lint workspace:
 ```bash
@@ -90,7 +91,7 @@ docker compose -f services/compose.yaml build messaging
 docker compose -f services/compose.yaml up -d messaging
 ```
 
-Camera service (current SDK default, Rust implementation):
+Camera service:
 ```bash
 docker compose -f services/compose.yaml build camera-service
 docker compose -f services/camera/compose.yaml up --build
@@ -104,7 +105,7 @@ cargo clippy --all-targets --all-features --no-deps
 cargo test --lib --bins --tests
 ```
 
-Concordia service: (TBD)
+Concordia service:
 ```bash
 docker compose -f services/concordia/compose.yaml build
 docker compose -f services/concordia/compose.yaml up --build
@@ -156,7 +157,7 @@ During editing:
 
 Before completion:
 - Run proportionate validation commands.
-- Before committing review-response changes, reread the touched function or workflow block as a whole and look for duplicated cleanup, logging, assertion, or failure-handling paths introduced by targeted fixes.
+- After targeted fixes, reread the touched function, workflow block, or document section as a whole and look for duplicated cleanup, logging, assertion, validation, or failure-handling paths.
 - Compare the current branch to its base branch and reconcile affected documentation surfaces to match the branch as it exists now.
 - Update user-facing docs in `docs-website/**`, developer/operator guidance in relevant `README.md` files, and any still-necessary code comments.
 - Rewrite documents coherently instead of appending isolated notes to the end of stale content.
