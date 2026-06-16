@@ -66,6 +66,14 @@ possible environment combination. Keep test mechanics in Required Validation.
 List validation checks this service requires. Each row says what it covers, what
 risk it reduces, when and where it runs, and what it blocks.
 
+The hosted `Camera Smoke` workflow implements the camera-owned Docker and
+startup lane as one ordered check: it validates `services/camera/compose.yaml`,
+validates the `camera-service` config rendered from `services/compose.yaml`,
+builds `camera-service:latest`, and runs the bounded
+startup/dependency-failure smoke probes against that same image. The
+repository-level `Services Compose Config Check` workflow remains responsible
+for non-camera changes to `services/compose.yaml`.
+
 Implementation tickets should define exact proof steps and acceptance criteria
 for each required validation lane.
 
@@ -77,7 +85,7 @@ for each required validation lane.
 | Protobuf generation check | `CAM-API` | Failed protobuf generation or camera service binding compile regressions | Protobuf, Cargo, build script, API, SDK-facing, or public client changes | Merge | Hosted CI |
 | SDK client contract and integration checks | `CAM-API`, `CAM-DOCS` | Camera contract, SDK client, packaging, wrapper, or documented public API regressions | Camera protobuf, `CameraService`, SDK client, packaging, wrapper, documented public API, or camera release-scope changes | Merge | Hosted CI |
 | Camera service Compose model check | `CAM-CONTAINER`, `CAM-CONFIG` | Compose syntax, model rendering, environment interpolation, and declared container configuration drift | Camera service Compose, Dockerfile, entrypoint, config, dependency, deployment, or operational docs changes | Merge | Hosted CI |
-| Repository Compose model check | `CAM-CONTAINER`, `CAM-EVENT`, `CAM-CONFIG` | Repository-level camera and messaging wiring, Redis defaults, service extension, or Compose model regressions | Repository Compose, camera service Compose, messaging wiring, Redis config, or deployment docs changes | Merge | Hosted CI |
+| Repository camera service config check | `CAM-CONTAINER`, `CAM-EVENT`, `CAM-CONFIG` | Repository-level camera and messaging wiring, Redis defaults, service extension, or rendered camera service config regressions | Repository Compose camera service wiring, camera service Compose, messaging wiring, Redis config, or deployment docs changes | Merge | Hosted CI |
 | Camera image build | `CAM-SRC`, `CAM-CONTAINER`, `CAM-CONFIG` | Image, package, dependency, build-output, or protobuf-generation failure | Rust sources, Cargo files, protobuf, Dockerfile, entrypoint scripts, configuration files, Compose, or container documentation changes | Merge | Hosted CI |
 | Camera startup smoke | `CAM-CONTAINER`, `CAM-CONFIG`, `CAM-OPS` | Startup, dependency, health-signal, logging, process lifecycle, PipeWire wiring, or Redis wiring regressions | Service changes that could affect build output, startup, dependency handling, runtime configuration, logging, process lifecycle, or PipeWire and Redis wiring | Merge | Hosted CI and board-farm |
 | Documentation review and link check | `CAM-DOCS` | Broken links, stale commands, inaccurate support claims, release-scope mismatches, or validation-policy mismatches | `services/camera/README.md`, `services/camera/SECURITY.md`, `docs/testing/**`, `docs-website/**`, release note, API reference, or validation-policy changes | Merge | Hosted CI |

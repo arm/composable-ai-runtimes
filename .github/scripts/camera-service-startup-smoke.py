@@ -20,6 +20,7 @@ from docker.models.volumes import Volume
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CAMERA_DIR = REPO_ROOT / "services" / "camera"
 CAMERA_IMAGE_NAME = "camera-service:latest"
+BUILD_IMAGE_ENV = "CAMERA_STARTUP_SMOKE_BUILD_IMAGE"
 CONTAINER_PREFIX = (
     f"camera-startup-smoke-{os.environ.get('GITHUB_RUN_ID', 'local')}-{os.getpid()}"
 )
@@ -144,6 +145,10 @@ def assert_running_at_end(result: ProbeResult) -> None:
     )
 
 
+def should_build_camera_image() -> bool:
+    return os.environ.get(BUILD_IMAGE_ENV, "1") != "0"
+
+
 @pytest.fixture(scope="session")
 def docker_client() -> Iterator[docker.DockerClient]:
     client = docker.from_env()
@@ -157,13 +162,24 @@ def docker_client() -> Iterator[docker.DockerClient]:
 
 @pytest.fixture(scope="session", autouse=True)
 def build_camera_image(docker_client: docker.DockerClient) -> None:
-    print("Building camera service image for startup smoke probes.")
-    docker_client.images.build(
-        path=str(CAMERA_DIR),
-        tag=CAMERA_IMAGE_NAME,
-        rm=True,
-    )
-    docker_client.images.get(CAMERA_IMAGE_NAME)
+    if should_build_camera_image():
+        print("Building camera service image for startup smoke probes.")
+        docker_client.images.build(
+            path=str(CAMERA_DIR),
+            tag=CAMERA_IMAGE_NAME,
+            rm=True,
+        )
+        docker_client.images.get(CAMERA_IMAGE_NAME)
+        return
+
+    print(f"Using existing camera service image for startup smoke probes: {CAMERA_IMAGE_NAME}.")
+    try:
+        docker_client.images.get(CAMERA_IMAGE_NAME)
+    except NotFound:
+        pytest.fail(
+            f"{CAMERA_IMAGE_NAME} does not exist; build it first or set "
+            f"{BUILD_IMAGE_ENV}=1."
+        )
 
 
 @pytest.fixture

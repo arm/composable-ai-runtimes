@@ -1,4 +1,4 @@
-name: Camera Startup Smoke
+name: Camera Smoke
 
 on:
   pull_request:
@@ -8,8 +8,9 @@ on:
       - reopened
     paths:
       - .github/scripts/camera-service-startup-smoke.py
+      - .github/workflows/camera-smoke.yml
       - services/camera/**
-      - .github/workflows/camera-startup-smoke.yml
+      - services/compose.yaml
   workflow_dispatch:
 
 permissions:
@@ -17,15 +18,26 @@ permissions:
 
 jobs:
   startup-smoke:
-    name: Smoke test camera service startup
+    name: Validate and smoke test camera service
     runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Validate camera service Compose config
+        run: docker compose -f services/camera/compose.yaml config
+
+      - name: Validate services Compose camera wiring
+        run: docker compose -f services/compose.yaml config camera-service
+
+      - name: Build camera service Docker image
+        run: docker build --progress=plain --tag camera-service:latest services/camera
 
       - name: Install smoke test dependencies
         run: python3 -m pip install pytest==8.3.5 docker==7.1.0
 
       - name: Run camera startup smoke check
+        env:
+          CAMERA_STARTUP_SMOKE_BUILD_IMAGE: "0"
         run: |
           mkdir -p test-results/camera-startup-smoke
           python3 -m pytest .github/scripts/camera-service-startup-smoke.py \
