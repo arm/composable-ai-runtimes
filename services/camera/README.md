@@ -137,4 +137,4 @@ The camera Compose smoke check validates Compose configuration only. From the re
 docker compose -f services/camera/compose.yaml config
 ```
 
-The default container entrypoint starts both service binaries. The `notifications` binary applies its Redis defaults before connecting, retries Redis connection failures with capped Fibonacci backoff, and also depends on PipeWire. The Compose setup mounts the required host runtime and device paths for that workflow.
+The default container entrypoint starts both service binaries. The `notifications` binary applies its Redis defaults before connecting, retries Redis connection failures with capped Fibonacci backoff, and also depends on PipeWire. The Compose setup mounts the required host runtime and device paths for the camera service container.

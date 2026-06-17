@@ -7,6 +7,7 @@ on:
       - synchronize
       - reopened
     paths:
+      - .github/scripts/camera-boardfarm-startup-smoke.py
       - .github/scripts/camera-service-startup-smoke.py
       - .github/workflows/camera-smoke.yml
       - services/camera/**
@@ -49,3 +50,39 @@ jobs:
         with:
           name: camera-startup-smoke-results
           path: test-results/camera-startup-smoke/
+
+  boardfarm-startup-smoke:
+    name: Validate camera startup on Pi board farm
+    runs-on:
+      - self-hosted
+      - Linux
+      - ARM64
+      - boardfarm
+      - pi5
+    timeout-minutes: 30
+    env:
+      COMPOSE_PROJECT_NAME: camera-boardfarm-${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.10.12"
+
+      - name: Run camera board-farm startup smoke check
+        run: |
+          mkdir -p test-results/camera-boardfarm-smoke
+          uv run --with pytest==8.3.5 python -m pytest .github/scripts/camera-boardfarm-startup-smoke.py \
+            --junitxml=test-results/camera-boardfarm-smoke/junit.xml
+
+      - name: Clean up camera board-farm Compose resources
+        if: always()
+        run: docker compose -f services/camera/compose.yaml down --volumes --remove-orphans
+
+      - name: Upload camera board-farm startup smoke results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: camera-boardfarm-smoke-results
+          path: test-results/camera-boardfarm-smoke/
