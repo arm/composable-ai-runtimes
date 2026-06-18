@@ -8,6 +8,7 @@ on:
       - reopened
     paths:
       - .github/scripts/camera-boardfarm-startup-smoke.py
+      - .github/scripts/camera-service-lifecycle-smoke.py
       - .github/scripts/camera-service-startup-smoke.py
       - .github/workflows/camera-smoke.yml
       - services/camera/**
@@ -44,12 +45,27 @@ jobs:
           python3 -m pytest .github/scripts/camera-service-startup-smoke.py \
             --junitxml=test-results/camera-startup-smoke/junit.xml
 
+      - name: Run camera lifecycle supervision check
+        env:
+          CAMERA_LIFECYCLE_BUILD_IMAGE: "0"
+        run: |
+          mkdir -p test-results/camera-lifecycle
+          python3 -m pytest .github/scripts/camera-service-lifecycle-smoke.py \
+            --junitxml=test-results/camera-lifecycle/junit.xml
+
       - name: Upload camera startup smoke results
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: camera-startup-smoke-results
           path: test-results/camera-startup-smoke/
+
+      - name: Upload camera lifecycle results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: camera-lifecycle-results
+          path: test-results/camera-lifecycle/
 
   boardfarm-startup-smoke:
     name: Validate camera startup on Pi board farm
