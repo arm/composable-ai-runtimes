@@ -31,12 +31,21 @@ For production-bound changes, require explicit confirmation on requirements, edg
 - Ensure degraded behaviour is predictable when Redis, PipeWire, or model assets are unavailable.
 - Avoid hidden background loops without observable health/failure signals.
 
+### Implementation Hygiene
+
+- Avoid helper wrappers that only rename, reshape, or partially hide an already clear value. Add helpers when they reduce real repetition, clarify ownership, or isolate non-obvious behaviour.
+- Use precise types at module boundaries, parser boundaries, and test helper boundaries. Avoid broad `Any` or unstructured `dict` annotations when the expected shape is known and can be represented with a dataclass, `TypedDict`, protocol, or narrower built-in type.
+
 ### CI Workflow Ownership
 
 - When adding or changing CI workflows, keep each workflow focused on its stated responsibility.
 - Avoid duplicating diagnostics or validation already owned by another workflow unless the duplication is intentional and documented.
 - Before preserving extra logging or checks, ask whether this workflow should be the source of truth for that failure mode. If another workflow owns it, prefer a clear failure signal here and let the owning workflow provide detailed diagnostics.
 - When a workflow is triggered by a shared file, keep validation scoped to the workflow's owned surface unless the workflow explicitly owns the whole shared file. Prefer targeted checks over broad shared-file checks when they preserve the required signal.
+- When adding or changing smoke tests, first identify the workflow's owned validation surface and compare against nearby smoke tests before implementation.
+- Keep smoke tests focused on behaviour the workflow uniquely validates. Avoid duplicating diagnostics, artifacts, dependency inventories, setup checks, or failure classifications owned by another workflow unless there is a clear operational reason.
+- Reuse local helper patterns where they fit, but do not copy another smoke test's structure or assertions without confirming it owns the same validation surface.
+- Keep provisioning and toolchain setup in workflow setup steps or dedicated build jobs unless provisioning itself is the behaviour under test.
 
 ### Security and Operational Safety
 
