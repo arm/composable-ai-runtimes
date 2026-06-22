@@ -11,12 +11,12 @@ from typing import Iterator, NotRequired, TypedDict
 
 import docker
 import pytest
-from docker.errors import NotFound
 from docker.models.containers import Container
 
 from camera_smoke.artifacts import write_text_artifact
 from camera_smoke.docker import (
     cleanup_containers_by_prefix,
+    ensure_docker_image,
     get_container_logs,
     get_container_state,
     remove_container_by_name,
@@ -115,10 +115,6 @@ def terminate_process(container: Container, pid: str) -> None:
     )
 
 
-def should_build_camera_image() -> bool:
-    return os.environ.get(BUILD_IMAGE_ENV, "1") != "0"
-
-
 @pytest.fixture(scope="session", autouse=True)
 def lifecycle_metadata() -> Iterator[LifecycleMetadata]:
     metadata: LifecycleMetadata = {
@@ -153,26 +149,16 @@ def build_camera_image(
     lifecycle_metadata: LifecycleMetadata,
     docker_client: docker.DockerClient,
 ) -> None:
-    if should_build_camera_image():
-        print("Building camera service image for lifecycle check.")
-        docker_client.images.build(
-            path=str(CAMERA_DIR),
-            tag=CAMERA_IMAGE_NAME,
-            rm=True,
-        )
-        docker_client.images.get(CAMERA_IMAGE_NAME)
-        return
-
-    print(
-        f"Using existing camera service image for lifecycle check: {CAMERA_IMAGE_NAME}."
-    )
     try:
-        docker_client.images.get(CAMERA_IMAGE_NAME)
-    except NotFound:
-        pytest.fail(
-            f"{CAMERA_IMAGE_NAME} does not exist; build it first or set "
-            f"{BUILD_IMAGE_ENV}=1."
+        ensure_docker_image(
+            docker_client,
+            CAMERA_IMAGE_NAME,
+            CAMERA_DIR,
+            build_env=BUILD_IMAGE_ENV,
+            description="camera service image for lifecycle check",
         )
+    except RuntimeError as err:
+        pytest.fail(str(err))
 
 
 @pytest.fixture

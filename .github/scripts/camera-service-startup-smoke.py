@@ -17,6 +17,7 @@ from docker.models.volumes import Volume
 
 from camera_smoke.docker import (
     cleanup_containers_by_prefix,
+    ensure_docker_image,
     get_container_logs,
     get_container_state,
     remove_container_by_name,
@@ -110,10 +111,6 @@ def assert_running_at_end(result: ProbeResult) -> None:
     )
 
 
-def should_build_camera_image() -> bool:
-    return os.environ.get(BUILD_IMAGE_ENV, "1") != "0"
-
-
 @pytest.fixture(scope="session")
 def docker_client() -> Iterator[docker.DockerClient]:
     client = docker.from_env()
@@ -127,24 +124,16 @@ def docker_client() -> Iterator[docker.DockerClient]:
 
 @pytest.fixture(scope="session", autouse=True)
 def build_camera_image(docker_client: docker.DockerClient) -> None:
-    if should_build_camera_image():
-        print("Building camera service image for startup smoke probes.")
-        docker_client.images.build(
-            path=str(CAMERA_DIR),
-            tag=CAMERA_IMAGE_NAME,
-            rm=True,
-        )
-        docker_client.images.get(CAMERA_IMAGE_NAME)
-        return
-
-    print(f"Using existing camera service image for startup smoke probes: {CAMERA_IMAGE_NAME}.")
     try:
-        docker_client.images.get(CAMERA_IMAGE_NAME)
-    except NotFound:
-        pytest.fail(
-            f"{CAMERA_IMAGE_NAME} does not exist; build it first or set "
-            f"{BUILD_IMAGE_ENV}=1."
+        ensure_docker_image(
+            docker_client,
+            CAMERA_IMAGE_NAME,
+            CAMERA_DIR,
+            build_env=BUILD_IMAGE_ENV,
+            description="camera service image for startup smoke probes",
         )
+    except RuntimeError as err:
+        pytest.fail(str(err))
 
 
 @pytest.fixture
