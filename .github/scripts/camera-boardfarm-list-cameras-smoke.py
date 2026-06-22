@@ -23,6 +23,8 @@ from camera_smoke.compose import (
     cleanup_compose,
     get_compose_logs,
     get_compose_ps,
+    has_compose_service_exited,
+    is_compose_service_running,
 )
 from camera_smoke.time import get_utc_now
 
@@ -102,32 +104,6 @@ def write_diagnostics(metadata: JsonObject) -> None:
     )
 
 
-def is_service_running() -> bool:
-    result = run_command(
-        *build_compose_command("ps", "--status", "running", "--services")
-    )
-    if result.returncode != 0:
-        return False
-
-    running_services = {
-        line.strip() for line in result.stdout.splitlines() if line.strip()
-    }
-    return SERVICE_NAME in running_services
-
-
-def has_service_exited() -> bool:
-    result = run_command(
-        *build_compose_command("ps", "--status", "exited", "--services")
-    )
-    if result.returncode != 0:
-        return False
-
-    exited_services = {
-        line.strip() for line in result.stdout.splitlines() if line.strip()
-    }
-    return SERVICE_NAME in exited_services
-
-
 def can_connect_to_grpc() -> bool:
     try:
         with socket.create_connection((GRPC_HOST, GRPC_PORT), timeout=2):
@@ -143,10 +119,10 @@ def wait_for_startup() -> tuple[bool, str]:
         logs = get_compose_logs(COMPOSE_FILE, cwd=REPO_ROOT)
         if FAILURE_PATTERN.search(logs):
             return False, "startup logs contain a known failure pattern"
-        if has_service_exited():
+        if has_compose_service_exited(COMPOSE_FILE, SERVICE_NAME, cwd=REPO_ROOT):
             return False, "camera-service process exited during startup"
         if (
-            is_service_running()
+            is_compose_service_running(COMPOSE_FILE, SERVICE_NAME, cwd=REPO_ROOT)
             and can_connect_to_grpc()
             and "starting camera API server" in logs
         ):
