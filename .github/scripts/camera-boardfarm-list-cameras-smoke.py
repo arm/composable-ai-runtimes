@@ -13,7 +13,10 @@ from typing import Iterator, TypedDict
 
 import pytest
 
-from camera_smoke.artifacts import write_text_artifact
+from camera_smoke.artifacts import (
+    write_command_transcript,
+    write_text_artifact,
+)
 from camera_smoke.commands import CommandResult, run_command as run_shell_command
 from camera_smoke.time import get_utc_now
 
@@ -79,16 +82,6 @@ def run_command(*args: str) -> CommandResult:
     return run_shell_command(*args, cwd=REPO_ROOT)
 
 
-def write_command_artifact(name: str, result: CommandResult) -> None:
-    body = (
-        f"$ {' '.join(result.args)}\n"
-        f"exit_code={result.returncode}\n\n"
-        f"stdout:\n{result.stdout}\n"
-        f"stderr:\n{result.stderr}\n"
-    )
-    write_text_artifact(TEST_RESULTS_DIR, name, body)
-
-
 def get_compose_logs() -> str:
     result = run_command(*build_compose_command("logs", "--no-color"))
     return result.stdout + result.stderr
@@ -100,7 +93,7 @@ def get_compose_ps() -> CommandResult:
 
 def write_diagnostics(metadata: JsonObject) -> None:
     write_text_artifact(TEST_RESULTS_DIR, "compose.log", get_compose_logs())
-    write_command_artifact("compose-ps.txt", get_compose_ps())
+    write_command_transcript(TEST_RESULTS_DIR, "compose-ps.txt", get_compose_ps())
     write_text_artifact(
         TEST_RESULTS_DIR, "metadata.json", json.dumps(metadata, indent=2, sort_keys=True)
     )
@@ -267,14 +260,16 @@ def cleanup_and_record(metadata: JsonObject) -> None:
     cleanup_result = cleanup_compose()
     metadata["cleanup_exit_code"] = cleanup_result.returncode
     if cleanup_result.returncode != 0:
-        write_command_artifact("compose-cleanup.txt", cleanup_result)
+        write_command_transcript(
+            TEST_RESULTS_DIR, "compose-cleanup.txt", cleanup_result
+        )
 
 
 def start_camera_service(metadata: JsonObject) -> None:
     up_result = run_command(*build_compose_command("up", "-d", "--build"))
     metadata["compose_up_exit_code"] = up_result.returncode
     if up_result.returncode != 0:
-        write_command_artifact("compose-up.txt", up_result)
+        write_command_transcript(TEST_RESULTS_DIR, "compose-up.txt", up_result)
         fail_with_result(
             metadata,
             "compose_start_failed",
@@ -339,7 +334,9 @@ def verify_camera_discovery_via_grpc(metadata: JsonObject) -> None:
         grpcurl_result = call_grpc_list_cameras(metadata, discovery_attempts)
 
         if grpcurl_result.returncode != 0:
-            write_command_artifact("list-cameras-command.txt", grpcurl_result)
+            write_command_transcript(
+                TEST_RESULTS_DIR, "list-cameras-command.txt", grpcurl_result
+            )
             result = classify_grpcurl_failure(grpcurl_result)
             if result not in RETRYABLE_DISCOVERY_RESULTS:
                 fail_with_result(

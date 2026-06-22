@@ -13,7 +13,10 @@ from typing import Any, Iterator
 
 import pytest
 
-from camera_smoke.artifacts import write_text_artifact
+from camera_smoke.artifacts import (
+    write_command_transcript,
+    write_text_artifact,
+)
 from camera_smoke.commands import CommandResult, run_command as run_shell_command
 from camera_smoke.time import get_utc_now
 
@@ -47,16 +50,6 @@ def run_command(*args: str) -> CommandResult:
     return run_shell_command(*args, cwd=REPO_ROOT)
 
 
-def write_command_transcript(name: str, result: CommandResult) -> None:
-    body = (
-        f"$ {' '.join(result.args)}\n"
-        f"exit_code={result.returncode}\n\n"
-        f"stdout:\n{result.stdout}\n"
-        f"stderr:\n{result.stderr}\n"
-    )
-    write_text_artifact(TEST_RESULTS_DIR, name, body)
-
-
 def get_compose_logs() -> str:
     result = run_command(*build_compose_command("logs", "--no-color"))
     return result.stdout + result.stderr
@@ -68,7 +61,7 @@ def get_compose_ps() -> CommandResult:
 
 def write_diagnostics(metadata: dict[str, Any]) -> None:
     write_text_artifact(TEST_RESULTS_DIR, "compose.log", get_compose_logs())
-    write_command_transcript("compose-ps.txt", get_compose_ps())
+    write_command_transcript(TEST_RESULTS_DIR, "compose-ps.txt", get_compose_ps())
     write_text_artifact(
         TEST_RESULTS_DIR, "metadata.json", json.dumps(metadata, indent=2, sort_keys=True)
     )
@@ -149,7 +142,9 @@ def smoke_metadata() -> Iterator[dict[str, Any]]:
         cleanup_result = cleanup_compose()
         metadata["cleanup_exit_code"] = cleanup_result.returncode
         if cleanup_result.returncode != 0:
-            write_command_transcript("compose-cleanup.txt", cleanup_result)
+            write_command_transcript(
+                TEST_RESULTS_DIR, "compose-cleanup.txt", cleanup_result
+            )
         write_text_artifact(
             TEST_RESULTS_DIR,
             "metadata.json",
@@ -160,7 +155,7 @@ def smoke_metadata() -> Iterator[dict[str, Any]]:
 def test_camera_boardfarm_compose_config() -> None:
     config_result = run_command(*build_compose_command("config"))
     if config_result.returncode != 0:
-        write_command_transcript("compose-config.txt", config_result)
+        write_command_transcript(TEST_RESULTS_DIR, "compose-config.txt", config_result)
     assert config_result.returncode == 0, (
         "Camera Compose config validation failed. See compose-config.txt."
     )
@@ -172,7 +167,7 @@ def test_camera_boardfarm_compose_startup(
     up_result = run_command(*build_compose_command("up", "-d", "--build"))
     smoke_metadata["compose_up_exit_code"] = up_result.returncode
     if up_result.returncode != 0:
-        write_command_transcript("compose-up.txt", up_result)
+        write_command_transcript(TEST_RESULTS_DIR, "compose-up.txt", up_result)
     assert up_result.returncode == 0, (
         "Camera Compose startup command failed. See compose-up.txt."
     )
