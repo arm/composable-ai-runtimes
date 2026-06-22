@@ -17,6 +17,7 @@ from camera_smoke.artifacts import (
     write_command_transcript,
     write_text_artifact,
 )
+from camera_smoke.camera_service import CAMERA_STARTUP_FAILURE_PATTERN
 from camera_smoke.commands import CommandResult, run_command as run_shell_command
 from camera_smoke.compose import (
     build_compose_command as build_shared_compose_command,
@@ -46,16 +47,6 @@ CAMERA_SERVICE_PROTO = REPO_ROOT / "services" / "camera" / "proto" / "camera_ser
 CAMERA_SERVICE_PROTO_ARG = str(CAMERA_SERVICE_PROTO.relative_to(REPO_ROOT))
 LIST_CAMERAS_METHOD = "camera.pipewire.v1.CameraService/list_cameras"
 
-FAILURE_PATTERN = re.compile(
-    r"missing runtime directory|"
-    r"PipeWire .*timed out|"
-    r"PipeWire .*timeout|"
-    r"panic|panicked|"
-    r"segmentation fault|"
-    r"service process .*exit|"
-    r"exited with",
-    re.IGNORECASE,
-)
 GRPC_CONNECTION_PATTERN = re.compile(
     r"failed to connect:|transport error|connection refused|tcp connect error|"
     r"error trying to connect|connect error|failed to dial target host|"
@@ -110,7 +101,7 @@ def wait_for_startup() -> tuple[bool, str]:
 
     while time.monotonic() < deadline:
         logs = get_compose_logs(COMPOSE_FILE, cwd=REPO_ROOT)
-        if FAILURE_PATTERN.search(logs):
+        if CAMERA_STARTUP_FAILURE_PATTERN.search(logs):
             return False, "startup logs contain a known failure pattern"
         if has_compose_service_exited(COMPOSE_FILE, SERVICE_NAME, cwd=REPO_ROOT):
             return False, "camera-service process exited during startup"

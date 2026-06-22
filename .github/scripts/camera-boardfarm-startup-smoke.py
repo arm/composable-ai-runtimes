@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import json
 import os
-import re
 import time
 from pathlib import Path
 from typing import Any, Iterator
@@ -16,6 +15,7 @@ from camera_smoke.artifacts import (
     write_command_transcript,
     write_text_artifact,
 )
+from camera_smoke.camera_service import CAMERA_STARTUP_FAILURE_PATTERN
 from camera_smoke.commands import CommandResult, run_command as run_shell_command
 from camera_smoke.compose import (
     build_compose_command as build_shared_compose_command,
@@ -37,18 +37,6 @@ GRPC_HOST = "127.0.0.1"
 GRPC_PORT = 50051
 STARTUP_TIMEOUT_SECONDS = 60
 POLL_INTERVAL_SECONDS = 2
-
-FAILURE_PATTERN = re.compile(
-    r"missing runtime directory|"
-    r"PipeWire .*timed out|"
-    r"PipeWire .*timeout|"
-    r"panic|panicked|"
-    r"segmentation fault|"
-    r"service process .*exit|"
-    r"exited with",
-    re.IGNORECASE,
-)
-
 
 def build_compose_command(*args: str) -> list[str]:
     return build_shared_compose_command(COMPOSE_FILE, *args)
@@ -78,7 +66,7 @@ def wait_for_startup() -> tuple[bool, str]:
 
     while time.monotonic() < deadline:
         last_log = get_compose_logs(COMPOSE_FILE, cwd=REPO_ROOT)
-        if FAILURE_PATTERN.search(last_log):
+        if CAMERA_STARTUP_FAILURE_PATTERN.search(last_log):
             return False, "startup logs contain a known failure pattern"
         if has_compose_service_exited(COMPOSE_FILE, SERVICE_NAME, cwd=REPO_ROOT):
             return False, "camera-service process exited during startup"
@@ -148,7 +136,7 @@ def test_camera_boardfarm_compose_startup(
     assert "starting camera API server" in logs, (
         "Camera API startup log was not found in Compose logs."
     )
-    assert not FAILURE_PATTERN.search(logs), (
+    assert not CAMERA_STARTUP_FAILURE_PATTERN.search(logs), (
         "Compose logs contain a known startup failure pattern."
     )
     assert is_compose_service_running(COMPOSE_FILE, SERVICE_NAME, cwd=REPO_ROOT), (
