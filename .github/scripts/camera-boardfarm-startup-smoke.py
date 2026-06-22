@@ -18,7 +18,12 @@ from camera_smoke.artifacts import (
     write_text_artifact,
 )
 from camera_smoke.commands import CommandResult, run_command as run_shell_command
-from camera_smoke.compose import build_compose_command as build_shared_compose_command
+from camera_smoke.compose import (
+    build_compose_command as build_shared_compose_command,
+    cleanup_compose,
+    get_compose_logs,
+    get_compose_ps,
+)
 from camera_smoke.time import get_utc_now
 
 
@@ -51,25 +56,18 @@ def run_command(*args: str) -> CommandResult:
     return run_shell_command(*args, cwd=REPO_ROOT)
 
 
-def get_compose_logs() -> str:
-    result = run_command(*build_compose_command("logs", "--no-color"))
-    return result.stdout + result.stderr
-
-
-def get_compose_ps() -> CommandResult:
-    return run_command(*build_compose_command("ps", "--all"))
-
-
 def write_diagnostics(metadata: dict[str, Any]) -> None:
-    write_text_artifact(TEST_RESULTS_DIR, "compose.log", get_compose_logs())
-    write_command_transcript(TEST_RESULTS_DIR, "compose-ps.txt", get_compose_ps())
+    write_text_artifact(
+        TEST_RESULTS_DIR, "compose.log", get_compose_logs(COMPOSE_FILE, cwd=REPO_ROOT)
+    )
+    write_command_transcript(
+        TEST_RESULTS_DIR,
+        "compose-ps.txt",
+        get_compose_ps(COMPOSE_FILE, cwd=REPO_ROOT),
+    )
     write_text_artifact(
         TEST_RESULTS_DIR, "metadata.json", json.dumps(metadata, indent=2, sort_keys=True)
     )
-
-
-def cleanup_compose() -> CommandResult:
-    return run_command(*build_compose_command("down", "--volumes", "--remove-orphans"))
 
 
 def is_service_running() -> bool:
@@ -111,7 +109,7 @@ def wait_for_startup() -> tuple[bool, str]:
     last_log = ""
 
     while time.monotonic() < deadline:
-        last_log = get_compose_logs()
+        last_log = get_compose_logs(COMPOSE_FILE, cwd=REPO_ROOT)
         if FAILURE_PATTERN.search(last_log):
             return False, "startup logs contain a known failure pattern"
         if has_service_exited():
@@ -140,7 +138,7 @@ def smoke_metadata() -> Iterator[dict[str, Any]]:
     finally:
         metadata["finished_at"] = get_utc_now()
         write_diagnostics(metadata)
-        cleanup_result = cleanup_compose()
+        cleanup_result = cleanup_compose(COMPOSE_FILE, cwd=REPO_ROOT)
         metadata["cleanup_exit_code"] = cleanup_result.returncode
         if cleanup_result.returncode != 0:
             write_command_transcript(
@@ -178,7 +176,7 @@ def test_camera_boardfarm_compose_startup(
     smoke_metadata["startup_result"] = reason
     assert ready, reason
 
-    logs = get_compose_logs()
+    logs = get_compose_logs(COMPOSE_FILE, cwd=REPO_ROOT)
     assert "starting camera API server" in logs, (
         "Camera API startup log was not found in Compose logs."
     )
