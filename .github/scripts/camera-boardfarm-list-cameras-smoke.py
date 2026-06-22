@@ -26,6 +26,7 @@ from camera_smoke.compose import (
     has_compose_service_exited,
     is_compose_service_running,
 )
+from camera_smoke.network import can_connect_to_tcp
 from camera_smoke.time import get_utc_now
 
 
@@ -104,14 +105,6 @@ def write_diagnostics(metadata: JsonObject) -> None:
     )
 
 
-def can_connect_to_grpc() -> bool:
-    try:
-        with socket.create_connection((GRPC_HOST, GRPC_PORT), timeout=2):
-            return True
-    except OSError:
-        return False
-
-
 def wait_for_startup() -> tuple[bool, str]:
     deadline = time.monotonic() + STARTUP_TIMEOUT_SECONDS
 
@@ -123,7 +116,7 @@ def wait_for_startup() -> tuple[bool, str]:
             return False, "camera-service process exited during startup"
         if (
             is_compose_service_running(COMPOSE_FILE, SERVICE_NAME, cwd=REPO_ROOT)
-            and can_connect_to_grpc()
+            and can_connect_to_tcp(GRPC_HOST, GRPC_PORT)
             and "starting camera API server" in logs
         ):
             return True, "camera service is running and accepting TCP connections"
