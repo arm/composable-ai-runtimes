@@ -15,6 +15,7 @@ import pytest
 from docker.errors import APIError, NotFound
 from docker.models.containers import Container
 
+from camera_smoke.artifacts import write_text_artifact
 from camera_smoke.time import get_utc_now
 
 
@@ -88,11 +89,6 @@ def print_probe_log(label: str, log: str) -> None:
         print(log, end="")
     finally:
         print("::endgroup::")
-
-
-def save_text_artifact(results_dir: Path, filename: str, contents: str) -> None:
-    results_dir.mkdir(parents=True, exist_ok=True)
-    (results_dir / filename).write_text(contents, encoding="utf-8")
 
 
 def docker_exec(container: Container, command: list[str]) -> str:
@@ -174,7 +170,7 @@ def lifecycle_metadata() -> Iterator[LifecycleMetadata]:
         yield metadata
     finally:
         metadata["finished_at"] = get_utc_now()
-        save_text_artifact(
+        write_text_artifact(
             RESULTS_DIR,
             "metadata.json",
             json.dumps(metadata, indent=2, sort_keys=True),
@@ -239,7 +235,7 @@ def lifecycle_container(
     finally:
         if container is not None:
             logs = get_logs(container)
-            save_text_artifact(RESULTS_DIR, f"{name}.log", logs)
+            write_text_artifact(RESULTS_DIR, f"{name}.log", logs)
             print_probe_log(f"camera lifecycle {name}", logs)
         remove_container_by_name(docker_client, name)
 

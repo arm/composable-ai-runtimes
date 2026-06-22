@@ -13,6 +13,7 @@ from typing import Iterator, TypedDict
 
 import pytest
 
+from camera_smoke.artifacts import write_text_artifact
 from camera_smoke.commands import CommandResult, run_command as run_shell_command
 from camera_smoke.time import get_utc_now
 
@@ -78,11 +79,6 @@ def run_command(*args: str) -> CommandResult:
     return run_shell_command(*args, cwd=REPO_ROOT)
 
 
-def write_artifact(name: str, content: str) -> None:
-    TEST_RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    (TEST_RESULTS_DIR / name).write_text(content, encoding="utf-8")
-
-
 def write_command_artifact(name: str, result: CommandResult) -> None:
     body = (
         f"$ {' '.join(result.args)}\n"
@@ -90,7 +86,7 @@ def write_command_artifact(name: str, result: CommandResult) -> None:
         f"stdout:\n{result.stdout}\n"
         f"stderr:\n{result.stderr}\n"
     )
-    write_artifact(name, body)
+    write_text_artifact(TEST_RESULTS_DIR, name, body)
 
 
 def get_compose_logs() -> str:
@@ -103,9 +99,11 @@ def get_compose_ps() -> CommandResult:
 
 
 def write_diagnostics(metadata: JsonObject) -> None:
-    write_artifact("compose.log", get_compose_logs())
+    write_text_artifact(TEST_RESULTS_DIR, "compose.log", get_compose_logs())
     write_command_artifact("compose-ps.txt", get_compose_ps())
-    write_artifact("metadata.json", json.dumps(metadata, indent=2, sort_keys=True))
+    write_text_artifact(
+        TEST_RESULTS_DIR, "metadata.json", json.dumps(metadata, indent=2, sort_keys=True)
+    )
 
 
 def cleanup_compose() -> CommandResult:
@@ -300,7 +298,7 @@ def call_grpc_list_cameras(
     metadata["camera_discovery_attempts"] = discovery_attempts
     metadata["camera_discovery_timeout_seconds"] = CAMERA_DISCOVERY_TIMEOUT_SECONDS
     metadata["list_cameras_exit_code"] = result.returncode
-    write_artifact("list-cameras.json", result.stdout)
+    write_text_artifact(TEST_RESULTS_DIR, "list-cameras.json", result.stdout)
     return result
 
 
@@ -387,7 +385,11 @@ def metadata() -> Iterator[JsonObject]:
         metadata["finished_at"] = get_utc_now()
         write_diagnostics(metadata)
         cleanup_and_record(metadata)
-        write_artifact("metadata.json", json.dumps(metadata, indent=2, sort_keys=True))
+        write_text_artifact(
+            TEST_RESULTS_DIR,
+            "metadata.json",
+            json.dumps(metadata, indent=2, sort_keys=True),
+        )
 
 
 def test_camera_boardfarm_list_cameras_smoke(metadata: JsonObject) -> None:

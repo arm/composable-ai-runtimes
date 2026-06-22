@@ -13,6 +13,7 @@ from typing import Any, Iterator
 
 import pytest
 
+from camera_smoke.artifacts import write_text_artifact
 from camera_smoke.commands import CommandResult, run_command as run_shell_command
 from camera_smoke.time import get_utc_now
 
@@ -46,11 +47,6 @@ def run_command(*args: str) -> CommandResult:
     return run_shell_command(*args, cwd=REPO_ROOT)
 
 
-def write_text_artifact(name: str, content: str) -> None:
-    TEST_RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    (TEST_RESULTS_DIR / name).write_text(content, encoding="utf-8")
-
-
 def write_command_transcript(name: str, result: CommandResult) -> None:
     body = (
         f"$ {' '.join(result.args)}\n"
@@ -58,7 +54,7 @@ def write_command_transcript(name: str, result: CommandResult) -> None:
         f"stdout:\n{result.stdout}\n"
         f"stderr:\n{result.stderr}\n"
     )
-    write_text_artifact(name, body)
+    write_text_artifact(TEST_RESULTS_DIR, name, body)
 
 
 def get_compose_logs() -> str:
@@ -71,9 +67,11 @@ def get_compose_ps() -> CommandResult:
 
 
 def write_diagnostics(metadata: dict[str, Any]) -> None:
-    write_text_artifact("compose.log", get_compose_logs())
+    write_text_artifact(TEST_RESULTS_DIR, "compose.log", get_compose_logs())
     write_command_transcript("compose-ps.txt", get_compose_ps())
-    write_text_artifact("metadata.json", json.dumps(metadata, indent=2, sort_keys=True))
+    write_text_artifact(
+        TEST_RESULTS_DIR, "metadata.json", json.dumps(metadata, indent=2, sort_keys=True)
+    )
 
 
 def cleanup_compose() -> CommandResult:
@@ -153,6 +151,7 @@ def smoke_metadata() -> Iterator[dict[str, Any]]:
         if cleanup_result.returncode != 0:
             write_command_transcript("compose-cleanup.txt", cleanup_result)
         write_text_artifact(
+            TEST_RESULTS_DIR,
             "metadata.json",
             json.dumps(metadata, indent=2, sort_keys=True),
         )
