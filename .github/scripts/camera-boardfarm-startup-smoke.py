@@ -21,9 +21,9 @@ from camera_smoke.compose import (
     build_compose_command as build_shared_compose_command,
     cleanup_compose,
     get_compose_logs,
-    get_compose_ps,
     has_compose_service_exited,
     is_compose_service_running,
+    write_compose_diagnostics,
 )
 from camera_smoke.network import can_connect_to_tcp
 from camera_smoke.time import get_utc_now
@@ -44,20 +44,6 @@ def build_compose_command(*args: str) -> list[str]:
 
 def run_command(*args: str) -> CommandResult:
     return run_shell_command(*args, cwd=REPO_ROOT)
-
-
-def write_diagnostics(metadata: dict[str, Any]) -> None:
-    write_text_artifact(
-        TEST_RESULTS_DIR, "compose.log", get_compose_logs(COMPOSE_FILE, cwd=REPO_ROOT)
-    )
-    write_command_transcript(
-        TEST_RESULTS_DIR,
-        "compose-ps.txt",
-        get_compose_ps(COMPOSE_FILE, cwd=REPO_ROOT),
-    )
-    write_text_artifact(
-        TEST_RESULTS_DIR, "metadata.json", json.dumps(metadata, indent=2, sort_keys=True)
-    )
 
 
 def wait_for_startup() -> tuple[bool, str]:
@@ -93,7 +79,9 @@ def smoke_metadata() -> Iterator[dict[str, Any]]:
         yield metadata
     finally:
         metadata["finished_at"] = get_utc_now()
-        write_diagnostics(metadata)
+        write_compose_diagnostics(
+            TEST_RESULTS_DIR, COMPOSE_FILE, metadata, cwd=REPO_ROOT
+        )
         cleanup_result = cleanup_compose(COMPOSE_FILE, cwd=REPO_ROOT)
         metadata["cleanup_exit_code"] = cleanup_result.returncode
         if cleanup_result.returncode != 0:

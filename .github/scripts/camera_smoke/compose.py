@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import json
+from collections.abc import Mapping
 from pathlib import Path
 
+from camera_smoke.artifacts import write_command_transcript, write_text_artifact
 from camera_smoke.commands import CommandResult, run_command
 
 
@@ -18,6 +21,24 @@ def get_compose_logs(compose_file: Path, *, cwd: Path) -> str:
 
 def get_compose_ps(compose_file: Path, *, cwd: Path) -> CommandResult:
     return run_command(*build_compose_command(compose_file, "ps", "--all"), cwd=cwd)
+
+
+def write_compose_diagnostics(
+    results_dir: Path,
+    compose_file: Path,
+    metadata: Mapping[str, object],
+    *,
+    cwd: Path,
+) -> None:
+    write_text_artifact(results_dir, "compose.log", get_compose_logs(compose_file, cwd=cwd))
+    write_command_transcript(
+        results_dir,
+        "compose-ps.txt",
+        get_compose_ps(compose_file, cwd=cwd),
+    )
+    write_text_artifact(
+        results_dir, "metadata.json", json.dumps(metadata, indent=2, sort_keys=True)
+    )
 
 
 def is_compose_service_in_status(
