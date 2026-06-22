@@ -7,7 +7,6 @@ import json
 import os
 import re
 import socket
-import subprocess
 import time
 from datetime import UTC, datetime
 from pathlib import Path
@@ -15,7 +14,7 @@ from typing import Iterator, TypedDict
 
 import pytest
 
-from camera_smoke.commands import CommandResult
+from camera_smoke.commands import CommandResult, run_command as run_shell_command
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -80,28 +79,7 @@ def build_compose_command(*args: str) -> list[str]:
 
 
 def run_command(*args: str) -> CommandResult:
-    try:
-        result = subprocess.run(
-            list(args),
-            cwd=REPO_ROOT,
-            check=False,
-            text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-    except OSError as err:
-        return CommandResult(
-            args=list(args),
-            returncode=127,
-            stdout="",
-            stderr=str(err),
-        )
-    return CommandResult(
-        args=list(args),
-        returncode=result.returncode,
-        stdout=result.stdout,
-        stderr=result.stderr,
-    )
+    return run_shell_command(*args, cwd=REPO_ROOT)
 
 
 def write_artifact(name: str, content: str) -> None:
