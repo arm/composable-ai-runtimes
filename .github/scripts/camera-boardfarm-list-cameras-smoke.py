@@ -18,6 +18,7 @@ from camera_smoke.artifacts import (
     write_text_artifact,
 )
 from camera_smoke.commands import CommandResult, run_command as run_shell_command
+from camera_smoke.compose import build_compose_command as build_shared_compose_command
 from camera_smoke.time import get_utc_now
 
 
@@ -75,7 +76,7 @@ class ListCamerasJson(TypedDict):
 
 
 def build_compose_command(*args: str) -> list[str]:
-    return ["docker", "compose", "-f", str(COMPOSE_FILE), *args]
+    return build_shared_compose_command(COMPOSE_FILE, *args)
 
 
 def run_command(*args: str) -> CommandResult:
