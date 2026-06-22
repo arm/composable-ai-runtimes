@@ -8,13 +8,13 @@ import os
 import re
 import socket
 import time
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Iterator, TypedDict
 
 import pytest
 
 from camera_smoke.commands import CommandResult, run_command as run_shell_command
+from camera_smoke.time import get_utc_now
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -68,10 +68,6 @@ class CameraJson(TypedDict):
 
 class ListCamerasJson(TypedDict):
     cameras: list[CameraJson]
-
-
-def get_utc_now() -> str:
-    return datetime.now(UTC).isoformat()
 
 
 def build_compose_command(*args: str) -> list[str]:

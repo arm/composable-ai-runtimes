@@ -8,13 +8,13 @@ import os
 import re
 import socket
 import time
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Iterator
 
 import pytest
 
 from camera_smoke.commands import CommandResult, run_command as run_shell_command
+from camera_smoke.time import get_utc_now
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -36,10 +36,6 @@ FAILURE_PATTERN = re.compile(
     r"exited with",
     re.IGNORECASE,
 )
-
-
-def get_utc_now() -> str:
-    return datetime.now(UTC).isoformat()
 
 
 def build_compose_command(*args: str) -> list[str]:

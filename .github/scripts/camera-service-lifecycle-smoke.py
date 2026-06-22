@@ -7,7 +7,6 @@ import json
 import os
 import time
 from dataclasses import dataclass
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Iterator, NotRequired, TypedDict
 
@@ -15,6 +14,8 @@ import docker
 import pytest
 from docker.errors import APIError, NotFound
 from docker.models.containers import Container
+
+from camera_smoke.time import get_utc_now
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -40,10 +41,6 @@ class LifecycleMetadata(TypedDict):
     started_at: str
     supervised_processes: list[str]
     finished_at: NotRequired[str]
-
-
-def get_utc_now() -> str:
-    return datetime.now(UTC).isoformat()
 
 
 def remove_container_by_name(client: docker.DockerClient, name: str) -> None:
