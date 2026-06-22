@@ -21,6 +21,7 @@ from camera_smoke.docker import (
     get_container_state,
     remove_container_by_name,
 )
+from camera_smoke.github_actions import print_log_group
 from camera_smoke.time import get_utc_now
 
 
@@ -41,14 +42,6 @@ class LifecycleMetadata(TypedDict):
     started_at: str
     supervised_processes: list[str]
     finished_at: NotRequired[str]
-
-
-def print_probe_log(label: str, log: str) -> None:
-    print(f"::group::{label} logs")
-    try:
-        print(log, end="")
-    finally:
-        print("::endgroup::")
 
 
 def docker_exec(container: Container, command: list[str]) -> str:
@@ -182,7 +175,7 @@ def lifecycle_container(
         if container is not None:
             logs = get_container_logs(container)
             write_text_artifact(RESULTS_DIR, f"{name}.log", logs)
-            print_probe_log(f"camera lifecycle {name}", logs)
+            print_log_group(f"camera lifecycle {name} logs", logs)
         remove_container_by_name(docker_client, name)
 
 

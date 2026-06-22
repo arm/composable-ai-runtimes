@@ -22,6 +22,7 @@ from camera_smoke.docker import (
     get_container_state,
     remove_container_by_name,
 )
+from camera_smoke.github_actions import print_log_group
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -70,14 +71,6 @@ def cleanup_all(client: docker.DockerClient) -> None:
     cleanup_containers_by_prefix(client, CONTAINER_PREFIX)
 
     remove_volume(client, RUNTIME_VOLUME, ignore_errors=True)
-
-
-def print_probe_log(label: str, log: str) -> None:
-    print(f"::group::{label} logs")
-    try:
-        print(log, end="")
-    finally:
-        print("::endgroup::")
 
 
 def save_probe_log(label: str, log: str) -> None:
@@ -173,7 +166,7 @@ def run_container_probe(docker_client: docker.DockerClient):
 
         log = get_container_logs(container)
         save_probe_log(label, log)
-        print_probe_log(label, log)
+        print_log_group(f"{label} logs", log)
 
         state = get_container_state(container)
         remove_container_by_name(docker_client, name)
