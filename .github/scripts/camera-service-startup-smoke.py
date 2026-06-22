@@ -13,8 +13,14 @@ from typing import Iterator
 import docker
 import pytest
 from docker.errors import APIError, NotFound
-from docker.models.containers import Container
 from docker.models.volumes import Volume
+
+from camera_smoke.docker import (
+    cleanup_containers_by_prefix,
+    get_container_logs,
+    get_container_state,
+    remove_container_by_name,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -44,20 +50,6 @@ class ProbeResult:
     exit_code: str
 
 
-@dataclass(frozen=True)
-class ContainerState:
-    status: str
-    exit_code: str
-
-
-def remove_container_by_name(client: docker.DockerClient, name: str) -> None:
-    try:
-        container = client.containers.get(name)
-    except NotFound:
-        return
-    container.remove(force=True)
-
-
 def remove_volume(
     client: docker.DockerClient, name: str, *, ignore_errors: bool = False
 ) -> None:
@@ -74,36 +66,9 @@ def remove_volume(
 
 
 def cleanup_all(client: docker.DockerClient) -> None:
-    for container in client.containers.list(all=True):
-        if not container.name.startswith(f"{CONTAINER_PREFIX}-"):
-            continue
-        try:
-            container.remove(force=True)
-        except APIError as exc:
-            print(f"Failed to remove Docker container {container.name}: {exc}")
+    cleanup_containers_by_prefix(client, CONTAINER_PREFIX)
 
     remove_volume(client, RUNTIME_VOLUME, ignore_errors=True)
-
-
-def get_container_state(container: Container) -> ContainerState:
-    try:
-        container.reload()
-    except NotFound:
-        return ContainerState("missing", "missing")
-
-    state = container.attrs.get("State") or {}
-    return ContainerState(
-        str(state.get("Status", "missing")),
-        str(state.get("ExitCode", 0)),
-    )
-
-
-def get_logs(container: Container) -> str:
-    try:
-        logs = container.logs(stdout=True, stderr=True)
-    except NotFound:
-        return ""
-    return logs.decode("utf-8", errors="replace")
 
 
 def print_probe_log(label: str, log: str) -> None:
@@ -217,7 +182,7 @@ def run_container_probe(docker_client: docker.DockerClient):
 
             time.sleep(1)
 
-        log = get_logs(container)
+        log = get_container_logs(container)
         save_probe_log(label, log)
         print_probe_log(label, log)
 

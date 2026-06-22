@@ -6,16 +6,21 @@ from __future__ import annotations
 import json
 import os
 import time
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterator, NotRequired, TypedDict
 
 import docker
 import pytest
-from docker.errors import APIError, NotFound
+from docker.errors import NotFound
 from docker.models.containers import Container
 
 from camera_smoke.artifacts import write_text_artifact
+from camera_smoke.docker import (
+    cleanup_containers_by_prefix,
+    get_container_logs,
+    get_container_state,
+    remove_container_by_name,
+)
 from camera_smoke.time import get_utc_now
 
 
@@ -32,55 +37,10 @@ STARTUP_TIMEOUT_SECONDS = 30
 EXIT_TIMEOUT_SECONDS = 10
 
 
-@dataclass(frozen=True)
-class ContainerState:
-    status: str
-    exit_code: str
-
-
 class LifecycleMetadata(TypedDict):
     started_at: str
     supervised_processes: list[str]
     finished_at: NotRequired[str]
-
-
-def remove_container_by_name(client: docker.DockerClient, name: str) -> None:
-    try:
-        container = client.containers.get(name)
-    except NotFound:
-        return
-    container.remove(force=True)
-
-
-def cleanup_containers_by_prefix(client: docker.DockerClient, prefix: str) -> None:
-    for container in client.containers.list(all=True):
-        if not container.name.startswith(f"{prefix}-"):
-            continue
-        try:
-            container.remove(force=True)
-        except APIError as exc:
-            print(f"Failed to remove Docker container {container.name}: {exc}")
-
-
-def get_container_state(container: Container) -> ContainerState:
-    try:
-        container.reload()
-    except NotFound:
-        return ContainerState("missing", "missing")
-
-    state = container.attrs.get("State") or {}
-    return ContainerState(
-        str(state.get("Status", "missing")),
-        str(state.get("ExitCode", 0)),
-    )
-
-
-def get_logs(container: Container) -> str:
-    try:
-        logs = container.logs(stdout=True, stderr=True)
-    except NotFound:
-        return ""
-    return logs.decode("utf-8", errors="replace")
 
 
 def print_probe_log(label: str, log: str) -> None:
@@ -234,7 +194,7 @@ def lifecycle_container(
         yield container
     finally:
         if container is not None:
-            logs = get_logs(container)
+            logs = get_container_logs(container)
             write_text_artifact(RESULTS_DIR, f"{name}.log", logs)
             print_probe_log(f"camera lifecycle {name}", logs)
         remove_container_by_name(docker_client, name)
