@@ -9,12 +9,13 @@ import re
 import socket
 import subprocess
 import time
-from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Iterator
 
 import pytest
+
+from camera_smoke.commands import CommandResult
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -36,14 +37,6 @@ FAILURE_PATTERN = re.compile(
     r"exited with",
     re.IGNORECASE,
 )
-
-
-@dataclass(frozen=True)
-class CommandResult:
-    args: list[str]
-    returncode: int
-    stdout: str
-    stderr: str
 
 
 def get_utc_now() -> str:
