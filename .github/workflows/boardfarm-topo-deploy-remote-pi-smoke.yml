@@ -72,7 +72,7 @@ jobs:
           DISPLAY="${DISPLAY:-:0}" \
             SSH_ASKPASS="$askpass_script" \
             SSH_ASKPASS_REQUIRE=force \
-            setsid topo setup-keys --target "$TOPO_TARGET" </dev/null
+            setsid topo setup-keys --target "$TOPO_TARGET:22" </dev/null
 
       - name: Check target health
         working-directory: .github/boardfarm-smoke
@@ -80,7 +80,7 @@ jobs:
 
       - name: Deploy dummy stack with topo
         working-directory: .github/boardfarm-smoke
-        run: topo deploy --target "$TOPO_TARGET"
+        run: topo deploy --target "$TOPO_TARGET:22"
 
       - name: Verify deployed dummy container is running
         run: ssh -o BatchMode=yes "$TOPO_TARGET" "docker ps --format '{{.Image}} {{.Status}}' | grep '^cairn-boardfarm-dummy:local '"
