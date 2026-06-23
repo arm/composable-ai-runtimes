@@ -145,5 +145,4 @@ Numeric outputs exposed by the Python bindings use NumPy arrays for channel and 
 ## Example files
 
 - `crates/cairn-sdk-py/examples/list_cameras.rs`
-- `crates/cairn-sdk-py/examples/get_camera_frame.rs`
 - `crates/cairn-sdk/examples/run_brick_tts.rs`
