@@ -65,6 +65,9 @@ impl PyCameraService {
 
     /// Open a camera returned by `list_camera_metadata()`.
     ///
+    /// This compatibility API captures each frame with a short-lived PipeWire
+    /// stream. Prefer `open_session()` for live camera loops.
+    ///
     /// Parameters
     /// ----------
     /// camera:
@@ -73,7 +76,7 @@ impl PyCameraService {
     /// Returns
     /// -------
     /// Camera
-    ///     A camera handle that can read the latest available frame.
+    ///     A camera handle that can read frames.
     #[pyo3(text_signature = "($self, camera)")]
     fn open(
         &self,
@@ -87,7 +90,37 @@ impl PyCameraService {
             .open(&camera_service::CameraMetadata::from(&*camera))
             .map_err(map_camera_error)?;
 
-        Ok(PyCamera { inner: camera })
+        Ok(PyCamera::one_shot(camera))
+    }
+
+    /// Open a persistent camera session returned by `list_camera_metadata()`.
+    ///
+    /// Use this API for live camera loops. The returned camera supports
+    /// `close()` and Python `with` blocks.
+    ///
+    /// Parameters
+    /// ----------
+    /// camera:
+    ///     Camera metadata returned by `list_camera_metadata()`.
+    ///
+    /// Returns
+    /// -------
+    /// Camera
+    ///     A camera handle backed by one persistent PipeWire capture session.
+    #[pyo3(text_signature = "($self, camera)")]
+    fn open_session(
+        &self,
+        #[gen_stub(override_type(type_repr = "CameraMetadata"))] camera: PyRef<
+            '_,
+            PyCameraMetadata,
+        >,
+    ) -> PyResult<PyCamera> {
+        let camera = self
+            .inner
+            .open_session(&camera_service::CameraMetadata::from(&*camera))
+            .map_err(map_camera_error)?;
+
+        Ok(PyCamera::session(camera))
     }
 }
 

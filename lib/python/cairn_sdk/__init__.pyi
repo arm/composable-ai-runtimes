@@ -50,9 +50,19 @@ class Camera:
     r"""
     Handle for reading frames from an opened camera.
     """
-    def get_latest_frame(self) -> 'Frame':
+    @property
+    def closed(self) -> builtins.bool:
+        r"""
+        Whether this camera handle has been closed.
+        """
+    def get_latest_frame(self, timeout_ms: builtins.int = 5000) -> 'Frame':
         r"""
         Return the latest frame available from this camera handle.
+
+        Parameters
+        ----------
+        timeout_ms:
+            Maximum time to wait for a frame, in milliseconds. Defaults to 5000.
 
         Returns
         -------
@@ -60,6 +70,18 @@ class Camera:
             The most recent frame captured for this camera.
 
         The returned `Frame` exposes the pixel data and basic image metadata.
+        """
+    def close(self) -> None:
+        r"""
+        Close this camera handle and release any active capture session.
+        """
+    def __enter__(self) -> 'Camera':
+        r"""
+        Enter a `with` block using this camera handle.
+        """
+    def __exit__(self, _exc_type: typing.Optional[typing.Any] = None, _exc_value: typing.Optional[typing.Any] = None, _traceback: typing.Optional[typing.Any] = None) -> bool:
+        r"""
+        Exit a `with` block and close this camera handle.
         """
 
 @typing.final
@@ -119,6 +141,9 @@ class CameraService:
         r"""
         Open a camera returned by `list_camera_metadata()`.
 
+        This compatibility API captures each frame with a short-lived PipeWire
+        stream. Prefer `open_session()` for live camera loops.
+
         Parameters
         ----------
         camera:
@@ -127,7 +152,24 @@ class CameraService:
         Returns
         -------
         Camera
-            A camera handle that can read the latest available frame.
+            A camera handle that can read frames.
+        """
+    def open_session(self, camera: CameraMetadata) -> Camera:
+        r"""
+        Open a persistent camera session returned by `list_camera_metadata()`.
+
+        Use this API for live camera loops. The returned camera supports
+        `close()` and Python `with` blocks.
+
+        Parameters
+        ----------
+        camera:
+            Camera metadata returned by `list_camera_metadata()`.
+
+        Returns
+        -------
+        Camera
+            A camera handle backed by one persistent PipeWire capture session.
         """
 
 class ConcordiaError(builtins.Exception):
@@ -171,10 +213,7 @@ class ConcordiaService:
             Brick variant to execute within that brick family.
         options:
             Brick input payload. Provide exactly one of `{"text": "..."}`
-            or `{"image_bytes": b"..."}`. For object detection, `image_bytes`
-            is expected to contain raw packed RGB pixels. When using
-            `Camera.get_latest_frame()`, pass `frame.pixels.tobytes()` when
-            the frame is already RGB.
+            or `{"image_bytes": b"..."}`.
 
         Returns
         -------

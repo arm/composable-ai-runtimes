@@ -6,6 +6,8 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::time::{Duration, Instant};
 
+pub const DEFAULT_FRAME_TIMEOUT: Duration = Duration::from_millis(5_000);
+
 #[derive(Debug, Clone)]
 pub struct CameraOptions {
     pub width: u32,
@@ -47,6 +49,15 @@ pub(crate) fn validate_camera_options(
     if options.fps == 0 {
         return Err(CameraError::Validation(
             "fps must be greater than zero".to_string(),
+        ));
+    }
+    Ok(())
+}
+
+pub(crate) fn validate_frame_timeout(timeout: Duration) -> Result<(), CameraError> {
+    if timeout.is_zero() {
+        return Err(CameraError::Validation(
+            "timeout_ms must be greater than zero".to_string(),
         ));
     }
     Ok(())
@@ -181,136 +192,193 @@ fn handle_stream_process(
     Ok(())
 }
 
+type FrameCaptureListener = pw::stream::StreamListener<Rc<RefCell<FrameCaptureState>>>;
+
+pub(crate) struct PipeWireCameraSession {
+    listener: Option<FrameCaptureListener>,
+    stream: pw::stream::StreamRc,
+    mainloop: pw::main_loop::MainLoopRc,
+    frame_capture_state: Rc<RefCell<FrameCaptureState>>,
+    closed: bool,
+}
+
+impl PipeWireCameraSession {
+    pub(crate) fn open(camera_id: u64, options: &CameraOptions) -> Result<Self, CameraError> {
+        validate_camera_options(camera_id, options)?;
+
+        pw::init();
+
+        let mainloop = pw::main_loop::MainLoopRc::new(None)?;
+        let context = pw::context::ContextRc::new(&mainloop, None)?;
+        let core = context.connect_rc(None)?;
+
+        let stream = pw::stream::StreamRc::new(
+            core,
+            "cairn-camera-capture",
+            pw::properties::properties! {
+                *pw::keys::MEDIA_TYPE => "Video",
+                *pw::keys::MEDIA_CATEGORY => "Capture",
+                *pw::keys::MEDIA_ROLE => "Camera",
+                *pw::keys::NODE_DONT_RECONNECT => "true",
+                *pw::keys::OBJECT_LINGER => "true",
+                *pw::keys::TARGET_OBJECT => camera_id.to_string(),
+            },
+        )?;
+
+        let frame_capture_state = Rc::new(RefCell::new(FrameCaptureState::new(options)));
+        let error_mainloop = mainloop.clone();
+        let param_mainloop = mainloop.clone();
+        let process_mainloop = mainloop.clone();
+
+        let listener = stream
+            .add_local_listener_with_user_data(frame_capture_state.clone())
+            .state_changed(move |_, frame_capture_state, _, new| {
+                handle_stream_state_error(frame_capture_state, new, &error_mainloop);
+            })
+            .param_changed(move |_, frame_capture_state, id, param| {
+                if let Err(error) = handle_negotiated_format(frame_capture_state, id, param) {
+                    frame_capture_state
+                        .borrow_mut()
+                        .terminal_error
+                        .get_or_insert(error);
+                    param_mainloop.quit();
+                }
+            })
+            .process(move |stream, frame_capture_state| {
+                if let Err(error) = handle_stream_process(stream, frame_capture_state) {
+                    frame_capture_state
+                        .borrow_mut()
+                        .terminal_error
+                        .get_or_insert(error);
+                }
+                process_mainloop.quit();
+            })
+            .register()
+            .map_err(|_| capture_failure("failed to start camera capture"))?;
+
+        let format_param_obj = pw::spa::pod::object!(
+            pw::spa::utils::SpaTypes::ObjectParamFormat,
+            pw::spa::param::ParamType::EnumFormat,
+            pw::spa::pod::property!(
+                pw::spa::param::format::FormatProperties::MediaType,
+                Id,
+                pw::spa::param::format::MediaType::Video
+            ),
+            pw::spa::pod::property!(
+                pw::spa::param::format::FormatProperties::MediaSubtype,
+                Id,
+                pw::spa::param::format::MediaSubtype::Raw
+            ),
+            pw::spa::pod::property!(
+                pw::spa::param::format::FormatProperties::VideoFormat,
+                Id,
+                pw::spa::param::video::VideoFormat::from(options.pixel_format)
+            ),
+            pw::spa::pod::property!(
+                pw::spa::param::format::FormatProperties::VideoSize,
+                Rectangle,
+                pw::spa::utils::Rectangle {
+                    width: options.width,
+                    height: options.height,
+                }
+            ),
+            pw::spa::pod::property!(
+                pw::spa::param::format::FormatProperties::VideoFramerate,
+                Fraction,
+                pw::spa::utils::Fraction {
+                    num: options.fps,
+                    denom: 1,
+                }
+            ),
+        );
+
+        let (buffer, _) = pw::spa::pod::serialize::PodSerializer::serialize(
+            std::io::Cursor::new(Vec::new()),
+            &pw::spa::pod::Value::Object(format_param_obj),
+        )
+        .map_err(|_| capture_failure("failed to start camera capture"))?;
+
+        let values = buffer.into_inner();
+
+        let mut params = [Pod::from_bytes(&values)
+            .ok_or_else(|| capture_failure("failed to start camera capture"))?];
+
+        stream.connect(
+            spa::utils::Direction::Input,
+            None, // Target is defined using the TARGET_OBJECT property.
+            pw::stream::StreamFlags::AUTOCONNECT | pw::stream::StreamFlags::MAP_BUFFERS,
+            &mut params,
+        )?;
+
+        Ok(Self {
+            listener: Some(listener),
+            stream,
+            mainloop,
+            frame_capture_state,
+            closed: false,
+        })
+    }
+
+    pub(crate) fn read_frame(&mut self, timeout: Duration) -> Result<CapturedFrame, CameraError> {
+        validate_frame_timeout(timeout)?;
+        if self.closed {
+            return Err(capture_failure("camera session is closed"));
+        }
+
+        let deadline = Instant::now()
+            .checked_add(timeout)
+            .ok_or_else(|| CameraError::Validation("timeout_ms is too large".to_string()))?;
+        let loop_ref: &pw::loop_::Loop = self.mainloop.as_ref();
+
+        loop {
+            let mut frame_capture_state = self.frame_capture_state.borrow_mut();
+            if let Some(frame) = frame_capture_state.ready_frame.take() {
+                return Ok(frame);
+            }
+            if let Some(error) = frame_capture_state.terminal_error.take() {
+                return Err(error);
+            }
+            drop(frame_capture_state);
+
+            let now = Instant::now();
+            if now >= deadline {
+                return Err(capture_failure("timed out waiting for a camera frame"));
+            }
+
+            loop_ref.iterate((deadline - now).min(Duration::from_millis(100)));
+        }
+    }
+
+    pub(crate) fn close(&mut self) -> Result<(), CameraError> {
+        if self.closed {
+            return Ok(());
+        }
+
+        self.closed = true;
+        self.mainloop.quit();
+        self.listener.take();
+        self.stream.disconnect().map_err(CameraError::from)
+    }
+}
+
+impl Drop for PipeWireCameraSession {
+    fn drop(&mut self) {
+        let _ = self.close();
+    }
+}
+
+pub(crate) fn capture_single_frame_with_timeout(
+    camera_id: u64,
+    options: &CameraOptions,
+    timeout: Duration,
+) -> Result<CapturedFrame, CameraError> {
+    let mut session = PipeWireCameraSession::open(camera_id, options)?;
+    session.read_frame(timeout)
+}
+
 pub(crate) fn capture_single_frame(
     camera_id: u64,
     options: &CameraOptions,
 ) -> Result<CapturedFrame, CameraError> {
-    const POLL_INTERVAL: Duration = Duration::from_millis(100);
-    const FRAME_TIMEOUT: Duration = Duration::from_secs(5);
-
-    validate_camera_options(camera_id, options)?;
-
-    pw::init();
-
-    let mainloop = pw::main_loop::MainLoopRc::new(None)?;
-    let context = pw::context::ContextRc::new(&mainloop, None)?;
-    let core = context.connect_rc(None)?;
-
-    let stream = pw::stream::StreamRc::new(
-        core,
-        "cairn-camera-capture",
-        pw::properties::properties! {
-            *pw::keys::MEDIA_TYPE => "Video",
-            *pw::keys::MEDIA_CATEGORY => "Capture",
-            *pw::keys::MEDIA_ROLE => "Camera",
-            *pw::keys::NODE_DONT_RECONNECT => "true",
-            *pw::keys::OBJECT_LINGER => "true",
-            *pw::keys::TARGET_OBJECT => camera_id.to_string(),
-        },
-    )?;
-
-    let format_param_obj = pw::spa::pod::object!(
-        pw::spa::utils::SpaTypes::ObjectParamFormat,
-        pw::spa::param::ParamType::EnumFormat,
-        pw::spa::pod::property!(
-            pw::spa::param::format::FormatProperties::MediaType,
-            Id,
-            pw::spa::param::format::MediaType::Video
-        ),
-        pw::spa::pod::property!(
-            pw::spa::param::format::FormatProperties::MediaSubtype,
-            Id,
-            pw::spa::param::format::MediaSubtype::Raw
-        ),
-        pw::spa::pod::property!(
-            pw::spa::param::format::FormatProperties::VideoFormat,
-            Id,
-            pw::spa::param::video::VideoFormat::from(options.pixel_format)
-        ),
-        pw::spa::pod::property!(
-            pw::spa::param::format::FormatProperties::VideoSize,
-            Rectangle,
-            pw::spa::utils::Rectangle {
-                width: options.width,
-                height: options.height,
-            }
-        ),
-        pw::spa::pod::property!(
-            pw::spa::param::format::FormatProperties::VideoFramerate,
-            Fraction,
-            pw::spa::utils::Fraction {
-                num: options.fps,
-                denom: 1,
-            }
-        ),
-    );
-
-    let (buffer, _) = pw::spa::pod::serialize::PodSerializer::serialize(
-        std::io::Cursor::new(Vec::new()),
-        &pw::spa::pod::Value::Object(format_param_obj),
-    )
-    .map_err(|_| capture_failure("failed to start camera capture"))?;
-
-    let values = buffer.into_inner();
-
-    let mut params = [Pod::from_bytes(&values)
-        .ok_or_else(|| capture_failure("failed to start camera capture"))?];
-
-    stream.connect(
-        spa::utils::Direction::Input,
-        None, // Target is defined using the TARGET_OBJECT property.
-        pw::stream::StreamFlags::AUTOCONNECT | pw::stream::StreamFlags::MAP_BUFFERS,
-        &mut params,
-    )?;
-
-    let frame_capture_state = Rc::new(RefCell::new(FrameCaptureState::new(options)));
-    let error_mainloop = mainloop.clone();
-    let param_mainloop = mainloop.clone();
-    let process_mainloop = mainloop.clone();
-
-    let _listener = stream
-        .add_local_listener_with_user_data(frame_capture_state.clone())
-        .state_changed(move |_, frame_capture_state, _, new| {
-            handle_stream_state_error(frame_capture_state, new, &error_mainloop);
-        })
-        .param_changed(move |_, frame_capture_state, id, param| {
-            if let Err(error) = handle_negotiated_format(frame_capture_state, id, param) {
-                frame_capture_state
-                    .borrow_mut()
-                    .terminal_error
-                    .get_or_insert(error);
-                param_mainloop.quit();
-            }
-        })
-        .process(move |stream, frame_capture_state| {
-            if let Err(error) = handle_stream_process(stream, frame_capture_state) {
-                frame_capture_state
-                    .borrow_mut()
-                    .terminal_error
-                    .get_or_insert(error);
-            }
-            process_mainloop.quit();
-        })
-        .register()
-        .map_err(|_| capture_failure("failed to start camera capture"))?;
-
-    let deadline = Instant::now() + FRAME_TIMEOUT;
-    let loop_ref: &pw::loop_::Loop = mainloop.as_ref();
-
-    loop {
-        let mut frame_capture_state = frame_capture_state.borrow_mut();
-        if let Some(frame) = frame_capture_state.ready_frame.take() {
-            return Ok(frame);
-        }
-        if let Some(error) = frame_capture_state.terminal_error.take() {
-            return Err(error);
-        }
-        drop(frame_capture_state);
-
-        if Instant::now() >= deadline {
-            return Err(capture_failure("timed out waiting for a camera frame"));
-        }
-
-        loop_ref.iterate(POLL_INTERVAL);
-    }
+    capture_single_frame_with_timeout(camera_id, options, DEFAULT_FRAME_TIMEOUT)
 }

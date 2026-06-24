@@ -1,8 +1,13 @@
+use std::cell::{Cell, RefCell};
+use std::time::Duration;
+
 use tonic::Request;
 use tonic::transport::Channel;
 
 use super::pipewire_client::{
-    CameraError, CameraOptions, CapturedFrame, capture_single_frame, validate_camera_options,
+    CameraError, CameraOptions, CapturedFrame, DEFAULT_FRAME_TIMEOUT, PipeWireCameraSession,
+    capture_single_frame, capture_single_frame_with_timeout, validate_camera_options,
+    validate_frame_timeout,
 };
 
 pub(super) mod pipewire {
@@ -59,6 +64,81 @@ impl Camera {
     pub fn get_latest_frame(&self) -> Result<CapturedFrame, CameraError> {
         capture_single_frame(self.camera_id, &self.options)
     }
+
+    pub fn get_latest_frame_with_timeout(
+        &self,
+        timeout: Duration,
+    ) -> Result<CapturedFrame, CameraError> {
+        validate_frame_timeout(timeout)?;
+        capture_single_frame_with_timeout(self.camera_id, &self.options, timeout)
+    }
+}
+
+pub struct CameraSession {
+    session: RefCell<Option<PipeWireCameraSession>>,
+    closed: Cell<bool>,
+}
+
+impl CameraSession {
+    pub fn open(camera_id: u64, options: CameraOptions) -> Result<Self, CameraError> {
+        let session = PipeWireCameraSession::open(camera_id, &options)?;
+
+        Ok(Self {
+            session: RefCell::new(Some(session)),
+            closed: Cell::new(false),
+        })
+    }
+
+    #[cfg(test)]
+    pub(crate) fn closed_for_test() -> Self {
+        Self {
+            session: RefCell::new(None),
+            closed: Cell::new(true),
+        }
+    }
+
+    pub fn get_latest_frame(&self) -> Result<CapturedFrame, CameraError> {
+        self.get_latest_frame_with_timeout(DEFAULT_FRAME_TIMEOUT)
+    }
+
+    pub fn get_latest_frame_with_timeout(
+        &self,
+        timeout: Duration,
+    ) -> Result<CapturedFrame, CameraError> {
+        validate_frame_timeout(timeout)?;
+        if self.closed.get() {
+            return Err(CameraError::CaptureFailed(
+                "camera session is closed".to_string(),
+            ));
+        }
+
+        let mut session = self.session.borrow_mut();
+        let session = session
+            .as_mut()
+            .ok_or_else(|| CameraError::CaptureFailed("camera session is closed".to_string()))?;
+        session.read_frame(timeout)
+    }
+
+    pub fn close(&self) -> Result<(), CameraError> {
+        if self.closed.replace(true) {
+            return Ok(());
+        }
+
+        let Some(mut session) = self.session.borrow_mut().take() else {
+            return Ok(());
+        };
+        session.close()
+    }
+
+    pub fn is_closed(&self) -> bool {
+        self.closed.get()
+    }
+}
+
+impl Drop for CameraSession {
+    fn drop(&mut self) {
+        let _ = self.close();
+    }
 }
 
 pub struct CameraService {
@@ -77,6 +157,10 @@ impl CameraService {
 
     pub fn open(&self, camera: &CameraMetadata) -> Result<Camera, CameraError> {
         Camera::new(camera.id, CameraOptions::default())
+    }
+
+    pub fn open_session(&self, camera: &CameraMetadata) -> Result<CameraSession, CameraError> {
+        CameraSession::open(camera.id, CameraOptions::default())
     }
 
     pub async fn list_camera_metadata(

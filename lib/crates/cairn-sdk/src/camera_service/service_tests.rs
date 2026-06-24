@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
 use tonic::Request;
@@ -166,6 +168,35 @@ fn camera_new_rejects_invalid_options() {
             }
             Err(err) => panic!("expected validation error for {case_name}, got {err}"),
         }
+    }
+}
+
+#[test]
+fn get_latest_frame_rejects_zero_timeout_before_capture() {
+    let camera = Camera::new(7, CameraOptions::default()).expect("camera should be valid");
+
+    match camera.get_latest_frame_with_timeout(Duration::ZERO) {
+        Ok(_) => panic!("expected zero timeout to fail validation"),
+        Err(CameraError::Validation(message)) => {
+            assert_eq!(message, "timeout_ms must be greater than zero");
+        }
+        Err(error) => panic!("expected validation error, got {error}"),
+    }
+}
+
+#[test]
+fn closed_camera_session_is_idempotent_and_rejects_reads() {
+    let session = CameraSession::closed_for_test();
+
+    assert!(session.is_closed());
+    session.close().expect("closing twice should be idempotent");
+
+    match session.get_latest_frame() {
+        Ok(_) => panic!("expected closed session read to fail"),
+        Err(CameraError::CaptureFailed(message)) => {
+            assert_eq!(message, "camera session is closed");
+        }
+        Err(error) => panic!("expected closed session error, got {error}"),
     }
 }
 
