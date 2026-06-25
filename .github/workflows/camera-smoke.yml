@@ -9,6 +9,7 @@ on:
     paths:
       - .github/scripts/camera-boardfarm-list-cameras-smoke.py
       - .github/scripts/camera-boardfarm-notifications-hotplug.py
+      - .github/scripts/camera-boardfarm-pipewire-failure-smoke.py
       - .github/scripts/camera-boardfarm-startup-smoke.py
       - .github/scripts/camera-service-lifecycle-smoke.py
       - .github/scripts/camera-service-startup-smoke.py
@@ -170,6 +171,67 @@ jobs:
         with:
           name: camera-boardfarm-list-cameras-smoke-results
           path: test-results/camera-boardfarm-list-cameras-smoke/
+
+  boardfarm-pipewire-failure-smoke:
+    name: Validate camera PipeWire failure on Pi board farm
+    runs-on:
+      - self-hosted
+      - Linux
+      - ARM64
+      - boardfarm
+      - pi5
+    concurrency:
+      group: camera-boardfarm-pi5-usb-camera
+      queue: max
+      cancel-in-progress: false
+    timeout-minutes: 30
+    env:
+      COMPOSE_PROJECT_NAME: camera-boardfarm-pipewire-failure-${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.10.12"
+
+      - name: Install grpcurl
+        run: |
+          set -euo pipefail
+          grpcurl_version=1.9.3
+          arch="$(uname -m)"
+          case "${arch}" in
+            aarch64|arm64)
+              grpcurl_arch=arm64
+              ;;
+            *)
+              echo "unsupported grpcurl architecture: ${arch}" >&2
+              exit 1
+              ;;
+          esac
+          mkdir -p test-results/camera-boardfarm-pipewire-failure/bin
+          curl -fsSL "https://github.com/fullstorydev/grpcurl/releases/download/v${grpcurl_version}/grpcurl_${grpcurl_version}_linux_${grpcurl_arch}.tar.gz" \
+            | tar -xz -C test-results/camera-boardfarm-pipewire-failure/bin grpcurl
+          test-results/camera-boardfarm-pipewire-failure/bin/grpcurl -version
+
+      - name: Run camera board-farm PipeWire failure smoke check
+        env:
+          GRPCURL_BIN: test-results/camera-boardfarm-pipewire-failure/bin/grpcurl
+        run: |
+          mkdir -p test-results/camera-boardfarm-pipewire-failure
+          uv run --with pytest==8.3.5 python -m pytest .github/scripts/camera-boardfarm-pipewire-failure-smoke.py \
+            --junitxml=test-results/camera-boardfarm-pipewire-failure/junit.xml
+
+      - name: Clean up camera board-farm PipeWire failure Compose resources
+        if: always()
+        run: docker compose -f services/camera/compose.yaml down --volumes --remove-orphans
+
+      - name: Upload camera board-farm PipeWire failure smoke results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: camera-boardfarm-pipewire-failure-results
+          path: test-results/camera-boardfarm-pipewire-failure/
 
   boardfarm-notifications-hotplug:
     name: Validate camera notifications on Pi board farm
