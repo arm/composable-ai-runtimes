@@ -10,6 +10,6 @@ exec gst-launch-1.0 -v \
   ! videoconvert \
   ! videoscale \
   ! video/x-raw,format=YUY2,width=640,height=480,framerate=30/1 \
-  ! pipewiresink mode=provide async=false \
+  ! pipewiresink mode=provide async=false use-bufferpool=false \
       client-name=gstreamer-test-source \
       stream-properties="props,media.class=(string)Video/Source,node.name=(string)gstreamer-test-source,node.description=(string)GStreamerTestSource"

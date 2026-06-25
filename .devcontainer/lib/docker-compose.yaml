@@ -13,7 +13,8 @@ services:
     command: sleep infinity
 
   camera-spoof-source:
-    image: debian:trixie
+    # PipeWire 1.6.7 avoids treating provider-mode link teardown as fatal.
+    image: debian:sid
     restart: unless-stopped
     depends_on:
       - camera-service
@@ -24,9 +25,9 @@ services:
       - pipewire-runtime:/run/pipewire
     command: >
       bash -lc "apt-get update && apt-get install -y --no-install-recommends
-      gstreamer1.0-tools=1.26.2-2
-      gstreamer1.0-plugins-base=1.26.2-1+deb13u1
-      gstreamer1.0-plugins-good=1.26.2-1
-      gstreamer1.0-pipewire=1.4.2-1
+      gstreamer1.0-tools=1.28.4-2
+      gstreamer1.0-plugins-base=1.28.4-1
+      gstreamer1.0-plugins-good=1.28.4-1
+      gstreamer1.0-pipewire=1.6.7-1
       && rm -rf /var/lib/apt/lists/*
       && /bin/bash /workspaces/cairn-sdk/services/camera/scripts/dev-spoof-pipewire-camera.sh"
