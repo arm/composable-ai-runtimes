@@ -31,9 +31,11 @@ from camera_smoke.compose import (
 )
 from camera_smoke.hotplug import (
     CommandTranscriptWriter,
+    HotplugError,
     UsbCameraTarget,
     bind_usb_camera,
     ensure_usb_camera_bound,
+    select_usb_camera_target,
     unbind_usb_camera,
 )
 from camera_smoke.network import can_connect_to_tcp
@@ -49,9 +51,6 @@ REDIS_HOST = "127.0.0.1"
 REDIS_PORT = 6379
 REDIS_CHANNEL_EVENTS_ENV = "PWC_REDIS_CHANNEL_EVENTS"
 DEFAULT_REDIS_CHANNEL = "camera.events"
-HOTPLUG_DEVICE_ENV = "CAMERA_BOARDFARM_HOTPLUG_DEVICE"
-SYS_VIDEO4LINUX_DIR = Path("/sys/class/video4linux")
-UVCVIDEO_DRIVER_DIR = Path("/sys/bus/usb/drivers/uvcvideo")
 STARTUP_TIMEOUT_SECONDS = 90
 EVENT_TIMEOUT_SECONDS = 30
 POLL_INTERVAL_SECONDS = 1
@@ -91,103 +90,6 @@ class NotificationMetadata:
 
 class _ScriptError(Exception):
     """Raised for expected script failures."""
-
-
-def normalize_video_device_path(value: str) -> Path:
-    candidate = Path(value)
-    device_name = candidate.name
-    if not device_name.startswith("video") or not device_name[5:].isdecimal():
-        raise _ScriptError(
-            f"{HOTPLUG_DEVICE_ENV} must identify a /dev/videoN device: {value!r}"
-        )
-
-    if candidate.is_absolute() and candidate.parent != Path("/dev"):
-        raise _ScriptError(
-            f"{HOTPLUG_DEVICE_ENV} must identify a /dev/videoN device: {value!r}"
-        )
-
-    return Path("/dev") / device_name
-
-
-def read_sysfs_link(path: Path) -> Path:
-    try:
-        return path.resolve(strict=True)
-    except FileNotFoundError as exc:
-        raise _ScriptError(f"missing required sysfs path: {path}") from exc
-
-
-def get_usb_camera_target(
-    device_path: Path,
-    *,
-    sys_video4linux_dir: Path = SYS_VIDEO4LINUX_DIR,
-    driver_path: Path = UVCVIDEO_DRIVER_DIR,
-) -> UsbCameraTarget:
-    video_sysfs_path = sys_video4linux_dir / device_path.name
-    interface_path = read_sysfs_link(video_sysfs_path / "device")
-    interface_driver_path = read_sysfs_link(interface_path / "driver")
-    expected_driver_path = read_sysfs_link(driver_path)
-
-    if interface_driver_path != expected_driver_path:
-        raise _ScriptError(
-            f"{device_path} is bound to {interface_driver_path}, not uvcvideo"
-        )
-
-    return UsbCameraTarget(
-        device_path=device_path,
-        physical_device_id=interface_path.name.split(":", maxsplit=1)[0],
-        interface_id=interface_path.name,
-        interface_path=interface_path,
-        driver_path=expected_driver_path,
-    )
-
-
-def discover_uvc_camera_targets(
-    *,
-    sys_video4linux_dir: Path = SYS_VIDEO4LINUX_DIR,
-    driver_path: Path = UVCVIDEO_DRIVER_DIR,
-) -> list[UsbCameraTarget]:
-    if not sys_video4linux_dir.exists():
-        return []
-
-    video_sysfs_paths = sorted(
-        (
-            video_sysfs_path
-            for video_sysfs_path in sys_video4linux_dir.glob("video*")
-            if video_sysfs_path.name[5:].isdecimal()
-        ),
-        key=lambda video_sysfs_path: int(video_sysfs_path.name[5:]),
-    )
-
-    targets_by_interface: dict[str, UsbCameraTarget] = {}
-    for video_sysfs_path in video_sysfs_paths:
-        device_path = Path("/dev") / video_sysfs_path.name
-        try:
-            target = get_usb_camera_target(
-                device_path,
-                sys_video4linux_dir=sys_video4linux_dir,
-                driver_path=driver_path,
-            )
-        except _ScriptError:
-            continue
-        targets_by_interface.setdefault(target.interface_id, target)
-
-    return list(targets_by_interface.values())
-
-
-def select_usb_camera_target(metadata: NotificationMetadata) -> UsbCameraTarget:
-    configured_device = os.environ.get(HOTPLUG_DEVICE_ENV, "").strip()
-    if configured_device:
-        target = get_usb_camera_target(normalize_video_device_path(configured_device))
-    else:
-        targets = discover_uvc_camera_targets()
-        if not targets:
-            raise _ScriptError(
-                f"no uvcvideo /dev/videoN devices found; set {HOTPLUG_DEVICE_ENV}"
-            )
-        target = targets[0]
-
-    metadata.hotplug_device_path = str(target.device_path)
-    return target
 
 
 def resolve_camera_events_channel_value(value: str | None) -> str:
@@ -454,8 +356,9 @@ def usb_camera_target(
     compose_stack: NotificationMetadata,
 ) -> Iterator[UsbCameraTarget]:
     try:
-        target = select_usb_camera_target(compose_stack)
-    except _ScriptError as exc:
+        target = select_usb_camera_target()
+        compose_stack.hotplug_device_path = str(target.device_path)
+    except HotplugError as exc:
         compose_stack.result = "hotplug_target_selection_failed"
         pytest.fail(str(exc))
 
