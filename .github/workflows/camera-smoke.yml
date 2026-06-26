@@ -10,6 +10,7 @@ on:
       - .github/scripts/camera-boardfarm-list-cameras-smoke.py
       - .github/scripts/camera-boardfarm-notifications-hotplug.py
       - .github/scripts/camera-boardfarm-pipewire-failure-smoke.py
+      - .github/scripts/camera-boardfarm-notifications-reconnect.py
       - .github/scripts/camera-boardfarm-startup-smoke.py
       - .github/scripts/camera-service-lifecycle-smoke.py
       - .github/scripts/camera-service-startup-smoke.py
@@ -233,7 +234,7 @@ jobs:
           name: camera-boardfarm-pipewire-failure-results
           path: test-results/camera-boardfarm-pipewire-failure/
 
-  boardfarm-notifications-hotplug:
+  boardfarm-notifications-smoke:
     name: Validate camera notifications on Pi board farm
     runs-on:
       - self-hosted
@@ -256,7 +257,7 @@ jobs:
         with:
           version: "0.10.12"
 
-      - name: Run camera board-farm notification hotplug check
+      - name: Run camera board-farm notification smoke checks
         env:
           PYTHONPATH: .github/scripts
           PYTHONDONTWRITEBYTECODE: "1"
@@ -265,14 +266,16 @@ jobs:
           uv run \
             --with pytest==8.3.5 \
             --with redis==5.2.1 \
-            python -m pytest -p no:cacheprovider .github/scripts/camera-boardfarm-notifications-hotplug.py \
+            python -m pytest -p no:cacheprovider \
+            .github/scripts/camera-boardfarm-notifications-hotplug.py \
+            .github/scripts/camera-boardfarm-notifications-reconnect.py \
             --junitxml=test-results/camera-boardfarm-notifications/junit.xml
 
       - name: Clean up camera board-farm notification Compose resources
         if: always()
         run: docker compose -f services/compose.yaml down --volumes --remove-orphans
 
-      - name: Upload camera board-farm notification hotplug results
+      - name: Upload camera board-farm notification smoke results
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
