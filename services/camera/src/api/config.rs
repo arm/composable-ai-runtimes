@@ -7,8 +7,17 @@ pub(crate) const API_LISTEN_ADDR_ENV: &str = "CAMERA_API_LISTEN_ADDR";
 
 pub(crate) fn api_listen_addr() -> Result<SocketAddr, Box<dyn Error>> {
     let args = env::args().skip(1).collect::<Vec<String>>();
-    let listen_addr = parse_listen_addr_arg(&args)?
-        .or_else(|| env::var(API_LISTEN_ADDR_ENV).ok())
+    let env_listen_addr = env::var(API_LISTEN_ADDR_ENV).ok();
+
+    resolve_listen_addr(&args, env_listen_addr.as_deref())
+}
+
+pub(super) fn resolve_listen_addr(
+    args: &[String],
+    env_listen_addr: Option<&str>,
+) -> Result<SocketAddr, Box<dyn Error>> {
+    let listen_addr = parse_listen_addr_arg(args)?
+        .or_else(|| env_listen_addr.map(str::to_owned))
         .unwrap_or_else(|| DEFAULT_API_LISTEN_ADDR.to_string());
 
     Ok(listen_addr.parse()?)
