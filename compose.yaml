@@ -1,3 +1,12 @@
+x-topo:
+  name: cairn-sdk
+  description: >-
+    Deploy the Cairn SDK camera and messaging services for edge AI applications
+    on Arm Linux targets.
+  deployment_success_message: >-
+    Cairn SDK camera and messaging services deployed. Run `topo ps --target
+    <target>` from this directory to inspect the deployment.
+
 services:
   camera-service:
     extends:
