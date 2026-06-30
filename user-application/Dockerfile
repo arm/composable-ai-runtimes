@@ -1,6 +1,6 @@
-FROM rust:1.93-slim AS rust-toolchain
+FROM docker.io/library/rust:1.93-slim AS rust-toolchain
 
-FROM python:3.12-slim AS sdk-builder
+FROM docker.io/library/python:3.12-slim AS sdk-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -33,7 +33,7 @@ COPY services/camera/proto /src/services/camera/proto
 WORKDIR /src/lib
 RUN maturin build --release --auditwheel skip -o /dist
 
-FROM python:3.12-slim
+FROM docker.io/library/python:3.12-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
