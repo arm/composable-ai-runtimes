@@ -7,11 +7,13 @@ on:
       - synchronize
       - reopened
     paths:
+      - compose.yaml
       - .github/scripts/camera-boardfarm-list-cameras-smoke.py
       - .github/scripts/camera-boardfarm-notifications-hotplug.py
       - .github/scripts/camera-boardfarm-pipewire-failure-smoke.py
       - .github/scripts/camera-boardfarm-notifications-reconnect.py
       - .github/scripts/camera-boardfarm-startup-smoke.py
+      - .github/scripts/camera-boardfarm-topo-smoke.py
       - .github/scripts/camera-service-lifecycle-smoke.py
       - .github/scripts/camera-service-startup-smoke.py
       - .github/scripts/camera_smoke/**
@@ -281,3 +283,71 @@ jobs:
         with:
           name: camera-boardfarm-notifications-results
           path: test-results/camera-boardfarm-notifications/
+
+  boardfarm-topo-smoke:
+    name: Validate Topo camera deployment from controller
+    runs-on:
+      - self-hosted
+      - Linux
+      - ARM64
+      - self-hosted-ubuntu-24.04
+    concurrency:
+      group: camera-boardfarm-topo-deployment
+      queue: max
+      cancel-in-progress: false
+    timeout-minutes: 30
+    env:
+      CAMERA_BOARDFARM_TOPO_TARGET: ${{ vars.CAMERA_BOARDFARM_TOPO_TARGET }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.10.12"
+
+      - name: Install Topo
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/arm/topo/refs/tags/v7.2.0/scripts/install.sh \
+            | sh -s -- --version v7.2.0 --path "$HOME/.local/bin"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.local/bin:$PATH"
+          topo --version
+
+      - name: Configure Topo target SSH
+        env:
+          CAMERA_BOARDFARM_TOPO_SSH_KEY: ${{ secrets.CAMERA_BOARDFARM_TOPO_SSH_KEY }}
+        run: |
+          if [ -z "${CAMERA_BOARDFARM_TOPO_SSH_KEY}" ]; then
+            echo "CAMERA_BOARDFARM_TOPO_SSH_KEY secret must be set for Topo target SSH access."
+            exit 1
+          fi
+
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "${CAMERA_BOARDFARM_TOPO_SSH_KEY}" > ~/.ssh/camera-boardfarm-topo
+          chmod 600 ~/.ssh/camera-boardfarm-topo
+
+          ssh-agent -a "${RUNNER_TEMP}/camera-boardfarm-topo-ssh-agent.sock" > "${RUNNER_TEMP}/camera-boardfarm-topo-ssh-agent.env"
+          echo "SSH_AUTH_SOCK=${RUNNER_TEMP}/camera-boardfarm-topo-ssh-agent.sock" >> "${GITHUB_ENV}"
+          SSH_AUTH_SOCK="${RUNNER_TEMP}/camera-boardfarm-topo-ssh-agent.sock" ssh-add ~/.ssh/camera-boardfarm-topo
+
+          if [ -n "${CAMERA_BOARDFARM_TOPO_TARGET}" ]; then
+            target_host="${CAMERA_BOARDFARM_TOPO_TARGET#*@}"
+            target_host="${target_host%%:*}"
+            ssh-keyscan -H "${target_host}" >> ~/.ssh/known_hosts
+          fi
+
+      - name: Run camera board-farm Topo smoke check
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: |
+          mkdir -p test-results/camera-boardfarm-topo-smoke
+          uv run --with pytest==8.3.5 python -m pytest -p no:cacheprovider .github/scripts/camera-boardfarm-topo-smoke.py \
+            --junitxml=test-results/camera-boardfarm-topo-smoke/junit.xml
+
+      - name: Upload camera board-farm Topo smoke results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: camera-boardfarm-topo-smoke-results
+          path: test-results/camera-boardfarm-topo-smoke/

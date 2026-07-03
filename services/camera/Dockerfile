@@ -101,7 +101,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libdrm2=2.4.124-2 \
     libgbm1=25.0.7-2 \
     libglib2.0-0t64=2.84.4-3~deb13u3 \
-    libpisp1=1.5.0-1 \
+    libpisp1=1.6.0-1 \
     libsystemd0=257.13-1~deb13u1 \
     libudev1=257.13-1~deb13u1 \
     libunwind8=1.8.1-0.1 \
