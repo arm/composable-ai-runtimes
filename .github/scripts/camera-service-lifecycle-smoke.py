@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import json
 import os
-import time
 from pathlib import Path
 from typing import Iterator, NotRequired, TypedDict
 
@@ -21,6 +20,7 @@ from camera_smoke.docker import (
     get_container_state,
     remove_container_by_name,
 )
+from camera_smoke.helpers import with_timeout
 from camera_smoke.github_actions import print_log_group
 from camera_smoke.time import get_utc_now
 
@@ -72,31 +72,32 @@ def get_pids_by_name(container: Container, target: str) -> list[str]:
     return pids
 
 
+@with_timeout(STARTUP_TIMEOUT_SECONDS, interval_seconds=1)
+def _wait_for_pid(container: Container, target: str) -> str | None:
+    state = get_container_state(container)
+    if state.status != "running":
+        pytest.fail(f"Container is not running; status: {state.status}")
+
+    pids = get_pids_by_name(container, target)
+    if len(pids) == 1:
+        return pids[0]
+    if len(pids) > 1:
+        pytest.fail(f"Expected one {target} process, found {pids}")
+    return None
+
+
 def wait_for_pid(container: Container, target: str) -> str:
-    deadline = time.monotonic() + STARTUP_TIMEOUT_SECONDS
-
-    while time.monotonic() < deadline:
-        state = get_container_state(container)
-        if state.status != "running":
-            pytest.fail(f"Container is not running; status: {state.status}")
-
-        pids = get_pids_by_name(container, target)
-        if len(pids) == 1:
-            return pids[0]
-        if len(pids) > 1:
-            pytest.fail(f"Expected one {target} process, found {pids}")
-
-        time.sleep(1)
-
-    pytest.fail(f"{target} did not start within {STARTUP_TIMEOUT_SECONDS} seconds")
+    pid = _wait_for_pid(container, target)
+    if pid is None:
+        pytest.fail(f"{target} did not start within {STARTUP_TIMEOUT_SECONDS} seconds")
+    return pid
 
 
-def wait_for_container_exit(container: Container) -> None:
-    deadline = time.monotonic() + EXIT_TIMEOUT_SECONDS
-    while time.monotonic() < deadline:
-        if get_container_state(container).status == "exited":
-            return
-        time.sleep(0.2)
+@with_timeout(EXIT_TIMEOUT_SECONDS, interval_seconds=0.2)
+def wait_for_container_exit(container: Container) -> bool | None:
+    if get_container_state(container).status == "exited":
+        return True
+    return None
 
 
 def terminate_process(container: Container, pid: str) -> None:

@@ -33,6 +33,7 @@ from camera_smoke.grpc import (
     summarize_command_output,
     validate_camera_names,
 )
+from camera_smoke.helpers import with_timeout
 from camera_smoke.network import can_connect_to_tcp
 from camera_smoke.time import get_utc_now
 
@@ -49,7 +50,9 @@ POLL_INTERVAL_SECONDS = 2
 GRPC_TARGET = f"{GRPC_HOST}:{GRPC_PORT}"
 GRPCURL_BINARY_ENV = "GRPCURL_BIN"
 GRPCURL_DEFAULT_BINARY = "grpcurl"
-CAMERA_SERVICE_PROTO = REPO_ROOT / "services" / "camera" / "proto" / "camera_service.proto"
+CAMERA_SERVICE_PROTO = (
+    REPO_ROOT / "services" / "camera" / "proto" / "camera_service.proto"
+)
 CAMERA_SERVICE_PROTO_ARG = str(CAMERA_SERVICE_PROTO.relative_to(REPO_ROOT))
 LIST_CAMERAS_METHOD = "camera.pipewire.v1.CameraService/list_cameras"
 
@@ -64,24 +67,27 @@ def run_command(*args: str) -> CommandResult:
     return run_shell_command(*args, cwd=REPO_ROOT)
 
 
-def wait_for_startup() -> tuple[bool, str]:
-    deadline = time.monotonic() + STARTUP_TIMEOUT_SECONDS
-
-    while time.monotonic() < deadline:
-        logs = get_compose_logs(COMPOSE_FILE, cwd=REPO_ROOT)
-        if CAMERA_STARTUP_FAILURE_PATTERN.search(logs):
-            return False, "startup logs contain a known failure pattern"
-        if has_compose_service_exited(COMPOSE_FILE, SERVICE_NAME, cwd=REPO_ROOT):
-            return False, "camera-service process exited during startup"
-        if (
-            is_compose_service_running(COMPOSE_FILE, SERVICE_NAME, cwd=REPO_ROOT)
-            and can_connect_to_tcp(GRPC_HOST, GRPC_PORT)
-            and "starting camera API server" in logs
-        ):
-            return True, "camera service is running and accepting TCP connections"
-        time.sleep(POLL_INTERVAL_SECONDS)
-
-    return False, "timed out waiting for camera service startup readiness"
+@with_timeout(
+    STARTUP_TIMEOUT_SECONDS,
+    interval_seconds=POLL_INTERVAL_SECONDS,
+    on_timeout=lambda: (
+        False,
+        "timed out waiting for camera service startup readiness",
+    ),
+)
+def wait_for_startup() -> tuple[bool, str] | None:
+    logs = get_compose_logs(COMPOSE_FILE, cwd=REPO_ROOT)
+    if CAMERA_STARTUP_FAILURE_PATTERN.search(logs):
+        return False, "startup logs contain a known failure pattern"
+    if has_compose_service_exited(COMPOSE_FILE, SERVICE_NAME, cwd=REPO_ROOT):
+        return False, "camera-service process exited during startup"
+    if (
+        is_compose_service_running(COMPOSE_FILE, SERVICE_NAME, cwd=REPO_ROOT)
+        and can_connect_to_tcp(GRPC_HOST, GRPC_PORT)
+        and "starting camera API server" in logs
+    ):
+        return True, "camera service is running and accepting TCP connections"
+    return None
 
 
 def build_initial_metadata() -> JsonObject:
