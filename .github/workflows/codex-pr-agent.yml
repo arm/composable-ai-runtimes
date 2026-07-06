@@ -108,16 +108,62 @@ jobs:
         if: steps.context.outputs.should_run == 'true'
         run: cp "${CODEX_PROMPT_PATH}" codex-pr-agent-prompt.md
 
+      - name: Install Codex CLI
+        if: steps.context.outputs.should_run == 'true'
+        run: npm install -g "@openai/codex@latest"
+
+      - name: Configure Codex for Arm OpenAI proxy
+        if: steps.context.outputs.should_run == 'true'
+        env:
+          OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+        run: |
+          if [ -z "${OPENAI_BASE_URL}" ]; then
+            echo "OPENAI_BASE_URL secret is required for the Arm OpenAI proxy." >&2
+            exit 1
+          fi
+          mkdir -p "${HOME}/.codex"
+          cat > "${HOME}/.codex/ci.config.toml" <<'EOF'
+          model = "gpt-5-codex"
+          model_provider = "arm_proxy"
+          model_reasoning_effort = "medium"
+
+          [model_providers.arm_proxy]
+          name = "arm_proxy"
+          base_url = "__OPENAI_BASE_URL__"
+          env_key = "OPENAI_API_KEY"
+          wire_api = "responses"
+          EOF
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          path = Path.home() / ".codex" / "ci.config.toml"
+          path.write_text(
+              path.read_text(encoding="utf-8").replace(
+                  "__OPENAI_BASE_URL__", os.environ["OPENAI_BASE_URL"]
+              ),
+              encoding="utf-8",
+          )
+          PY
+
       - name: Run Codex
         if: steps.context.outputs.should_run == 'true'
         id: run_codex
-        uses: openai/codex-action@v1
-        with:
-          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
-          prompt-file: codex-pr-agent-prompt.md
-          sandbox: read-only
-          safety-strategy: drop-sudo
-          output-file: codex-output.md
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          codex exec \
+            --profile ci \
+            --sandbox read-only \
+            --ephemeral \
+            --output-last-message codex-output.md \
+            - < codex-pr-agent-prompt.md
+
+          {
+            echo "final-message<<__CODEX_FINAL_MESSAGE__"
+            cat codex-output.md
+            echo "__CODEX_FINAL_MESSAGE__"
+          } >> "${GITHUB_OUTPUT}"
 
       - name: Post Codex response
         if: >-
