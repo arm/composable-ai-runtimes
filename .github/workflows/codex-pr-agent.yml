@@ -52,7 +52,7 @@ jobs:
       cancel-in-progress: true
     env:
       CODEX_AGENT_ALIAS: "@cairn-codex"
-      CODEX_PROMPT_PATH: ${{ runner.temp }}/codex-pr-agent-prompt.md
+      CODEX_PROMPT_PATH: /tmp/codex-pr-agent-prompt.md
       PR_NUMBER: >-
         ${{
           github.event_name == 'workflow_dispatch' &&
