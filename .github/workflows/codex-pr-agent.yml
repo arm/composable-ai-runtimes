@@ -14,7 +14,7 @@ on:
         required: true
         type: number
       command:
-        description: Codex command to run for the PR.
+        description: Codex command to run for the given PR.
         required: true
         default: "@cairn-codex review"
         type: string
