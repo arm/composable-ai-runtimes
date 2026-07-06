@@ -46,6 +46,7 @@ dist/
 .mypy_cache/
 .ruff_cache/
 .tox/
+codex-pr-agent-prompt.md
 
 # Node.js
 node_modules/
