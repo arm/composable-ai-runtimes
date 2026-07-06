@@ -14,7 +14,7 @@ Post-PoC active development: prioritise dependable, documented increments that p
 
 Prefer clarifying questions over risky assumptions. This repository currently follows the in-between threshold by default: ask when ambiguity could affect user expectations, compatibility, operations, or quality; proceed on small internal implementation choices that do not change behaviour.
 
-For production-bound changes, require explicit confirmation on requirements, edge cases, compatibility expectations, and operational constraints before implementation.
+For production-facing changes, ask for clarification when requirements, compatibility expectations, operational constraints, or edge cases are ambiguous. Do not block small, reversible, internally scoped fixes on a generic confirmation checklist.
 
 ## Repository Engineering Standards
 
@@ -35,6 +35,7 @@ For production-bound changes, require explicit confirmation on requirements, edg
 
 - Avoid helper wrappers that only rename, reshape, or partially hide an already clear value. Add helpers when they reduce real repetition, clarify ownership, or isolate non-obvious behaviour.
 - Use precise types at module boundaries, parser boundaries, and test helper boundaries. Avoid broad `Any` or unstructured `dict` annotations when the expected shape is known and can be represented with a dataclass, `TypedDict`, protocol, or narrower built-in type.
+- After refactoring, reread the changed surface as a reviewer would rather than only checking that the requested local edit works. Look for stale names, misleading boundaries, unnecessary state or data, duplicated logic, mixed responsibilities, inaccurate comments, and misplaced diagnostics or failure handling.
 
 ### CI Workflow Ownership
 
@@ -44,8 +45,15 @@ For production-bound changes, require explicit confirmation on requirements, edg
 - When a workflow is triggered by a shared file, keep validation scoped to the workflow's owned surface unless the workflow explicitly owns the whole shared file. Prefer targeted checks over broad shared-file checks when they preserve the required signal.
 - When adding or changing smoke tests, first identify the workflow's owned validation surface and compare against nearby smoke tests before implementation.
 - Keep smoke tests focused on behaviour the workflow uniquely validates. Avoid duplicating diagnostics, artifacts, dependency inventories, setup checks, or failure classifications owned by another workflow unless there is a clear operational reason.
+- Make the primary smoke-test entry point read as the workflow being validated: start or provision the system, perform the user/API action, then verify the externally meaningful result. Keep retry loops, diagnostics, parsing, and artifact writing in helpers unless those mechanics are the behaviour under test.
+- When a smoke test calls a standalone probe or CLI, keep expected probe failures as controlled command failures with clear stderr and exit codes. Use pytest assertions in the pytest layer for validating the probe result, returned JSON, or externally meaningful postconditions.
+- For optional or non-fatal smoke-test diagnostics, prefer structured output or metadata over stderr logging. Passing tests should stay quiet while still explaining missing optional values in captured evidence.
 - Reuse local helper patterns where they fit, but do not copy another smoke test's structure or assertions without confirming it owns the same validation surface.
 - Keep provisioning and toolchain setup in workflow setup steps or dedicated build jobs unless provisioning itself is the behaviour under test.
+- For Python smoke tests and CI scripts, use the repository's existing Python stack: `uv`/`uvx` for tool execution and environment management, `pytest` for test structure and assertions, and `prek` for configured lint and pre-push validation. Do not introduce another runner, package manager, or test framework unless the existing stack cannot support the use case.
+- Record dependencies where they are actually provisioned. Python-only test libraries belong in the Python invocation or dependency manifest; system dependencies such as GStreamer, PyGObject, Docker, or board-farm tools belong in the Dockerfile, runner setup, or workflow step that installs them.
+- For board-farm smoke tests, first identify the owning harness for the operation. Use its established helpers for startup, readiness, diagnostics, cleanup, and one-off probes instead of introducing a new local pattern unless the existing harness does not fit the behaviour under test.
+- For fixed board-farm hardware assumptions, prefer explicit stable configuration over dynamic discovery unless discovery or hotplug is the behaviour under test. Avoid volatile camera identifiers; use stable PipeWire target-object style identifiers and CI variables for fixed camera selection.
 
 ### Security and Operational Safety
 
@@ -111,7 +119,7 @@ Camera service proto, binary, and contract checks (when touching `services/camer
 cd services/camera
 cargo fmt --all -- --check
 cargo clippy --all-targets --all-features --no-deps
-cargo test --lib --bins --tests
+cargo test --all-targets --all-features
 ```
 
 Concordia service:
@@ -166,7 +174,13 @@ During editing:
 
 Before completion:
 - Run proportionate validation commands.
-- After targeted fixes, reread the touched function, workflow block, or document section as a whole and look for duplicated cleanup, logging, assertion, validation, or failure-handling paths.
+- After small targeted fixes, reread the touched function, workflow block, or document section as a whole for duplicated cleanup, logging, assertions, validation, or failure handling.
+- For non-trivial changes, especially refactors and follow-up fixes, do an explicit consistency sweep before handing back:
+  - Identify the changed surface's owned responsibility, then check whether each retained setup step, branch, data field, artifact, assertion, helper, and side effect directly supports it.
+  - Compare with directly related nearby code, tests, workflows, scripts, and documentation when they define the same pattern or ownership boundary, to spot copied structure, duplicated ownership, inconsistent naming, missing symmetry, or diagnostics owned elsewhere.
+  - Check whether the primary changed entry point now reads at the right level of abstraction; extract meaningful helpers only when they clarify the owned behaviour without hiding important failure handling.
+  - Search for stale terms related to the change, especially old helper names, field names, failure classifications, environment variables, commands, comments, and documentation references.
+  - Treat clear, in-scope concerns found during this sweep as part of the current fix unless they would change requirements or broaden scope materially.
 - Compare the current branch to its base branch and reconcile affected documentation surfaces to match the branch as it exists now.
 - Update user-facing docs in `docs-website/**`, developer/operator guidance in relevant `README.md` files, and any still-necessary code comments.
 - Rewrite documents coherently instead of appending isolated notes to the end of stale content.
