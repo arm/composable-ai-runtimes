@@ -1,6 +1,9 @@
 name: Codex PR Agent
 
 on:
+  push:
+    branches:
+      - feat/codex-pr-workflow
   issue_comment:
     types:
       - created
@@ -26,6 +29,7 @@ jobs:
     name: Run Codex PR agent
     if: >-
       ${{
+        github.event_name == 'push' ||
         github.event_name == 'workflow_dispatch' ||
         (
           github.event.issue.pull_request &&
@@ -38,7 +42,13 @@ jobs:
       }}
     runs-on: ubuntu-latest
     concurrency:
-      group: codex-pr-agent-${{ github.event.issue.number }}
+      group: >-
+        codex-pr-agent-${{
+          github.event_name == 'workflow_dispatch' &&
+          inputs.pr_number ||
+          github.event.issue.number ||
+          github.ref_name
+        }}
       cancel-in-progress: true
     env:
       CODEX_AGENT_ALIAS: "@cairn-codex"
@@ -47,7 +57,8 @@ jobs:
         ${{
           github.event_name == 'workflow_dispatch' &&
           inputs.pr_number ||
-          github.event.issue.number
+          github.event.issue.number ||
+          ''
         }}
     steps:
       - name: Checkout workflow utilities
@@ -75,6 +86,13 @@ jobs:
               --comment-author "${GITHUB_ACTOR}"
               --author-association OWNER
             )
+          elif [ "${GITHUB_EVENT_NAME}" = "push" ]; then
+            args+=(
+              --head-ref "${GITHUB_REF_NAME}"
+              --comment-body "@cairn-codex review"
+              --comment-author "${GITHUB_ACTOR}"
+              --author-association OWNER
+            )
           fi
           python3 .github/scripts/codex-pr-context.py "${args[@]}"
 
@@ -82,7 +100,7 @@ jobs:
         if: steps.context.outputs.should_run == 'true'
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          ref: refs/pull/${{ env.PR_NUMBER }}/merge
+          ref: refs/pull/${{ steps.context.outputs.pr_number }}/merge
           fetch-depth: 0
           persist-credentials: false
 
@@ -108,6 +126,7 @@ jobs:
         uses: actions/github-script@v7
         env:
           CODEX_FINAL_MESSAGE: ${{ steps.run_codex.outputs.final-message }}
+          PR_NUMBER: ${{ steps.context.outputs.pr_number }}
         with:
           github-token: ${{ github.token }}
           script: |

@@ -16,6 +16,24 @@ SPEC.loader.exec_module(codex_pr_context)
 
 
 class CodexPrContextTests(unittest.TestCase):
+    def test_find_pull_request_for_branch_returns_first_open_pr(self) -> None:
+        class FakeClient:
+            repository = "Arm-Debug/cairn-sdk"
+
+            def request_json(self, path: str) -> object:
+                self.path = path
+                return [{"number": 42}, {"number": 99}]
+
+        client = FakeClient()
+
+        self.assertEqual(
+            codex_pr_context.find_pull_request_for_branch(
+                client, "feat/codex-pr-workflow"
+            ),
+            42,
+        )
+        self.assertIn("head=Arm-Debug%3Afeat%2Fcodex-pr-workflow", client.path)
+
     def test_parse_review_command_with_focus(self) -> None:
         command = codex_pr_context.parse_agent_command(
             "@cairn-codex review focus on docs"

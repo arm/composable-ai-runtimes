@@ -7,6 +7,7 @@ import json
 import os
 import re
 import urllib.error
+import urllib.parse
 import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
@@ -217,6 +218,20 @@ def fetch_changed_files(client: GitHubClient, number: int) -> tuple[ChangedFile,
     return tuple(files)
 
 
+def find_pull_request_for_branch(client: GitHubClient, head_ref: str) -> int | None:
+    owner = client.repository.split("/", 1)[0]
+    encoded_head = urllib.parse.quote(f"{owner}:{head_ref}", safe="")
+    payload = client.request_json(
+        f"/repos/{client.repository}/pulls?state=open&head={encoded_head}"
+    )
+    for item in as_sequence(payload):
+        pr_payload = as_mapping(item)
+        number = int_value(pr_payload.get("number"))
+        if number:
+            return number
+    return None
+
+
 def collect_jira_text(value: JsonValue, pieces: list[str]) -> None:
     if isinstance(value, str):
         pieces.append(value)
@@ -401,6 +416,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output", required=True)
     parser.add_argument("--alias", default=os.environ.get("CODEX_AGENT_ALIAS", DEFAULT_ALIAS))
     parser.add_argument("--pr-number", type=int)
+    parser.add_argument("--head-ref")
     parser.add_argument("--comment-body")
     parser.add_argument("--comment-author", default=os.environ.get("GITHUB_ACTOR", ""))
     parser.add_argument("--author-association")
@@ -422,12 +438,22 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    if args.pr_number is not None:
-        number = args.pr_number
-        comment_body = args.comment_body or f"{args.alias} review"
-        comment_author = args.comment_author
-        author_association = (args.author_association or "OWNER").upper()
-    else:
+    if not args.github_repository or not args.github_token:
+        raise RuntimeError("GITHUB_REPOSITORY and GITHUB_TOKEN are required.")
+
+    client = GitHubClient(
+        api_url=args.github_api_url,
+        repository=args.github_repository,
+        token=args.github_token,
+    )
+
+    if args.pr_number is None and args.head_ref:
+        args.pr_number = find_pull_request_for_branch(client, args.head_ref)
+        if args.pr_number is None:
+            mark_skipped(f"No open pull request found for branch: {args.head_ref}")
+            return
+
+    if args.pr_number is None:
         if not args.event_path:
             mark_skipped("GITHUB_EVENT_PATH is not set.")
             return
@@ -443,6 +469,11 @@ def main() -> None:
         comment_author = string_value(as_mapping(comment.get("user")).get("login"))
         author_association = string_value(comment.get("author_association")).upper()
         number = int_value(issue.get("number"))
+    else:
+        number = args.pr_number
+        comment_body = args.comment_body or f"{args.alias} review"
+        comment_author = args.comment_author
+        author_association = (args.author_association or "OWNER").upper()
 
     command = parse_agent_command(comment_body, alias=args.alias)
     if command is None:
@@ -453,17 +484,9 @@ def main() -> None:
         mark_skipped(f"Comment author association is not trusted: {author_association}")
         return
 
-    if not args.github_repository or not args.github_token:
-        raise RuntimeError("GITHUB_REPOSITORY and GITHUB_TOKEN are required.")
-
     if number == 0:
         raise RuntimeError("Could not determine pull request number from event payload.")
 
-    client = GitHubClient(
-        api_url=args.github_api_url,
-        repository=args.github_repository,
-        token=args.github_token,
-    )
     pr = fetch_pull_request(client, number)
     files = fetch_changed_files(client, number)
     jira_key = extract_jira_key(comment_body, pr.title, pr.body, pr.head_ref)
@@ -501,6 +524,7 @@ def main() -> None:
     write_github_output("should_run", "true")
     write_github_output("mode", command.mode)
     write_github_output("jira_key", jira_key or "")
+    write_github_output("pr_number", str(number))
     write_github_output("prompt_path", str(output_path))
     print(f"Prepared Codex {command.mode} prompt for PR #{pr.number}.")
 
