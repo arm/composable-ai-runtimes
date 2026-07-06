@@ -4,6 +4,17 @@ on:
   issue_comment:
     types:
       - created
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Pull request number to review or ask about.
+        required: true
+        type: number
+      command:
+        description: Codex command to run for the PR.
+        required: true
+        default: "@cairn-codex review"
+        type: string
 
 permissions:
   contents: read
@@ -15,11 +26,14 @@ jobs:
     name: Run Codex PR agent
     if: >-
       ${{
-        github.event.issue.pull_request &&
-        contains(github.event.comment.body, '@cairn-codex') &&
-        contains(
-          fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'),
-          github.event.comment.author_association
+        github.event_name == 'workflow_dispatch' ||
+        (
+          github.event.issue.pull_request &&
+          contains(github.event.comment.body, '@cairn-codex') &&
+          contains(
+            fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'),
+            github.event.comment.author_association
+          )
         )
       }}
     runs-on: ubuntu-latest
@@ -29,6 +43,12 @@ jobs:
     env:
       CODEX_AGENT_ALIAS: "@cairn-codex"
       CODEX_PROMPT_PATH: ${{ runner.temp }}/codex-pr-agent-prompt.md
+      PR_NUMBER: >-
+        ${{
+          github.event_name == 'workflow_dispatch' &&
+          inputs.pr_number ||
+          github.event.issue.number
+        }}
     steps:
       - name: Checkout workflow utilities
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -42,16 +62,27 @@ jobs:
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
           JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
           JIRA_USER: ${{ secrets.JIRA_USER }}
+          WORKFLOW_COMMAND: ${{ inputs.command }}
         run: |
-          python3 .github/scripts/codex-pr-context.py \
-            --prompt-template .github/codex/prompts/pr-agent.md \
+          args=(
+            --prompt-template .github/codex/prompts/pr-agent.md
             --output "${CODEX_PROMPT_PATH}"
+          )
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            args+=(
+              --pr-number "${PR_NUMBER}"
+              --comment-body "${WORKFLOW_COMMAND}"
+              --comment-author "${GITHUB_ACTOR}"
+              --author-association OWNER
+            )
+          fi
+          python3 .github/scripts/codex-pr-context.py "${args[@]}"
 
       - name: Checkout pull request merge ref
         if: steps.context.outputs.should_run == 'true'
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          ref: refs/pull/${{ github.event.issue.number }}/merge
+          ref: refs/pull/${{ env.PR_NUMBER }}/merge
           fetch-depth: 0
           persist-credentials: false
 
@@ -84,6 +115,6 @@ jobs:
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: context.payload.issue.number,
+              issue_number: Number(process.env.PR_NUMBER),
               body: `${marker}\n${process.env.CODEX_FINAL_MESSAGE}`,
             });

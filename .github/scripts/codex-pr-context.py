@@ -400,6 +400,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--event-path", default=os.environ.get("GITHUB_EVENT_PATH"))
     parser.add_argument("--output", required=True)
     parser.add_argument("--alias", default=os.environ.get("CODEX_AGENT_ALIAS", DEFAULT_ALIAS))
+    parser.add_argument("--pr-number", type=int)
+    parser.add_argument("--comment-body")
+    parser.add_argument("--comment-author", default=os.environ.get("GITHUB_ACTOR", ""))
+    parser.add_argument("--author-association")
     parser.add_argument(
         "--prompt-template",
         default=str(Path(__file__).resolve().parents[1] / "codex/prompts/pr-agent.md"),
@@ -418,24 +422,33 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    if not args.event_path:
-        mark_skipped("GITHUB_EVENT_PATH is not set.")
-        return
+    if args.pr_number is not None:
+        number = args.pr_number
+        comment_body = args.comment_body or f"{args.alias} review"
+        comment_author = args.comment_author
+        author_association = (args.author_association or "OWNER").upper()
+    else:
+        if not args.event_path:
+            mark_skipped("GITHUB_EVENT_PATH is not set.")
+            return
 
-    event = read_event(Path(args.event_path))
-    issue = as_mapping(event.get("issue"))
-    if not as_mapping(issue.get("pull_request")):
-        mark_skipped("Comment is not on a pull request.")
-        return
+        event = read_event(Path(args.event_path))
+        issue = as_mapping(event.get("issue"))
+        if not as_mapping(issue.get("pull_request")):
+            mark_skipped("Comment is not on a pull request.")
+            return
 
-    comment = as_mapping(event.get("comment"))
-    comment_body = string_value(comment.get("body"))
+        comment = as_mapping(event.get("comment"))
+        comment_body = string_value(comment.get("body"))
+        comment_author = string_value(as_mapping(comment.get("user")).get("login"))
+        author_association = string_value(comment.get("author_association")).upper()
+        number = int_value(issue.get("number"))
+
     command = parse_agent_command(comment_body, alias=args.alias)
     if command is None:
         mark_skipped(f"Comment does not contain a supported {args.alias} command.")
         return
 
-    author_association = string_value(comment.get("author_association")).upper()
     if author_association not in TRUSTED_AUTHOR_ASSOCIATIONS:
         mark_skipped(f"Comment author association is not trusted: {author_association}")
         return
@@ -443,7 +456,6 @@ def main() -> None:
     if not args.github_repository or not args.github_token:
         raise RuntimeError("GITHUB_REPOSITORY and GITHUB_TOKEN are required.")
 
-    number = int_value(issue.get("number"))
     if number == 0:
         raise RuntimeError("Could not determine pull request number from event payload.")
 
@@ -479,7 +491,7 @@ def main() -> None:
         jira_issue=jira_issue,
         jira_warning=jira_warning,
         jira_key=jira_key,
-        comment_author=string_value(as_mapping(comment.get("user")).get("login")),
+        comment_author=comment_author,
     )
 
     output_path = Path(args.output)
