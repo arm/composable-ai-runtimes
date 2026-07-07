@@ -59,6 +59,15 @@ def print_task_metrics(result: dict) -> None:
     output_file = result.get("output_file")
     if output_file:
         print(f"    output_file={output_file}", flush=True)
+    expected_output_file = result.get("expected_output_file")
+    if expected_output_file and expected_output_file != output_file:
+        print(f"    expected_output_file={expected_output_file}", flush=True)
+
+    tool_history = result.get("tool_history", [])
+    if isinstance(tool_history, list) and tool_history:
+        tools = [str(item.get("tool", "unknown")) for item in tool_history[:12]]
+        suffix = " ..." if len(tool_history) > len(tools) else ""
+        print(f"    tools={', '.join(tools)}{suffix}", flush=True)
 
 
 def print_task_result(result: dict, result_path: Path) -> None:

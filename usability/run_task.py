@@ -40,15 +40,6 @@ def run_task(task_path: str, result_path: str, max_turns: int) -> tuple[int, dic
                 raise RuntimeError(f"setup failed: {step['name']}")
 
         agent = run_agent(task["prompt"], max_turns)
-        if not output_path.exists():
-            raise RuntimeError("expected output file was not written")
-
-        verification = run_shell(
-            task["verification"]["command"],
-            timeout=task["verification"].get("timeout_seconds"),
-        )
-        actual_stdout = verification.stdout.strip()
-
         result.update(
             {
                 "model": MODEL,
@@ -61,6 +52,22 @@ def run_task(task_path: str, result_path: str, max_turns: int) -> tuple[int, dic
                 "writes_made": agent.writes_made,
                 "tool_calls": agent.tool_calls,
                 "tool_history": agent.tool_history,
+                "expected_output_file": rel_path(output_path),
+            }
+        )
+        if not output_path.exists():
+            raise RuntimeError(
+                f"expected output file was not written: {rel_path(output_path)}"
+            )
+
+        verification = run_shell(
+            task["verification"]["command"],
+            timeout=task["verification"].get("timeout_seconds"),
+        )
+        actual_stdout = verification.stdout.strip()
+
+        result.update(
+            {
                 "output_file": rel_path(output_path),
                 "verification": {
                     "command": task["verification"]["command"],
