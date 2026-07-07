@@ -33,6 +33,7 @@ jobs:
 
       - name: Run usability framework
         env:
+          OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           REQUESTS_CA_BUNDLE: /etc/ssl/certs/ca-certificates.crt
           SSL_CERT_FILE: /etc/ssl/certs/ca-certificates.crt
@@ -40,7 +41,8 @@ jobs:
           uv run --with pyyaml==6.0.2 --with requests==2.32.3 \
             python usability/run_framework.py \
             --results-dir usability/results \
-            --history usability/history/history.json
+            --history usability/history/history.json \
+            --max-turns 20
 
       - name: Upload usability results
         if: always()

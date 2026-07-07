@@ -17,7 +17,6 @@ def response_parameters(parameters: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-OPENAI_RESPONSES_URL = "https://openai-api-proxy.geo.arm.com/api/providers/openai/v1/responses"
 RESPONSE_TOOLS = [
     {
         "type": "function",
@@ -31,6 +30,10 @@ RESPONSE_TOOLS = [
 SYSTEM_PROMPT = """You are a coding agent working in a checked-out repository.
 Use the available tools to inspect the repo and create the requested file.
 Prefer minimal changes.
+If the task asks for a specific output file, call write_file with that exact path
+as soon as you have enough information. Do not spend all turns exploring.
+Do not call finish until write_file has succeeded for the requested output file.
+Do not list or read broad parts of the repository unless the task requires it.
 When you are done, call finish.
 """
 
@@ -48,12 +51,25 @@ class AgentResult:
     tool_calls: int
 
 
-def run_agent(prompt: str, max_turns: int) -> AgentResult:
-    executor = ToolExecutor()
-    conversation: list[dict[str, Any]] = [{"role": "user", "content": prompt.strip()}]
+def run_agent(
+    prompt: str,
+    max_turns: int,
+    required_output_file: str | None = None,
+) -> AgentResult:
+    executor = ToolExecutor(required_output_file=required_output_file)
+    prompt_parts = [prompt.strip()]
+    if required_output_file:
+        prompt_parts.append(
+            "Required output file: "
+            f"`{required_output_file}`. You must call write_file with this exact "
+            "path before calling finish."
+        )
+    conversation: list[dict[str, Any]] = [
+        {"role": "user", "content": "\n\n".join(prompt_parts)}
+    ]
     usage_totals = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
 
-    for _ in range(max_turns):
+    for turn_index in range(max_turns):
         response, usage = call_model(conversation)
         for key in usage_totals:
             usage_totals[key] += usage.get(key, 0) or 0
@@ -62,6 +78,7 @@ def run_agent(prompt: str, max_turns: int) -> AgentResult:
         conversation.extend(output_items)
         function_calls = [item for item in output_items if item.get("type") == "function_call"]
         if not function_calls:
+            append_write_file_reminder(conversation, executor)
             continue
 
         for function_call in function_calls:
@@ -83,6 +100,8 @@ def run_agent(prompt: str, max_turns: int) -> AgentResult:
 
         if executor.finished:
             break
+        if (turn_index + 1) % 4 == 0:
+            append_write_file_reminder(conversation, executor)
 
     return AgentResult(
         prompt_tokens=usage_totals["prompt_tokens"],
@@ -99,7 +118,7 @@ def run_agent(prompt: str, max_turns: int) -> AgentResult:
 
 def call_model(input_items: list[dict[str, Any]]) -> tuple[dict[str, Any], dict[str, Any]]:
     response = requests.post(
-        OPENAI_RESPONSES_URL,
+        responses_url(),
         headers={
             "Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}",
             "Content-Type": "application/json",
@@ -122,3 +141,33 @@ def call_model(input_items: list[dict[str, Any]]) -> tuple[dict[str, Any], dict[
         "completion_tokens": usage.get("output_tokens", 0),
         "total_tokens": usage.get("total_tokens", 0),
     }
+
+
+def append_write_file_reminder(
+    conversation: list[dict[str, Any]],
+    executor: ToolExecutor,
+) -> None:
+    if executor.required_output_file is None or executor.required_output_written:
+        return
+
+    conversation.append(
+        {
+            "role": "user",
+            "content": (
+                f"You have not written `{executor.required_output_file}` yet. "
+                "Call write_file with that exact path before calling finish."
+            ),
+        }
+    )
+
+
+def responses_url() -> str:
+    base_url = os.environ.get("OPENAI_BASE_URL", "").strip()
+    if not base_url:
+        raise RuntimeError("OPENAI_BASE_URL is not set")
+
+    if base_url.endswith("/responses"):
+        return base_url
+    if base_url.endswith("/chat/completions"):
+        base_url = base_url[: -len("/chat/completions")]
+    return f"{base_url.rstrip('/')}/responses"

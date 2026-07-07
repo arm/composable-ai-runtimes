@@ -10,9 +10,12 @@ Create a minimal Python script at `usability/workspace/messaging_pubsub_demo.py`
 Constraints:
 - Use Python
 - Use `cairn_sdk.notification.NotificationClient` for the subscription path; do not implement subscription with raw `redis` directly
+- `NotificationClient` subscribes only; publish the message with `redis.asyncio.from_url("redis://127.0.0.1:6379/0", decode_responses=True)`
 - The script will be run from the repository root with `PYTHONPATH=lib/python`
 - Keep the script self-contained
-- You may inspect the repository using the available tools
+- If you need to inspect the API, read only `lib/python/cairn_sdk/notification.py`
+- Do not list the whole repository
+- You must create or update `usability/workspace/messaging_pubsub_demo.py` with the `write_file` tool
 - Do not change any existing repository files except creating or updating that script
 - The script must exit with code 0 on success and non-zero on failure
 - The script must fail clearly if the message is not received within 5 seconds

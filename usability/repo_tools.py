@@ -88,12 +88,24 @@ TOOL_SCHEMAS = [
 
 @dataclass
 class ToolExecutor:
+    required_output_file: str | None = None
     files_used: list[str] = field(default_factory=list)
     commands_run: list[str] = field(default_factory=list)
     writes_made: list[str] = field(default_factory=list)
     history: list[dict[str, Any]] = field(default_factory=list)
     tool_calls: int = 0
     finished: bool = False
+
+    def __post_init__(self) -> None:
+        if self.required_output_file is not None:
+            self.required_output_file = rel_path(safe_repo_path(self.required_output_file))
+
+    @property
+    def required_output_written(self) -> bool:
+        return (
+            self.required_output_file is None
+            or self.required_output_file in self.writes_made
+        )
 
     def execute(self, tool_call: dict[str, Any]) -> dict[str, Any]:
         name = tool_call["function"]["name"]
@@ -155,12 +167,30 @@ class ToolExecutor:
 
     def write_file(self, arguments: dict[str, Any]) -> dict[str, Any]:
         path = safe_repo_path(arguments["path"])
+        target = rel_path(path)
+        if (
+            self.required_output_file is not None
+            and target != self.required_output_file
+        ):
+            return {
+                "error": (
+                    "write_file rejected: expected path "
+                    f"{self.required_output_file}, got {target}"
+                )
+            }
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(arguments["content"], encoding="utf-8")
-        self.writes_made.append(rel_path(path))
-        return {"path": rel_path(path), "bytes_written": len(arguments["content"].encode("utf-8"))}
+        self.writes_made.append(target)
+        return {"path": target, "bytes_written": len(arguments["content"].encode("utf-8"))}
 
     def finish(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        if not self.required_output_written:
+            return {
+                "error": (
+                    "finish rejected: call write_file for "
+                    f"{self.required_output_file} before finish"
+                )
+            }
         self.finished = True
         return {"summary": arguments["summary"]}
 

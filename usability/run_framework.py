@@ -108,7 +108,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--results-dir", default="usability/results")
     parser.add_argument("--history", default="usability/history/history.json")
-    parser.add_argument("--max-turns", type=int, default=12)
+    parser.add_argument("--max-turns", type=int, default=20)
     args = parser.parse_args()
 
     results_dir = safe_repo_path(args.results_dir)
@@ -145,7 +145,7 @@ def main() -> int:
         f"{total_tokens} tokens, {total_tool_calls} tool calls",
         flush=True,
     )
-    return 0
+    return 1 if framework_result["failed_task_count"] else 0
 
 
 if __name__ == "__main__":

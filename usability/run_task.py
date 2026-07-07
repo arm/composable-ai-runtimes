@@ -38,7 +38,7 @@ def run_task(task_path: str, result_path: str, max_turns: int) -> tuple[int, dic
             if completed.returncode != 0:
                 raise RuntimeError(f"setup failed: {step['name']}")
 
-        agent = run_agent(task["prompt"], max_turns)
+        agent = run_agent(task["prompt"], max_turns, rel_path(output_path))
         result.update(
             {
                 "model": MODEL,
@@ -100,7 +100,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("task")
     parser.add_argument("--result", default="usability/results/latest.json")
-    parser.add_argument("--max-turns", type=int, default=12)
+    parser.add_argument("--max-turns", type=int, default=20)
     args = parser.parse_args()
     status, _ = run_task(args.task, args.result, args.max_turns)
     return status

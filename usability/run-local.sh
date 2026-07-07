@@ -6,7 +6,13 @@ if [[ -z "${OPENAI_API_KEY:-}" ]]; then
   exit 1
 fi
 
+if [[ -z "${OPENAI_BASE_URL:-}" ]]; then
+  echo "OPENAI_BASE_URL is not set"
+  exit 1
+fi
+
 uv run --with pyyaml==6.0.2 --with requests==2.32.3 \
   python usability/run_framework.py \
   --results-dir usability/results \
-  --history usability/history/history.json
+  --history usability/history/history.json \
+  --max-turns 20
