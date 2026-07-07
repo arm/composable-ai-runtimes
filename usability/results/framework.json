@@ -1,25 +1,5 @@
 {
-  "task_count": 1,
-  "failed_task_count": 1,
-  "tasks": [
-    {
-      "task_id": "messaging-pubsub-python-v1",
-      "configured_model": "gpt-4.1",
-      "status": "failed",
-      "setup": [
-        {
-          "name": "start messaging service",
-          "command": "docker compose -f services/compose.yaml up -d messaging-service",
-          "exit_code": 0,
-          "stdout": "",
-          "stderr": " Container services-messaging-service-1 Running \n"
-        }
-      ],
-      "tool_history": [],
-      "error": "HTTPSConnectionPool(host='openai-api-proxy.geo.arm.com', port=443): Max retries exceeded with url: /api/providers/openai-eu/v1/chat/completions (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1000)')))",
-      "duration_seconds": 0.186,
-      "github_run_id": null,
-      "github_sha": null
-    }
-  ]
+  "task_count": 0,
+  "failed_task_count": 0,
+  "tasks": []
 }

@@ -81,9 +81,20 @@ def run_task(task_path: str, result_path: str, max_turns: int) -> tuple[int, dic
             raise RuntimeError("agent did not call finish")
         if verification.returncode != criteria.get("exit_code", 0):
             raise RuntimeError("verification command failed")
-        if actual_stdout != criteria["stdout_exact"]:
+        expected_stdout = criteria.get("stdout_exact")
+        if expected_stdout is not None and actual_stdout != expected_stdout:
             raise RuntimeError(
-                f"stdout mismatch: expected {criteria['stdout_exact']!r}, got {actual_stdout!r}"
+                f"stdout mismatch: expected {expected_stdout!r}, got {actual_stdout!r}"
+            )
+
+        expected_stdout_fragment = criteria.get("stdout_contains")
+        if (
+            expected_stdout_fragment is not None
+            and expected_stdout_fragment not in actual_stdout
+        ):
+            raise RuntimeError(
+                "stdout mismatch: expected output to contain "
+                f"{expected_stdout_fragment!r}, got {actual_stdout!r}"
             )
 
         result["status"] = "passed"

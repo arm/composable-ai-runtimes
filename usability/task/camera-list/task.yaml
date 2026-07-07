@@ -1,0 +1,50 @@
+id: camera-list-rust-boardfarm-v1
+summary: Create a minimal deterministic Rust SDK camera listing demo against the board-farm Cairn camera service.
+prompt_file: Prompt.md
+
+success_criteria:
+  file_exists: lib/crates/cairn-sdk/examples/ai_usability_list_cameras.rs
+  stdout_contains: "camera:"
+  exit_code: 0
+
+setup:
+  - name: start camera service
+    run: |
+      docker compose -f services/camera/compose.yaml up -d --build
+      python3 - <<'PY'
+      import socket
+      import sys
+      import time
+
+      deadline = time.monotonic() + 60
+      while time.monotonic() < deadline:
+          try:
+              with socket.create_connection(("127.0.0.1", 50051), timeout=2):
+                  sys.exit(0)
+          except OSError:
+              time.sleep(2)
+
+      print("timed out waiting for camera service on 127.0.0.1:50051", file=sys.stderr)
+      sys.exit(1)
+      PY
+
+verification:
+  command: cd lib && CAMERA_SERVICE_ENDPOINT=http://127.0.0.1:50051 cargo run --quiet -p cairn-sdk-lib --example ai_usability_list_cameras
+  timeout_seconds: 300
+
+artifacts:
+  - lib/crates/cairn-sdk/examples/ai_usability_list_cameras.rs
+
+metrics:
+  capture:
+    - prompt_tokens
+    - completion_tokens
+    - total_tokens
+    - files_used
+    - commands_run
+    - writes_made
+    - duration_seconds
+
+notes:
+  - This task intentionally uses the Rust SDK crate instead of Python SDK bindings.
+  - The example must not import Python `cairn_sdk`, so it does not depend on the compiled PyO3 `_bindings` module.
