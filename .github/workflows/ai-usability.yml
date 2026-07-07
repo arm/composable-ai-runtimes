@@ -42,15 +42,15 @@ jobs:
             --results-dir usability/results \
             --history usability/history/history.json
 
-      - name: Upload usability results
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4.6.2
-        with:
-          name: ai-usability-results
-          path: |
-            usability/results/
-            usability/history/history.json
-            usability/workspace/
+      # - name: Upload usability results
+      #   if: always()
+      #   uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4.6.2
+      #   with:
+      #     name: ai-usability-results
+      #     path: |
+      #       usability/results/
+      #       usability/history/history.json
+      #       usability/workspace/
 
       - name: Clean up messaging service
         if: always()
