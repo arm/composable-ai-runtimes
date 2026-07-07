@@ -4,7 +4,6 @@
   "tasks": [
     {
       "task_id": "messaging-pubsub-python-v1",
-      "task_version": 1,
       "configured_model": "gpt-4.1",
       "status": "failed",
       "setup": [

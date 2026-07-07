@@ -11,7 +11,6 @@ def history_entry(timestamp: str, entry: dict) -> dict:
         "github_run_id": entry.get("github_run_id"),
         "github_sha": entry.get("github_sha"),
         "task_id": entry.get("task_id"),
-        "task_version": entry.get("task_version"),
         "status": entry.get("status"),
         "model": entry.get("model") or entry.get("configured_model"),
         "prompt_tokens": entry.get("prompt_tokens", 0),

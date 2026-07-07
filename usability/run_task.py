@@ -17,7 +17,6 @@ def run_task(task_path: str, result_path: str, max_turns: int) -> tuple[int, dic
 
     result = {
         "task_id": task["id"],
-        "task_version": task["version"],
         "configured_model": MODEL,
         "status": "failed",
         "setup": [],

@@ -11,8 +11,9 @@ from run_task import run_task
 
 
 def discover_tasks() -> list[str]:
-    tasks_dir = safe_repo_path("usability/tasks")
-    return [str(path.relative_to(path.parents[2])) for path in sorted(tasks_dir.glob("*.yaml"))]
+    tasks_dir = safe_repo_path("usability/task")
+    task_paths = sorted(path for path in tasks_dir.iterdir() if path.is_dir() and (path / "task.yaml").exists())
+    return [str(path.relative_to(path.parents[2])) for path in task_paths]
 
 
 def _github_actions_escape(message: str) -> str:
