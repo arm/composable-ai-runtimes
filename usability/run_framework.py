@@ -19,6 +19,48 @@ def _github_actions_escape(message: str) -> str:
     return message.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
 
 
+def _count(result: dict, key: str) -> int:
+    value = result.get(key)
+    return len(value) if isinstance(value, list) else 0
+
+
+def _print_text_block(label: str, value: str) -> None:
+    text = value.strip()
+    if not text:
+        return
+    print(f"  {label}:", flush=True)
+    for line in text.splitlines():
+        print(f"    {line}", flush=True)
+
+
+def print_task_metrics(result: dict) -> None:
+    if "total_tokens" not in result and "tool_calls" not in result:
+        print("  metrics: unavailable; task failed before agent metrics were recorded", flush=True)
+        return
+
+    print("  metrics:", flush=True)
+    print(
+        "    tokens: "
+        f"prompt={result.get('prompt_tokens', 0)}, "
+        f"completion={result.get('completion_tokens', 0)}, "
+        f"total={result.get('total_tokens', 0)}",
+        flush=True,
+    )
+    print(
+        "    activity: "
+        f"tool_calls={result.get('tool_calls', 0)}, "
+        f"files_read={_count(result, 'files_read')} "
+        f"({_count(result, 'unique_files_read')} unique), "
+        f"commands_run={_count(result, 'commands_run')}, "
+        f"writes_made={_count(result, 'writes_made')}",
+        flush=True,
+    )
+
+    output_file = result.get("output_file")
+    if output_file:
+        print(f"    output_file={output_file}", flush=True)
+
+
 def print_task_result(result: dict, result_path: Path) -> None:
     task_id = result["task_id"]
     status = result["status"]
@@ -37,6 +79,10 @@ def print_task_result(result: dict, result_path: Path) -> None:
             f"  verification: {verification['command']} exited {verification['exit_code']}",
             flush=True,
         )
+        _print_text_block("verification stdout", verification.get("stdout", ""))
+        _print_text_block("verification stderr", verification.get("stderr", ""))
+
+    print_task_metrics(result)
 
     if result.get("error"):
         error = str(result["error"])
@@ -84,9 +130,12 @@ def main() -> int:
         json.dumps(framework_result, indent=2) + "\n",
         encoding="utf-8",
     )
+    total_tokens = sum(int(result.get("total_tokens", 0) or 0) for result in task_results)
+    total_tool_calls = sum(int(result.get("tool_calls", 0) or 0) for result in task_results)
     print(
         f"AI usability summary: {framework_result['task_count']} tasks, "
-        f"{framework_result['failed_task_count']} failed",
+        f"{framework_result['failed_task_count']} failed, "
+        f"{total_tokens} tokens, {total_tool_calls} tool calls",
         flush=True,
     )
     return exit_code
