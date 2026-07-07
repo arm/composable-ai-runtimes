@@ -19,6 +19,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install Arm internal CA certificates
+        run: |
+          set -euo pipefail
+          sudo curl -L -o /usr/local/share/ca-certificates/arm-enterprise-root.crt \
+            "https://artifactory.arm.com/artifactory/vault.pki/ent-pki/pem/certs/ARM%20Enterprise%20PKI%20Root%20CA.pem"
+          sudo update-ca-certificates
+
       - name: Install uv
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
