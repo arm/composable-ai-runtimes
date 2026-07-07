@@ -2,8 +2,11 @@ name: AI Usability
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - ai-usability
   schedule:
-    - cron: '0 2 * * *'
+    - cron: "0 2 * * *"
 
 permissions:
   contents: read
