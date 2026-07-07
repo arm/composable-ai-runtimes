@@ -101,7 +101,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("task")
     parser.add_argument("--result", default="usability/results/latest.json")
-    parser.add_argument("--max-turns", type=int, default=20)
+    parser.add_argument("--max-turns", type=int, default=12)
     args = parser.parse_args()
     status, _ = run_task(args.task, args.result, args.max_turns)
     return status

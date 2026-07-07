@@ -107,7 +107,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--results-dir", default="usability/results")
     parser.add_argument("--history", default="usability/history/history.json")
-    parser.add_argument("--max-turns", type=int, default=20)
+    parser.add_argument("--max-turns", type=int, default=12)
     args = parser.parse_args()
 
     results_dir = safe_repo_path(args.results_dir)
