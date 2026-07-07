@@ -49,8 +49,8 @@ def print_task_metrics(result: dict) -> None:
     print(
         "    activity: "
         f"tool_calls={result.get('tool_calls', 0)}, "
-        f"files_read={_count(result, 'files_read')} "
-        f"({_count(result, 'unique_files_read')} unique), "
+        f"files_used={_count(result, 'files_used')} "
+        f"({_count(result, 'unique_files_used')} unique), "
         f"commands_run={_count(result, 'commands_run')}, "
         f"writes_made={_count(result, 'writes_made')}",
         flush=True,

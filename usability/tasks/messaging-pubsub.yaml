@@ -43,7 +43,7 @@ metrics:
     - prompt_tokens
     - completion_tokens
     - total_tokens
-    - files_read
+    - files_used
     - commands_run
     - writes_made
     - duration_seconds

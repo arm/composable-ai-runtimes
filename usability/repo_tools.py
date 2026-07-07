@@ -88,7 +88,7 @@ TOOL_SCHEMAS = [
 
 @dataclass
 class ToolExecutor:
-    files_read: list[str] = field(default_factory=list)
+    files_used: list[str] = field(default_factory=list)
     commands_run: list[str] = field(default_factory=list)
     writes_made: list[str] = field(default_factory=list)
     history: list[dict[str, Any]] = field(default_factory=list)
@@ -110,7 +110,9 @@ class ToolExecutor:
         if not base.exists():
             return {"error": "path does not exist"}
         if base.is_file():
-            return {"path": rel_path(base), "files": [rel_path(base)]}
+            used = rel_path(base)
+            self.files_used.append(used)
+            return {"path": used, "files": [used]}
 
         files: list[str] = []
         for current_root, dirs, names in os.walk(base):
@@ -122,6 +124,7 @@ class ToolExecutor:
                 if any(part in EXCLUDED_DIRS for part in rel.parts):
                     continue
                 files.append(str(rel))
+        self.files_used.extend(files)
         return {"path": rel_path(base), "files": files}
 
     def read_file(self, arguments: dict[str, Any]) -> dict[str, Any]:
@@ -131,7 +134,7 @@ class ToolExecutor:
         lines = path.read_text(encoding="utf-8").splitlines()
         start = start_line - 1
         end = start + max_lines
-        self.files_read.append(rel_path(path))
+        self.files_used.append(rel_path(path))
         return {
             "path": rel_path(path),
             "start_line": start_line,

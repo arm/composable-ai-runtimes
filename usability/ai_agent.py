@@ -42,7 +42,7 @@ class AgentResult:
     total_tokens: int
     finished: bool
     tool_history: list[dict[str, Any]]
-    files_read: list[str]
+    files_used: list[str]
     commands_run: list[str]
     writes_made: list[str]
     tool_calls: int
@@ -90,7 +90,7 @@ def run_agent(prompt: str, max_turns: int) -> AgentResult:
         total_tokens=usage_totals["total_tokens"],
         finished=executor.finished,
         tool_history=executor.history,
-        files_read=executor.files_read,
+        files_used=executor.files_used,
         commands_run=executor.commands_run,
         writes_made=executor.writes_made,
         tool_calls=executor.tool_calls,
