@@ -1,0 +1,52 @@
+id: messaging-pubsub-python-v1
+version: 1
+summary: Create a minimal, deterministic Python pub/sub demo for the AI usability framework against the local Cairn messaging service.
+
+prompt: |
+  You are working in the Cairn SDK repository.
+
+  Task:
+  Create a minimal Python script at `usability/workspace/messaging_pubsub_demo.py` that:
+  1. Connects to Redis on `127.0.0.1:6379`
+  2. Subscribes to channel `cairn.ai_usability.demo`
+  3. Publishes the exact message `hello-cairn-ai-usability`
+  4. Waits for the subscribed message
+  5. Prints exactly `received: hello-cairn-ai-usability`
+
+  Constraints:
+  - Use Python
+  - Keep the script self-contained
+  - You may inspect the repository using the available tools
+  - Do not change any existing repository files except creating or updating that script
+  - The script must exit with code 0 on success and non-zero on failure
+  - The script must fail clearly if the message is not received within 5 seconds
+
+success_criteria:
+  file_exists: usability/workspace/messaging_pubsub_demo.py
+  stdout_exact: "received: hello-cairn-ai-usability"
+  exit_code: 0
+
+setup:
+  - name: start messaging service
+    run: docker compose -f services/compose.yaml up -d messaging-service
+
+verification:
+  command: uv run --with redis==5.2.1 python usability/workspace/messaging_pubsub_demo.py
+  timeout_seconds: 15
+
+artifacts:
+  - usability/workspace/messaging_pubsub_demo.py
+
+metrics:
+  capture:
+    - prompt_tokens
+    - completion_tokens
+    - total_tokens
+    - files_read
+    - commands_run
+    - writes_made
+    - duration_seconds
+
+notes:
+  - This is intentionally scoped to a single deterministic happy-path task.
+  - Prefer repo-local service startup over external hosted dependencies.

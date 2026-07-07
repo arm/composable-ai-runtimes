@@ -1,0 +1,46 @@
+name: AI Usability
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  framework:
+    runs-on: self-hosted-ubuntu-24.04-arm64-ephemeral
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.10.12"
+
+      - name: Run usability framework
+        env:
+          ARM_GPT_PROXY_BASE_URL: ${{ secrets.ARM_GPT_PROXY_BASE_URL }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          uv run --with pyyaml==6.0.2 --with requests==2.32.3 \
+            python usability/run_framework.py \
+            --results-dir usability/results \
+            --history usability/history/history.json
+
+      - name: Upload usability results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4.6.2
+        with:
+          name: ai-usability-results
+          path: |
+            usability/results/
+            usability/history/history.json
+            usability/workspace/
+
+      - name: Clean up messaging service
+        if: always()
+        run: docker compose -f services/compose.yaml down --volumes --remove-orphans
