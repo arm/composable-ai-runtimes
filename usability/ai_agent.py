@@ -75,7 +75,7 @@ def run_agent(prompt: str, max_turns: int) -> AgentResult:
 
 def call_model(messages: list[dict[str, Any]]) -> tuple[dict[str, Any], dict[str, Any]]:
     response = requests.post(
-        f"{os.environ['ARM_GPT_PROXY_BASE_URL'].rstrip('/')}/chat/completions",
+        f"{os.environ['OPENAI_BASE_URL'].rstrip('/')}/chat/completions",
         headers={
             "Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}",
             "Content-Type": "application/json",
