@@ -4,9 +4,6 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '0 2 * * *'
-  push:
-    branches:
-      - ai-usability
 
 permissions:
   contents: read
@@ -33,7 +30,6 @@ jobs:
 
       - name: Run usability framework
         env:
-          OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           REQUESTS_CA_BUNDLE: /etc/ssl/certs/ca-certificates.crt
           SSL_CERT_FILE: /etc/ssl/certs/ca-certificates.crt
