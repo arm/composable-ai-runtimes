@@ -2,6 +2,15 @@
 
 *A comprehensive development kit built for developers and agents to rapidly develop edge AI applications with containerisation in mind.*
 
+## AI usability dashboard
+
+The committed run history lives at `usability/history/history.json`.
+A static GitHub Pages dashboard reads that file from `usability/site/index.html` and plots per-task:
+- duration
+- files used
+- total tokens
+
+
 Cairn SDK currently provides the following modules to simplify your development journey:
 
 • 📷 [Camera](./services/camera/README.md)

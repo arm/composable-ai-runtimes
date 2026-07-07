@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cairn AI Usability Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: Inter, system-ui, sans-serif;
+      }
+      body {
+        margin: 0;
+        padding: 24px;
+        background: #0f172a;
+        color: #e2e8f0;
+      }
+      main {
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+      h1 {
+        margin-top: 0;
+        margin-bottom: 8px;
+      }
+      p,
+      label {
+        color: #cbd5e1;
+      }
+      .panel {
+        background: #111827;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 16px;
+        margin-top: 16px;
+      }
+      select {
+        margin-top: 8px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid #475569;
+        background: #0f172a;
+        color: #e2e8f0;
+      }
+      .summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+        margin-top: 16px;
+      }
+      .summary div {
+        background: #0f172a;
+        border: 1px solid #334155;
+        border-radius: 10px;
+        padding: 12px;
+      }
+      .summary strong {
+        display: block;
+        font-size: 1.4rem;
+        margin-top: 6px;
+      }
+      canvas {
+        width: 100%;
+        max-height: 520px;
+      }
+      #status {
+        color: #fbbf24;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Cairn AI Usability Dashboard</h1>
+      <p>Committed run history for the usability framework.</p>
+      <div class="panel">
+        <label for="task-select">Task</label><br />
+        <select id="task-select"></select>
+        <p id="status">Loading history…</p>
+        <div class="summary" id="summary"></div>
+      </div>
+      <div class="panel">
+        <canvas id="history-chart"></canvas>
+      </div>
+    </main>
+    <script>
+      const taskSelect = document.getElementById('task-select');
+      const status = document.getElementById('status');
+      const summary = document.getElementById('summary');
+      let chart;
+
+      function metricCard(label, value) {
+        const item = document.createElement('div');
+        item.innerHTML = `<span>${label}</span><strong>${value}</strong>`;
+        return item;
+      }
+
+      function renderSummary(entries) {
+        summary.replaceChildren();
+        if (!entries.length) {
+          summary.append(metricCard('Runs', '0'));
+          return;
+        }
+        const latest = entries[entries.length - 1];
+        const avg = (key) => (entries.reduce((sum, entry) => sum + (entry[key] || 0), 0) / entries.length).toFixed(1);
+        summary.append(
+          metricCard('Runs', entries.length),
+          metricCard('Latest status', latest.status),
+          metricCard('Avg duration (s)', avg('duration_seconds')),
+          metricCard('Avg files used', avg('file_count')),
+          metricCard('Avg total tokens', avg('total_tokens')),
+        );
+      }
+
+      function renderChart(entries, taskId) {
+        const labels = entries.map((entry) => new Date(entry.timestamp).toLocaleString());
+        const datasets = [
+          {
+            label: 'Duration (s)',
+            data: entries.map((entry) => entry.duration_seconds || 0),
+            borderColor: '#38bdf8',
+            backgroundColor: '#38bdf8',
+            yAxisID: 'y',
+          },
+          {
+            label: 'Files used',
+            data: entries.map((entry) => entry.file_count || 0),
+            borderColor: '#34d399',
+            backgroundColor: '#34d399',
+            yAxisID: 'y',
+          },
+          {
+            label: 'Total tokens',
+            data: entries.map((entry) => entry.total_tokens || 0),
+            borderColor: '#f59e0b',
+            backgroundColor: '#f59e0b',
+            yAxisID: 'y1',
+          },
+        ];
+
+        chart?.destroy();
+        chart = new Chart(document.getElementById('history-chart'), {
+          type: 'line',
+          data: { labels, datasets },
+          options: {
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              legend: { labels: { color: '#e2e8f0' } },
+              title: {
+                display: true,
+                text: `Task history: ${taskId}`,
+                color: '#e2e8f0',
+              },
+            },
+            scales: {
+              x: {
+                ticks: { color: '#cbd5e1' },
+                grid: { color: '#334155' },
+              },
+              y: {
+                position: 'left',
+                ticks: { color: '#cbd5e1' },
+                grid: { color: '#334155' },
+                title: { display: true, text: 'Duration / Files', color: '#cbd5e1' },
+              },
+              y1: {
+                position: 'right',
+                ticks: { color: '#fbbf24' },
+                grid: { drawOnChartArea: false },
+                title: { display: true, text: 'Tokens', color: '#fbbf24' },
+              },
+            },
+          },
+        });
+      }
+
+      function renderTask(entriesByTask, taskId) {
+        const entries = entriesByTask.get(taskId) || [];
+        renderSummary(entries);
+        renderChart(entries, taskId);
+        status.textContent = entries.length
+          ? `Showing ${entries.length} runs for ${taskId}`
+          : `No runs recorded for ${taskId}`;
+      }
+
+      async function main() {
+        try {
+          const response = await fetch('./history/history.json');
+          const history = await response.json();
+          const entriesByTask = new Map();
+          for (const entry of history) {
+            if (!entriesByTask.has(entry.task_id)) {
+              entriesByTask.set(entry.task_id, []);
+            }
+            entriesByTask.get(entry.task_id).push(entry);
+          }
+
+          const taskIds = [...entriesByTask.keys()].sort();
+          taskSelect.replaceChildren();
+          for (const taskId of taskIds) {
+            const option = document.createElement('option');
+            option.value = taskId;
+            option.textContent = taskId;
+            taskSelect.append(option);
+          }
+
+          if (!taskIds.length) {
+            status.textContent = 'No history data available yet.';
+            renderSummary([]);
+            return;
+          }
+
+          taskSelect.addEventListener('change', () => renderTask(entriesByTask, taskSelect.value));
+          taskSelect.value = taskIds[0];
+          renderTask(entriesByTask, taskIds[0]);
+        } catch (error) {
+          console.error(error);
+          status.textContent = 'Failed to load history.json';
+          renderSummary([]);
+        }
+      }
+
+      main();
+    </script>
+  </body>
+</html>
