@@ -115,7 +115,6 @@ def main() -> int:
 
     task_paths = discover_tasks()
     task_results = []
-    exit_code = 0
 
     for task_path in task_paths:
         result_path = results_dir / (Path(task_path).stem + ".json")
@@ -125,8 +124,6 @@ def main() -> int:
         result["github_sha"] = os.environ.get("GITHUB_SHA")
         task_results.append(result)
         print_task_result(result, result_path)
-        if status != 0:
-            exit_code = 1
 
     append_history(args.history, task_results)
 
@@ -147,7 +144,7 @@ def main() -> int:
         f"{total_tokens} tokens, {total_tool_calls} tool calls",
         flush=True,
     )
-    return exit_code
+    return 0
 
 
 if __name__ == "__main__":

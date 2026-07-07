@@ -67,6 +67,12 @@
       #status {
         color: #fbbf24;
       }
+      .status-pass strong {
+        color: #34d399;
+      }
+      .status-failed strong {
+        color: #f87171;
+      }
     </style>
   </head>
   <body>
@@ -89,8 +95,9 @@
       const summary = document.getElementById('summary');
       let chart;
 
-      function metricCard(label, value) {
+      function metricCard(label, value, className = '') {
         const item = document.createElement('div');
+        if (className) item.className = className;
         item.innerHTML = `<span>${label}</span><strong>${value}</strong>`;
         return item;
       }
@@ -102,10 +109,14 @@
           return;
         }
         const latest = entries[entries.length - 1];
+        const passedRuns = entries.filter((entry) => entry.status === 'passed').length;
+        const failedRuns = entries.filter((entry) => entry.status !== 'passed').length;
         const avg = (key) => (entries.reduce((sum, entry) => sum + (entry[key] || 0), 0) / entries.length).toFixed(1);
         summary.append(
           metricCard('Runs', entries.length),
-          metricCard('Latest status', latest.status),
+          metricCard('Latest status', latest.status, latest.status === 'passed' ? 'status-pass' : 'status-failed'),
+          metricCard('Passed runs', passedRuns),
+          metricCard('Failed runs', failedRuns),
           metricCard('Avg duration (s)', avg('duration_seconds')),
           metricCard('Avg files used', avg('file_count')),
           metricCard('Avg total tokens', avg('total_tokens')),
@@ -114,12 +125,15 @@
 
       function renderChart(entries, taskId) {
         const labels = entries.map((entry) => new Date(entry.timestamp).toLocaleString());
+        const pointColors = entries.map((entry) => (entry.status === 'passed' ? '#34d399' : '#f87171'));
         const datasets = [
           {
             label: 'Duration (s)',
             data: entries.map((entry) => entry.duration_seconds || 0),
             borderColor: '#38bdf8',
             backgroundColor: '#38bdf8',
+            pointBackgroundColor: pointColors,
+            pointBorderColor: pointColors,
             yAxisID: 'y',
           },
           {
@@ -127,6 +141,8 @@
             data: entries.map((entry) => entry.file_count || 0),
             borderColor: '#34d399',
             backgroundColor: '#34d399',
+            pointBackgroundColor: pointColors,
+            pointBorderColor: pointColors,
             yAxisID: 'y',
           },
           {
@@ -134,6 +150,8 @@
             data: entries.map((entry) => entry.total_tokens || 0),
             borderColor: '#f59e0b',
             backgroundColor: '#f59e0b',
+            pointBackgroundColor: pointColors,
+            pointBorderColor: pointColors,
             yAxisID: 'y1',
           },
         ];
@@ -149,7 +167,7 @@
               legend: { labels: { color: '#e2e8f0' } },
               title: {
                 display: true,
-                text: `Task history: ${taskId}`,
+                text: `Task history: ${taskId} (green=passed, red=failed)`,
                 color: '#e2e8f0',
               },
             },
@@ -180,7 +198,7 @@
         renderSummary(entries);
         renderChart(entries, taskId);
         status.textContent = entries.length
-          ? `Showing ${entries.length} runs for ${taskId}`
+          ? `Showing ${entries.length} runs for ${taskId}. Latest run: ${entries[entries.length - 1].status}.`
           : `No runs recorded for ${taskId}`;
       }
 
