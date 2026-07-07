@@ -8,7 +8,7 @@ Create a minimal Python script at `usability/workspace/messaging_pubsub_demo.py`
 4. Prints exactly `received: hello-cairn-ai-usability`
 
 Constraints:
-- Use Rust 
+- Use Python
 - Use `cairn_sdk.notification.NotificationClient` for the subscription path; do not implement subscription with raw `redis` directly
 - `NotificationClient` subscribes only; publish the message with `redis.asyncio.from_url("redis://127.0.0.1:6379/0", decode_responses=True)`
 - The script will be run from the repository root with `PYTHONPATH=lib/python`
