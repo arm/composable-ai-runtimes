@@ -31,6 +31,9 @@ RESPONSE_TOOLS = [
 SYSTEM_PROMPT = """You are a coding agent working in a checked-out repository.
 Use the available tools to inspect the repo and create the requested file.
 Prefer minimal changes.
+Do not list or read broad parts of the repository unless the task requires it.
+If the user asks for a specific output file, write that file as soon as you have
+enough information. Do not spend all turns exploring.
 When you are done, call finish.
 """
 

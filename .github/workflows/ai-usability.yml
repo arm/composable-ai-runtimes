@@ -40,7 +40,8 @@ jobs:
           uv run --with pyyaml==6.0.2 --with requests==2.32.3 \
             python usability/run_framework.py \
             --results-dir usability/results \
-            --history usability/history/history.json
+            --history usability/history/history.json \
+            --max-turns 20
 
       - name: Clean up messaging service
         if: always()
