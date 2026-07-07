@@ -110,7 +110,14 @@ jobs:
 
       - name: Install Codex CLI
         if: steps.context.outputs.should_run == 'true'
-        run: npm install -g "@openai/codex@latest"
+        env:
+          NPM_CONFIG_PREFIX: ${{ runner.temp }}/npm-global
+        run: |
+          set -euo pipefail
+          mkdir -p "${NPM_CONFIG_PREFIX}/bin"
+          echo "${NPM_CONFIG_PREFIX}/bin" >> "${GITHUB_PATH}"
+          npm install -g "@openai/codex@latest"
+          "${NPM_CONFIG_PREFIX}/bin/codex" --version
 
       - name: Configure Codex for Arm OpenAI proxy
         if: steps.context.outputs.should_run == 'true'
