@@ -21,7 +21,7 @@ on:
 
 permissions:
   contents: read
-  issues: write
+  issues: writeå
   pull-requests: read
 
 jobs:
@@ -40,7 +40,7 @@ jobs:
           )
         )
       }}
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-ubuntu-24.04-arm64-ephemeral
     concurrency:
       group: >-
         codex-pr-agent-${{
