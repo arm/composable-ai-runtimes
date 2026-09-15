@@ -1,5 +1,0 @@
-version: 1
-configuration:
-  pipelines_match_list:
-    - rpi/pisp
-    - rpi/vc4

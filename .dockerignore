@@ -1,6 +1,0 @@
-.git
-.tmp
-docs-website/node_modules
-docs-website/build
-docs-website/.docusaurus
-lib/target

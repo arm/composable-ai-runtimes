@@ -1,6 +1,0 @@
-services:
-  concordia-inference-service:
-    build: .
-    platform: "linux/arm64"
-    ports:
-      - "50052:50052"
