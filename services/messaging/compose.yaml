@@ -1,0 +1,34 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+services:
+  messaging-service:
+    image: ${MESSAGING_SERVICE_IMAGE:-messaging:local}
+    build:
+      context: .
+    ports:
+      - host_ip: 127.0.0.1
+        target: 6379
+        published: 6379
+        protocol: tcp
+      - host_ip: 127.0.0.1
+        target: 50054
+        published: 50054
+        protocol: tcp
+    healthcheck:
+      test: ["CMD", "grpc_health_probe", "-addr=127.0.0.1:50054"]
+      interval: 2s
+      timeout: 2s
+      retries: 10
+    x-cairn:
+      format_version: "0.1"
+      service_version: 0.1.0
+      name: Messaging Service
+      description: Provides asynchronous publish and subscribe messaging for Cairn services.
+      id: cairn.messaging-service
+      role: core
+      api:
+        grpc:
+          port: 50054
+          contracts:
+            - proto/cairn/messaging/v1/messaging.proto

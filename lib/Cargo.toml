@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+[workspace]
+members = ["crates/cairn-camera", "crates/cairn-notification", "crates/cairn-perception", "crates/cairn", "crates/cairn-py"]
+default-members = ["crates/cairn-camera", "crates/cairn-notification", "crates/cairn-perception", "crates/cairn", "crates/cairn-py"]
+resolver = "3"
+
+[workspace.package]
+version = "0.0.1"
+edition = "2024"
+license = "Apache-2.0"
+
+[workspace.dependencies]
+cairn-camera = { package = "arm-cairn-camera", path = "crates/cairn-camera", version = "=0.0.1" }
+cairn-notification = { package = "arm-cairn-notification", path = "crates/cairn-notification", version = "=0.0.1" }
+cairn-perception = { package = "arm-cairn-perception", path = "crates/cairn-perception", version = "=0.0.1" }
+cairn = { package = "arm-cairn", path = "crates/cairn", version = "=0.0.1" }
+open_perception_kit = "=0.1.1"

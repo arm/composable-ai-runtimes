@@ -1,0 +1,70 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+# Reviewed CPython 3.13 Linux ARM64 wheel payloads. Unknown component versions
+# are deliberately omitted; upstream license references are not build provenance.
+[[packages]]
+name = "numpy"
+version = "2.4.2"
+license_file = "numpy-2.4.2.dist-info/licenses/LICENSE.txt"
+license_sha256 = "4860083caa0de2ac3292ca98bd074bd8f45d8b32624e37b1e70a240bff61e488"
+
+[[packages.payloads]]
+path = "numpy.libs/libscipy_openblas64_-e5a4d414.so"
+sha256 = "ce284c82aa99499aab8ce3fbd45a9722a8ba9250a81e7a830e2de50ce47abb60"
+[[packages.payloads.components]]
+name = "openblas"
+version = "0.3.31.dev"
+license = "BSD-3-Clause"
+[[packages.payloads.components]]
+name = "lapack"
+license = "BSD-3-Clause-Open-MPI"
+
+[[packages.payloads]]
+path = "numpy.libs/libgfortran-daac5196-038a5e3c.so.5.0.0"
+sha256 = "8c13f44b44e4dd0005632ea4173f5f5014d2829d50aa12b2054034297c07f233"
+[[packages.payloads.components]]
+name = "libgfortran"
+version = "8.3.1-2.1.1.el7"
+license = "GPL-3.0-or-later WITH GCC-exception-3.1"
+# NumPy's pinned scipy-openblas64 0.3.31.22.0 wheel contains the CentOS
+# libgfortran5 runtime. ELF code/build ID match; wheel repair changes linking metadata.
+# GNU build ID: 6f2fd2558e55f866933a2c84b460699ad2d01db0
+# https://github.com/numpy/numpy/blob/v2.4.2/requirements/ci_requirements.txt
+# Binary RPM: https://vault.centos.org/altarch/7.9.2009/os/aarch64/Packages/libgfortran5-8.3.1-2.1.1.el7.aarch64.rpm
+source_url = "https://vault.centos.org/7.9.2009/os/Source/SPackages/gcc-libraries-8.3.1-2.1.1.el7.src.rpm"
+source_sha256 = "cf2a1d2c2e5a56eb2e495c2638e64769b73db07555e1f7ce34cbd9feff6891f5"
+
+[[packages]]
+name = "grpcio"
+version = "1.83.0"
+license_file = "grpcio-1.83.0.dist-info/licenses/LICENSE"
+license_sha256 = "58c86a3f2b5cca0ebdf9ed3e7f4e6dc38e3b38796d8c3dc92064c62a4e39d0dd"
+
+[[packages.payloads]]
+path = "grpc/_cython/cygrpc.cpython-313-aarch64-linux-gnu.so"
+sha256 = "da127e67e94a0d53c6686162fe2bf7df597253a80c235c5fc24f956574d2dca1"
+[[packages.payloads.components]]
+name = "boringssl"
+license = "Apache-2.0"
+license_url = "https://github.com/google/boringssl/blob/2b44a3701a4788e1ef866ddc7f143060a3d196c9/LICENSE"
+[[packages.payloads.components]]
+name = "abseil-cpp"
+license = "Apache-2.0"
+license_url = "https://github.com/abseil/abseil-cpp/blob/76bb24329e8bf5f39704eb10d21b9a80befa7c81/LICENSE"
+[[packages.payloads.components]]
+name = "c-ares"
+license = "MIT"
+license_url = "https://github.com/c-ares/c-ares/blob/d3a507e920e7af18a5efb7f9f1d8044ed4750013/LICENSE.md"
+[[packages.payloads.components]]
+name = "re2"
+license = "BSD-3-Clause"
+license_url = "https://github.com/google/re2/blob/0c5616df9c0aaa44c9440d87422012423d91c7d1/LICENSE"
+
+[[packages.payloads]]
+path = "grpc/_cython/_credentials/roots.pem"
+sha256 = "3d636834428627c2fafcf60dbe865f1a259352e508f7779a5714a77033ba6b20"
+[[packages.payloads.components]]
+name = "roots.pem"
+purpose = "OTHER"
+license = "MPL-2.0"

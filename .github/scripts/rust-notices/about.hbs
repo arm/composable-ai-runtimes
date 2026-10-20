@@ -1,0 +1,18 @@
+{{!--
+SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+SPDX-License-Identifier: Apache-2.0
+--}}
+
+Rust dependency notices
+
+Includes Linux ARM64 release dependencies and build dependencies.
+Additional Rust standard-library notices are in COPYRIGHT-library.html.
+
+{{#each licenses}}
+{{#each used_by}}
+{{crate.name}} {{crate.version}}
+{{/each}}
+
+{{{text}}}
+
+{{/each}}

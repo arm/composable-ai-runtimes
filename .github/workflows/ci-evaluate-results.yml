@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+name: Evaluate CI results
+
+on:
+  workflow_call:
+    inputs:
+      results:
+        required: true
+        type: string
+
+permissions: {}
+
+jobs:
+  required:
+    name: Required checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check applicable jobs
+        shell: python
+        env:
+          CI_RESULTS: ${{ inputs.results }}
+        run: |
+          import json
+          import os
+          import sys
+
+          results = json.loads(os.environ["CI_RESULTS"])
+          paths = results.pop("changes")
+          changed = paths.get("outputs", {}).get("changed")
+          if paths["result"] != "success" or changed not in ("true", "false"):
+              sys.exit("CI path selection did not succeed")
+          if not results:
+              sys.exit("No CI jobs configured")
+          expected = "success" if changed == "true" else "skipped"
+          failures = [name for name, job in results.items() if job["result"] != expected]
+          if failures:
+              sys.exit(f"Expected {expected}: {', '.join(failures)}")
+          print("Applicable CI jobs passed" if changed == "true" else "CI paths are not affected")

@@ -1,0 +1,221 @@
+// SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+// SPDX-License-Identifier: Apache-2.0
+
+syntax = "proto3";
+
+package cairn.perception.v1;
+
+service PerceptionService {
+  rpc GetServiceInfo(GetServiceInfoRequest) returns (GetServiceInfoResponse);
+  rpc ValidateWorkflow(ValidateWorkflowRequest) returns (ValidateWorkflowResponse);
+  rpc DeployWorkflow(DeployWorkflowRequest) returns (DeployWorkflowResponse);
+  rpc GetSession(GetSessionRequest) returns (PerceptionSession);
+  rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse);
+  rpc GetSessionSnapshot(GetSessionRequest) returns (SessionSnapshot);
+  rpc StopSession(StopSessionRequest) returns (PerceptionSession);
+  rpc EnableStage(StageControlRequest) returns (PerceptionSession);
+  rpc DisableStage(StageControlRequest) returns (PerceptionSession);
+}
+
+message GetServiceInfoRequest {}
+
+message GetServiceInfoResponse {
+  string api_version = 1;
+  string service_version = 2;
+  bool sessions_survive_restart = 4;
+}
+
+message DebugPorts {
+  uint32 http_port = 1;
+  uint32 ws_port = 2;
+  uint32 ctrl_port = 3;
+}
+
+message WorkflowSpec {
+  string name = 1;
+  SourceSpec source = 2;
+  repeated InferenceStage stages = 5;
+  // Unset disables debug output.
+  OutputSpec output = 6;
+  // Selects lifecycle event publication. If unset, defaults to true.
+  optional bool output_events = 7;
+}
+
+message SourceSpec {
+  oneof source {
+    StreamConfiguration camera = 1;
+  }
+}
+
+// Perception-owned copies of Camera's configuration messages.
+message StreamConfiguration {
+  // Opaque PipeWire target to pass unchanged to the source.
+  string target = 1;
+
+  // Camera identifier associated with this configuration.
+  uint64 camera_id = 2;
+  // Complete stream format advertised by the camera.
+  StreamFormat format = 3;
+}
+
+// A concrete camera stream format.
+message StreamFormat {
+  // Frame dimensions in pixels.
+  Resolution resolution = 1;
+  // PipeWire pixel format name.
+  string pixel_format = 2;
+  // Exact frames-per-second fraction.
+  FrameRate frame_rate = 3;
+}
+
+// Frame dimensions in pixels.
+message Resolution {
+  // Frame width.
+  uint32 width = 1;
+  // Frame height.
+  uint32 height = 2;
+}
+
+// Frames per second as an exact fraction.
+message FrameRate {
+  // Fraction numerator.
+  uint32 numerator = 1;
+  // Fraction denominator.
+  uint32 denominator = 2;
+}
+
+message InferenceStage {
+  string id = 1;
+  string name = 2;
+  string model_id = 3;
+}
+
+message OutputSpec {
+  oneof output {
+    DebugOutput debug = 1;
+  }
+}
+
+message DebugOutput {
+  // Zero uses the default HTTP port, 9999.
+  uint32 http_port = 1;
+  // Zero uses the default WebSocket signaling port, 8000.
+  uint32 ws_port = 2;
+  // Zero uses the default control WebSocket port, 8001.
+  uint32 ctrl_port = 3;
+}
+
+message ValidateWorkflowRequest {
+  WorkflowSpec workflow = 1;
+}
+
+message ValidateWorkflowResponse {
+  bool valid = 1;
+  repeated ValidationIssue issues = 2;
+  repeated ResolvedStage stages = 3;
+}
+
+enum ValidationSeverity {
+  // Default value when severity is not explicitly set.
+  VALIDATION_SEVERITY_UNSPECIFIED = 0;
+  VALIDATION_SEVERITY_ERROR = 1;
+  VALIDATION_SEVERITY_WARNING = 2;
+}
+
+message ValidationIssue {
+  ValidationSeverity severity = 1;
+  string code = 2;
+  string message = 3;
+  optional string field_path = 4;
+  optional string stage_id = 5;
+}
+
+enum ResolvedStageRole {
+  RESOLVED_STAGE_ROLE_UNSPECIFIED = 0;
+  RESOLVED_STAGE_ROLE_SOURCE = 1;
+  RESOLVED_STAGE_ROLE_PROCESSING = 2;
+  RESOLVED_STAGE_ROLE_OUTPUT = 3;
+}
+
+message ResolvedStage {
+  string id = 1;
+  string name = 2;
+  ResolvedStageRole role = 3;
+  bool controllable = 4;
+  optional string model_id = 5;
+}
+
+message DeployWorkflowRequest {
+  WorkflowSpec workflow = 1;
+}
+
+message DeployWorkflowResponse {
+  oneof outcome {
+    DeploymentAccepted accepted = 1;
+    DeploymentRejected rejected = 2;
+  }
+}
+
+message DeploymentAccepted {
+  PerceptionSession session = 1;
+}
+
+message DeploymentRejected {
+  repeated ValidationIssue issues = 1;
+}
+
+message GetSessionRequest {
+  string session_id = 1;
+}
+
+message ListSessionsRequest {}
+
+message ListSessionsResponse {
+  repeated PerceptionSession sessions = 1;
+}
+
+message StopSessionRequest {
+  string session_id = 1;
+}
+
+message StageControlRequest {
+  string session_id = 1;
+  string stage_id = 2;
+}
+
+message PerceptionSession {
+  string id = 1;
+  string workflow_name = 2;
+  repeated ResolvedStage stages = 4;
+  DebugPorts debug_endpoint = 5;
+  SessionTopics topics = 7;
+}
+
+message SessionTopics {
+  string results = 1;
+  string events = 2;
+}
+
+message SessionSnapshot {
+  SessionStatus status = 1;
+  repeated string disabled_stage_ids = 2;
+}
+
+message SessionStatus {
+  SessionState state = 1;
+  StatusInfo info = 2;
+}
+
+message StatusInfo {
+  string code = 1;
+  string message = 2;
+}
+
+enum SessionState {
+  SESSION_STATE_UNSPECIFIED = 0;
+  SESSION_STATE_STARTING = 1;
+  SESSION_STATE_RUNNING = 2;
+  SESSION_STATE_STOPPING = 3;
+  SESSION_STATE_STOPPED = 4;
+  SESSION_STATE_FAILED = 5;
+}

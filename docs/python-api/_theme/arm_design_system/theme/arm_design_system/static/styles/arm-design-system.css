@@ -1,0 +1,211 @@
+/*
+ * SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/*
+ * Color tokens derived from the Arm Developer Design System.
+ * Layout remains inherited from Furo.
+ */
+
+:root {
+  --arm-ink: #080225;
+  --arm-horizon-blue: #0057ff;
+  --arm-future-violet: #7233f7;
+  --arm-link: #0047d6;
+  --arm-focus: #004ee6;
+  --arm-surface-muted: #f0f0f0;
+  --arm-text-secondary: #484848;
+  --arm-border: #d4d4d4;
+  --arm-error: #c60b0b;
+  --arm-warning: #a94612;
+  --arm-success: #077252;
+}
+
+body {
+  --color-background-primary: #fff;
+  --color-background-secondary: var(--arm-surface-muted);
+  --color-background-hover: #e6e6e9;
+  --color-foreground-primary: var(--arm-ink);
+  --color-foreground-secondary: var(--arm-text-secondary);
+  --color-foreground-muted: #64616f;
+  --color-foreground-border: var(--arm-border);
+  --color-brand-primary: var(--arm-horizon-blue);
+  --color-brand-content: var(--arm-link);
+  --color-api-name: var(--arm-focus);
+  --color-api-pre-name: #393551;
+  --color-api-paren: #64616f;
+  --color-api-keyword: #5b2c83;
+  --color-api-hover: #e6e6e9;
+  --color-sidebar-background: var(--color-background-primary);
+  --color-sidebar-background-border: var(--arm-border);
+  --color-sidebar-brand-text: var(--arm-ink);
+  --color-sidebar-caption-text: var(--arm-text-secondary);
+  --color-sidebar-link-text: var(--arm-text-secondary);
+  --color-sidebar-link-text--top-level: var(--arm-ink);
+  --color-sidebar-item-background--hover: #e6e6e9;
+  --color-sidebar-item-expander-background--hover: #d4d4d4;
+  --color-table-header-background: var(--arm-surface-muted);
+  --color-table-border: var(--arm-border);
+  --color-code-background: var(--arm-surface-muted);
+  --color-code-foreground: #333e48;
+  --toc-font-size: var(--font-size--normal);
+  --toc-title-font-size: var(--font-size--small);
+
+  font-family: Aeonik, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0.01em;
+}
+
+body[data-theme="dark"] {
+  --color-background-primary: #080225;
+  --color-background-secondary: #16122a;
+  --color-background-hover: #211b3b;
+  --color-foreground-primary: #e6e6e9;
+  --color-foreground-secondary: #9c9aa8;
+  --color-foreground-muted: #848192;
+  --color-foreground-border: #393551;
+  --color-brand-primary: #7233f7;
+  --color-brand-content: #d1bafc;
+  --color-api-name: #d1bafc;
+  --color-api-pre-name: #9c9aa8;
+  --color-api-paren: #9c9aa8;
+  --color-api-keyword: #00c1de;
+  --color-api-hover: #211b3b;
+  --color-sidebar-background: var(--color-background-primary);
+  --color-sidebar-background-border: #393551;
+  --color-sidebar-brand-text: #e6e6e9;
+  --color-sidebar-caption-text: #9c9aa8;
+  --color-sidebar-link-text: #9c9aa8;
+  --color-sidebar-link-text--top-level: #e6e6e9;
+  --color-sidebar-item-background--hover: #211b3b;
+  --color-sidebar-item-expander-background--hover: #393551;
+  --color-table-header-background: #16122a;
+  --color-table-border: #393551;
+  --color-code-background: #16122a;
+  --color-code-foreground: #fff;
+}
+
+@media (prefers-color-scheme: dark) {
+  body:not([data-theme="light"]) {
+    --color-background-primary: #080225;
+    --color-background-secondary: #16122a;
+    --color-background-hover: #211b3b;
+    --color-foreground-primary: #e6e6e9;
+    --color-foreground-secondary: #9c9aa8;
+    --color-foreground-muted: #848192;
+    --color-foreground-border: #393551;
+    --color-brand-primary: #7233f7;
+    --color-brand-content: #d1bafc;
+    --color-api-name: #d1bafc;
+    --color-api-pre-name: #9c9aa8;
+    --color-api-paren: #9c9aa8;
+    --color-api-keyword: #00c1de;
+    --color-api-hover: #211b3b;
+    --color-sidebar-background: var(--color-background-primary);
+    --color-sidebar-background-border: #393551;
+    --color-sidebar-brand-text: #e6e6e9;
+    --color-sidebar-caption-text: #9c9aa8;
+    --color-sidebar-link-text: #9c9aa8;
+    --color-sidebar-link-text--top-level: #e6e6e9;
+    --color-sidebar-item-background--hover: #211b3b;
+    --color-sidebar-item-expander-background--hover: #393551;
+    --color-table-header-background: #16122a;
+    --color-table-border: #393551;
+    --color-code-background: #16122a;
+    --color-code-foreground: #fff;
+  }
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: Aeonik, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.sidebar-brand {
+  border-top: 4px solid var(--arm-horizon-blue);
+}
+
+body[data-theme="dark"] .sidebar-brand {
+  border-top-color: var(--arm-future-violet);
+}
+
+@media (prefers-color-scheme: dark) {
+  body:not([data-theme="light"]) .sidebar-brand {
+    border-top-color: var(--arm-future-violet);
+  }
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  border-radius: 2px;
+  outline: 3px solid var(--arm-focus);
+  outline-offset: 3px;
+}
+
+.sig-name {
+  font-weight: 600;
+}
+
+.toc-tree a.reference,
+.sidebar-tree .reference {
+  hyphens: none;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+@media (min-width: 90em) {
+  .toc-drawer {
+    flex: 1;
+    width: auto;
+    min-width: 15em;
+    margin-right: 4rem;
+  }
+}
+
+@media (min-width: 97em) {
+  html {
+    font-size: 100%;
+  }
+}
+
+dl.py > dt.sig {
+  border-left: 4px solid var(--arm-horizon-blue);
+}
+
+body[data-theme="dark"] dl.py > dt.sig {
+  border-left-color: #d1bafc;
+}
+
+@media (prefers-color-scheme: dark) {
+  body:not([data-theme="light"]) dl.py > dt.sig {
+    border-left-color: #d1bafc;
+  }
+}
+
+.admonition.error,
+.admonition.danger {
+  border-color: var(--arm-error);
+}
+
+.admonition.warning,
+.admonition.caution {
+  border-color: var(--arm-warning);
+}
+
+.admonition.success,
+.admonition.tip {
+  border-color: var(--arm-success);
+}
+
+.viewcode-link {
+  font-size: 0.8rem;
+}

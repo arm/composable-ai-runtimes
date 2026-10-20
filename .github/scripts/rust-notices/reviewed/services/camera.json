@@ -1,0 +1,25 @@
+{
+  "inputs": {
+    ".github/scripts/rust-notices/about.hbs": "11b60b5ca79b59c8f433f5c66e22f9c77a7d2cfa707b1e7fa7e355262e784801",
+    ".github/scripts/rust-notices/about.toml": "a0ca9a9a03e76186293c368b66bf92fef09e212feca0ebb879a20db06212eb5e",
+    ".github/scripts/rust-notices/toolchain.env": "c714f0899b8e8ae30ce23dccbfa8669adf42919126c2ca7c0f02cbc168f4e613",
+    "services/camera/Cargo.lock": "518fa264566db06cbe7d0a8b708b1b37aa34b6ab1237bdc5dbe63ac2cf3b2a39",
+    "services/camera/Cargo.toml": "4025114ad5359addff64b3bea602e74ac34356b68fe81a0852bc56f618f9bb6d"
+  },
+  "notices": {
+    "COPYRIGHT-library.html": "d93d65853736bde4e8649691233a98848ba709673873aeb39487bc1ca6ee292a",
+    "THIRD_PARTY_NOTICES.txt": "da69641241f614fa3251b2cb753619e45f5c64db76eee917011688bdb5e86fee",
+    "licenses/Apache-2.0.txt": "074e6e32c86a4c0ef8b3ed25b721ca23aca83df277cd88106ef7177c354615ff",
+    "licenses/BSD-2-Clause.txt": "f32fb3b417a194167cfad068223fc975ba96c5960513a10f66a3c28720aec1df",
+    "licenses/CC-BY-SA-4.0.txt": "23ee78c8bae49cf08ea2f0c84945c66b987ebe4520881fb51b3dad4fb43d07c2",
+    "licenses/GCC-exception-3.1.txt": "a3966c9410ef94a1efbfa9ec04e9c1994026a70623fbf0885ce36737bfba3b54",
+    "licenses/GPL-2.0-only.txt": "54b212ba1f97f6948fa5486239ab505dd820b02e50cbfd296b4062c8609a70af",
+    "licenses/GPL-3.0-or-later.txt": "05315fce6c35f79b8a35454828995fa26336f235895ac64557abc028f4ffcea2",
+    "licenses/ISC.txt": "0ff61769b238634e042ab759dddfd104a8e69d091e3600ae3410e401a6164381",
+    "licenses/LLVM-exception.txt": "e34c58338bd89d43e709e226610d8f32b3e3c47f4ad9a99a8dc1d4ac7842488e",
+    "licenses/MIT.txt": "b85dcd3e453d05982552c52b5fc9e0bdd6d23c6f8e844b984a88af32570b0cc0",
+    "licenses/NCSA.txt": "39cb0234065c92b9e6cee3830cbb52b1aa289aa8fe9ba2e66730fec5cf05c630",
+    "licenses/OFL-1.1.txt": "8eea8287e5876b539670cadb82e99f9a7afddec6f6730811be1daf25d2e9bcfd",
+    "licenses/Unicode-3.0.txt": "f5062c9a188d81dfe66b56db4182dcf9e4b17c0d9b0d311a8e20b3a1b075c443"
+  }
+}

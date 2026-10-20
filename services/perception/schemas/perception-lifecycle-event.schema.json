@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Perception lifecycle event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["session_id", "state"],
+  "properties": {
+    "session_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stage_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "state": {
+      "enum": [
+        "starting",
+        "running",
+        "stopping",
+        "stopped",
+        "failed",
+        "enabled",
+        "disabled"
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "state": {
+            "enum": ["enabled", "disabled"]
+          }
+        },
+        "required": ["state"]
+      },
+      "then": {
+        "required": ["stage_id"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+minimum_prek_version = "0.4.13"
+default_stages = ["pre-push"]
+
+[[repos]]
+repo = "local"
+
+[[repos.hooks]]
+id = "perception-proto-generated"
+name = "Perception Rust protobuf bindings are current"
+language = "system"
+entry = "cargo run --locked --example generate_perception_proto"
+pass_filenames = false
+always_run = true
+stages = ["pre-push"]

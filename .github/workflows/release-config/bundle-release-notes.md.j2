@@ -1,0 +1,62 @@
+{#
+SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+SPDX-License-Identifier: Apache-2.0
+-#}
+
+{# TODO: Replace these test URLs with published documentation URLs. #}
+{% set rust_docs_url = "https://example.com/docs/rust/{version}/" %}
+{% set python_docs_url = "https://example.com/docs/python/{version}/" %}
+
+{%- macro docs_link(label, url, version) -%}
+    {%- if url -%}
+        [{{ label }}]({{ url.format(version=version) }})
+    {%- else -%}
+        {{ label }}
+    {%- endif -%}
+{%- endmacro -%}
+
+Cairn {{ version }}
+
+{% if notes.strip() %}
+{{ notes.strip("\n") }}
+
+{% endif %}
+This bundle selects the following published component versions.
+
+| Component | Version | Location |
+| --- | --- | --- |
+{% for component, version in components.items() %}
+
+    {%- if component == "rust" %}
+        {% set label = "rust-user-lib" %}
+        {% set location = (
+            "[Cairn Rust library]("
+            ~ cargo_package_url.format(version=version)
+            ~ "); "
+            ~ docs_link("Rust user lib docs", rust_docs_url, version)
+        ) %}
+
+    {%- elif component == "python" %}
+        {% set label = "python-user-lib" %}
+        {% set location = (
+            "[Cairn Python library]("
+            ~ pypi_package_url.format(version=version)
+            ~ "); "
+            ~ docs_link("Python user lib docs", python_docs_url, version)
+        ) %}
+
+    {%- else %}
+        {% set label = component %}
+        {% set repository = (
+            "docker.io/" ~ registry_namespace
+            ~ "/arm-cairn-" ~ component ~ "-service"
+        ) %}
+        {% set contract = repository ~ ":service-" ~ version %}
+        {% set location = (
+            "image: `" ~ service_images[contract] ~ "`; "
+            ~ "contract: `" ~ contract ~ "`"
+        ) %}
+    {%- endif -%}
+
+    | {{ label }} | {{ version }} | {{ location }} |
+{% endfor %}

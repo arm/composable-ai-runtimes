@@ -1,0 +1,16 @@
+// SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+// SPDX-License-Identifier: Apache-2.0
+
+syntax = "proto3";
+
+package cairn.messaging.v1;
+
+import "google/protobuf/timestamp.proto";
+
+message CairnEvent {
+  google.protobuf.Timestamp timestamp = 1;
+  string origin = 2;
+  string event_type = 3;
+  string topic = 4;
+  bytes payload = 5;
+}

@@ -1,0 +1,81 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+[project]
+name = "perception-service"
+version = "0.1.0"
+description = "Deploy and manage perception workflows using Cairn camera sources"
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "flatbuffers==25.9.23",
+    "grpcio==1.83.0",
+    "grpcio-health-checking==1.83.0",
+    "jsonschema==4.26.0",
+    "loguru==0.7.3",
+    "numpy==2.4.2",
+    "open-perception-kit @ https://github.com/arm/open-perception-kit/archive/917caf6dda1dc476a89e7f563c4c1576c6e3b0ec.tar.gz#subdirectory=generated/open_perception_kit/python",
+    "protobuf==7.35.1",
+    "pycairo==1.29.0",
+    "pygobject==3.56.3",
+    "referencing==0.37.0",
+    "redis==8.1.0",
+    "websockets==17.0.1",
+]
+
+[project.scripts]
+perception_service = "perception_service.__main__:main"
+
+[build-system]
+requires = ["uv_build==0.11.32"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    { include-group = "sbom" },
+    { include-group = "test" },
+    "grpcio-tools==1.83.0",
+    "prek==0.4.13",
+    "pygobject-stubs==2.17.0 ; sys_platform != 'win32'",
+    "ruff==0.15.17",
+    "ty==0.0.64",
+]
+e2e = [
+    "pytest==9.1.1",
+]
+sbom = [
+    "spdx-tools==0.8.5",
+]
+test = [
+    { include-group = "e2e" },
+    "jsonschema==4.26.0",
+    "pytest-cov==7.1.0",
+]
+
+[tool.pytest.ini_options]
+markers = [
+    "e2e: end-to-end tests that require the packaged service and external dependencies",
+    "integration: tests that require native GStreamer and PyGObject",
+    "pipewiresrc: tests that require the PipeWire GStreamer source plugin",
+    "unit: tests that do not require native services or external dependencies",
+]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+relative_files = true
+source = ["perception_service"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+
+[tool.coverage.xml]
+output = "coverage/coverage.xml"
+
+[tool.ruff]
+extend-exclude = ["src/cairn/"]
+
+[tool.ty.src]
+exclude = ["src/cairn/"]

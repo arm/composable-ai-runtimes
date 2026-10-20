@@ -1,0 +1,93 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+name: Lint
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+
+permissions:
+  contents: read
+
+jobs:
+  prek:
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+      cancel-in-progress: true
+    if: vars.INTERNAL_REPO == 'true'
+    runs-on: self-hosted-ubuntu-24.04-arm64-ephemeral
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          workspaces: |
+            lib -> target
+            services/camera -> target
+            services/messaging -> target
+          save-if: ${{ github.event_name == 'push' }}
+
+      - name: Install native hook dependencies
+        timeout-minutes: 10
+        run: |
+          sudo apt-get \
+            -o Acquire::Retries=3 \
+            -o Acquire::http::Timeout=30 \
+            -o Acquire::https::Timeout=30 \
+            update
+          sudo apt-get \
+            -o Acquire::Retries=3 \
+            -o Acquire::http::Timeout=30 \
+            -o Acquire::https::Timeout=30 \
+            install -y \
+            libcairo2-dev \
+            libgirepository-2.0-dev \
+            libpipewire-0.3-dev \
+            pkg-config \
+            protobuf-compiler \
+            python3.12-dev \
+            redis-server
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.10.12"
+
+      - name: Compare package and service legal files with the root copies
+        run: |
+          for directory in lib lib/crates/* services/camera services/messaging services/perception; do
+            for name in LICENSE THIRD-PARTY-DISCLAIMER.txt; do
+              document="$directory/$name"
+              if [ -L "$document" ] || [ ! -f "$document" ] || ! cmp -s "$name" "$document"; then
+                echo "::error file=$document::Replace $document with a regular copy of the root $name."
+                exit 1
+              fi
+            done
+          done
+
+      - name: Log in to Docker Hub
+        if: >-
+          github.actor != 'dependabot[bot]' &&
+          (github.event_name != 'pull_request' ||
+           github.event.pull_request.head.repo.full_name == github.repository)
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Run prek pre-push hooks
+        uses: j178/prek-action@ee00ace987cbe39678904658577b2993ae0f7f23 # v2 tag
+        with:
+          prek-version: "0.4.13"
+          extra-args: "--all-files --stage pre-push"

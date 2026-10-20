@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+version: 0.0.0
+
+# Optional Markdown for release highlights, known issues, or upgrade notes.
+notes: |
+  Note : This is a test release for Cairn. (DO NOT USE IN PRODUCTION.)
+
+components:
+  rust: 0.0.1
+  python: 0.0.1
+  camera: 0.1.0
+  messaging: 0.1.0
+  perception: 0.1.0

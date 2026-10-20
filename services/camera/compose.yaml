@@ -1,0 +1,59 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+services:
+  camera-service:
+    build:
+      context: .
+    image: ${CAMERA_SERVICE_IMAGE:-camera-service:latest}
+    user: root
+    entrypoint: ["/usr/local/bin/permissions-set-entrypoint.sh"]
+    # The Camera service needs access to host uevents for device hotplug handling.
+    network_mode: host
+    group_add:
+      - video
+    cap_add:
+      - SYS_NICE
+    ulimits:
+      rtprio: 95
+      memlock: -1
+    device_cgroup_rules:
+      - "c *:* rw" # Wider Cgroup permissions for devices, to reduce compatibility issues across different host configurations.
+    environment:
+      XDG_RUNTIME_DIR: /run/pipewire
+    healthcheck:
+      test: ["CMD", "grpc_health_probe", "-addr=127.0.0.1:50051"]
+      interval: 5s
+      timeout: 6s
+      start_period: 15s
+      retries: 12
+    volumes:
+      - pipewire-runtime:/run/pipewire
+      - /dev:/dev
+      - /run/udev:/run/udev:ro
+    x-cairn:
+      format_version: "0.1"
+      service_version: 0.1.0
+      name: Camera Service
+      description: Provides camera discovery and camera lifecycle notifications.
+      id: cairn.camera-service
+      role: core
+      api:
+        grpc:
+          port: 50051
+          contracts:
+            - proto/camera_service.proto
+      messaging:
+        publishes:
+          - topic: camera.events
+            description: Camera connection lifecycle events.
+            events:
+              - event_type: cairn.camera.connected
+                content_type: application/json
+              - event_type: cairn.camera.disconnected
+                content_type: application/json
+      dependencies:
+        cairn.messaging-service: required
+
+volumes:
+  pipewire-runtime:

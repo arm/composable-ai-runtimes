@@ -1,0 +1,127 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+accepted = [
+    "Apache-2.0",
+    "MIT",
+    "BSD-3-Clause",
+    "BSD-2-Clause",
+    "BSD-2-Clause-Views",
+    "ISC",
+    "BSL-1.0",
+    "Unicode-3.0",
+    "Unicode-DFS-2016",
+    "Zlib",
+    "CC0-1.0",
+    "Apache-2.0 WITH LLVM-exception",
+]
+ignore-dev-dependencies = true
+
+# Include attribution and notices cargo-about misses. Recheck files and checksums
+# when updating dependencies; remove entries when cargo-about includes them itself.
+# Compare output with upstream: a successful run can still produce incomplete notices.
+[open_perception_kit.clarify]
+license = "Apache-2.0"
+files = [
+    { path = "LICENSE", checksum = "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30" },
+    { path = "NOTICE", checksum = "702f1ad85054e1aa180093506c0ee1f5433655d982a152b8c3860fcf177b3e66" },
+]
+
+[cfg_aliases.clarify]
+license = "MIT"
+files = [
+    { path = "LICENSE", checksum = "31b94860253d8ec7b4529f51901044d3b459d6292d996504a36b1bae3a36a812" },
+    { path = "NOTICES.md", checksum = "1e2b7ade3fb228130408b9990cae6a7618eb314c75aa0b164bfe485d9d9756ee" },
+]
+
+[cookie-factory.clarify]
+license = "MIT"
+git = [{ path = "LICENSES/MIT.txt", checksum = "d09216dc1ea5f273997667935a8d6514d80f00b89fb6954ecc3a43e0a6e360de" }]
+
+[parking.clarify]
+license = "MIT"
+files = [
+    { path = "LICENSE-MIT", checksum = "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3" },
+    { path = "LICENSE-THIRD-PARTY", checksum = "9a6d7a3c1b8edcc706c4b6c37f8dae9a77f02c7f9051df603f975db136b55419" },
+]
+
+[sha1_smol.clarify]
+license = "BSD-3-Clause"
+files = [
+    { path = "LICENSE", checksum = "282a21b0710441c364025461a447362daf18f5798a7b72ae2f801a2aa536da51" },
+    { path = "AUTHORS", checksum = "613ce6df827bdbab4f498700a141548396b6ff26488f263654159ada4b04f78e" },
+]
+
+[tonic-prost.clarify]
+license = "MIT"
+git = [{ path = "LICENSE", checksum = "e24a56698aa6feaf3a02272b3624f9dc255d982970c5ed97ac4525a95056a5b3" }]
+
+[tonic-prost-build.clarify]
+license = "MIT"
+git = [{ path = "LICENSE", checksum = "e24a56698aa6feaf3a02272b3624f9dc255d982970c5ed97ac4525a95056a5b3" }]
+
+[rustpython-ast.clarify]
+license = "MIT"
+git = [{ path = "LICENSE", checksum = "0dfeb72ba967794c4ea067b6e67798aefde4fd4cdb10f1882fe1163d2652434d" }]
+
+[rustpython-parser.clarify]
+license = "MIT"
+git = [{ path = "LICENSE", checksum = "0dfeb72ba967794c4ea067b6e67798aefde4fd4cdb10f1882fe1163d2652434d" }]
+
+[rustpython-parser-core.clarify]
+license = "MIT"
+git = [{ path = "LICENSE", checksum = "0dfeb72ba967794c4ea067b6e67798aefde4fd4cdb10f1882fe1163d2652434d" }]
+
+[rustpython-parser-vendored.clarify]
+license = "MIT"
+files = [
+    { path = "src/source_location/LICENSE", checksum = "62a9212f1709616735ce88125b914fa31441e6a670a35233fde1e92356e79464" },
+    { path = "src/text_size/LICENSE", checksum = "45a3f0f4dbac89de1a2347e55f779c2494688bbca40011bd38b31137ba1f6bb9" },
+]
+
+[atomic-waker.clarify]
+license = "Apache-2.0"
+files = [
+    { path = "LICENSE-APACHE", checksum = "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2" },
+    { path = "LICENSE-THIRD-PARTY", checksum = "6226d0632e2e1a80c23597e964da9812ae193c535fe058154afb034e94167aa5" },
+]
+
+# Some bundled code or data has licenses not listed in the crate's Cargo.toml.
+[futures-channel.clarify]
+license = "Apache-2.0 AND BSD-2-Clause-Views"
+files = [
+    { path = "LICENSE-APACHE", license = "Apache-2.0", checksum = "275c491d6d1160553c32fd6127061d7f9606c3ea25abfad6ca3f6ed088785427" },
+    { path = "src/mpsc/queue.rs", license = "BSD-2-Clause-Views", start = "/* Copyright", end = " */", checksum = "9aa540d518486b915a8d422db43288c62ccb11758672d7e97de4b619d3237917" },
+]
+
+[regex-syntax.clarify]
+license = "Apache-2.0 AND Unicode-DFS-2016"
+files = [
+    { path = "LICENSE-APACHE", license = "Apache-2.0", checksum = "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2" },
+    { path = "src/unicode_tables/LICENSE-UNICODE", license = "Unicode-DFS-2016", checksum = "74db5baf44a41b1000312c673544b3374e4198af5605c7f9080a402cec42cfa3" },
+]
+
+[tracing-subscriber.clarify]
+license = "MIT"
+files = [
+    { path = "LICENSE", checksum = "898b1ae9821e98daf8964c8d6c7f61641f5f5aa78ad500020771c0939ee0dea1" },
+    { path = "src/fmt/time/datetime.rs", start = "// Copyright", end = "// ----------------------------------------------------------------------", checksum = "64de776f6454e113cc94672d74bf00d8d2430130585616119b3eb066e447622a" },
+]
+
+[pyo3.clarify]
+license = "Apache-2.0 AND MIT"
+files = [
+    { path = "LICENSE-APACHE", license = "Apache-2.0", checksum = "32c76dbe0e73d79100d5ece77c158399f2e2541bc5c78548a4ba45c1cb53c5c9" },
+    { path = "src/buffer.rs", license = "MIT", start = "// Copyright", end = "// DEALINGS IN THE SOFTWARE.", checksum = "93a0427d16b0832630f40e99a216672e45a931a1e492a44c855c96a7b2acdc2c" },
+]
+
+[siphasher.clarify]
+license = "Apache-2.0"
+files = [{ path = "COPYING", checksum = "c962ee4d1d05ddc138b202b2540219ebc57893fcf97b364852094a9a94ce1365" }]
+
+[utf8_iter.clarify]
+license = "Apache-2.0"
+files = [
+    { path = "LICENSE-APACHE", checksum = "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30" },
+    { path = "COPYRIGHT", checksum = "c30152c94a6d75e021adbc52b3a52470366a46edb917e17deae3259251af244c" },
+]

@@ -1,0 +1,27 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "version": 1,
+  "components": [
+    {
+      "type": "library",
+      "name": "pipewire",
+      "version": "1.6.9",
+      "description": "Source-built PipeWire client libraries, SPA plugins, and GStreamer plugin; not a transitive dependency inventory.",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:generic/pipewire@1.6.9?vcs_url=git%2Bhttps%3A%2F%2Fgitlab.freedesktop.org%2Fpipewire%2Fpipewire.git%408fa27cabdc6c0c1350c69c026af5850ef0af1e26",
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://gitlab.freedesktop.org/pipewire/pipewire/-/archive/8fa27cabdc6c0c1350c69c026af5850ef0af1e26/pipewire-8fa27cabdc6c0c1350c69c026af5850ef0af1e26.tar.gz"
+        }
+      ]
+    }
+  ]
+}

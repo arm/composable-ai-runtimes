@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+[package]
+name = "arm-cairn"
+version.workspace = true
+description = "Core Rust library for Cairn"
+readme = "README.md"
+repository = "https://github.com/arm/composable-ai-runtimes"
+edition.workspace = true
+license.workspace = true
+include = ["src/**", "README.md", "bom.json", "LICENSE", "SBOM-DISCLAIMER.txt", "THIRD-PARTY-DISCLAIMER.txt"]
+
+[lib]
+name = "cairn"
+path = "src/lib.rs"
+
+[dependencies]
+cairn-camera = { workspace = true }
+cairn-notification = { workspace = true }
+cairn-perception = { workspace = true }

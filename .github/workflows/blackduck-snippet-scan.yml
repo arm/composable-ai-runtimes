@@ -1,0 +1,76 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+name: Black Duck snippet scan
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - synchronize
+      - reopened
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  select-scan-slot:
+    name: Select Black Duck scan slot
+    if: vars.INTERNAL_REPO == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      slot: ${{ steps.slot.outputs.value }}
+    steps:
+      - name: Calculate scan slot
+        id: slot
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: printf 'value=%02d\n' "$((PR_NUMBER % 20))" >> "${GITHUB_OUTPUT}"
+
+  blackduck-snippet-scan:
+    name: Black Duck snippet scan
+    needs: select-scan-slot
+    if: >-
+      vars.INTERNAL_REPO == 'true' &&
+      github.actor != 'dependabot[bot]' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    concurrency:
+      group: blackduck-pr-slot-${{ needs.select-scan-slot.outputs.slot }}
+      cancel-in-progress: false
+    runs-on: self-hosted-ubuntu-24.04-arm64-ephemeral
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      # The merge checkout is untrusted scan input. No files from it are executed.
+      - name: Checkout scan target
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+          path: scan-target
+          fetch-depth: 0
+          persist-credentials: false
+          show-progress: false
+
+      # Execute the scanner outside the untrusted checkout.
+      - name: Run snippet checker
+        shell: bash
+        working-directory: ${{ runner.temp }}
+        env:
+          BLACKDUCK_API_TOKEN: ${{ secrets.BLACKDUCK_CAIRN_DEML_TOKEN }}
+          BLACKDUCK_PROJECT_NAME: ${{ github.event.repository.name }}
+          BLACKDUCK_PROJECT_VERSION: pr-slot-${{ needs.select-scan-slot.outputs.slot }}
+          GIT_DIR: ${{ github.workspace }}/scan-target/.git
+          GIT_WORK_TREE: ${{ github.workspace }}/scan-target
+          PATCHSCAN_URL: https://artifactory.arm.com/artifactory/blackduck.patch-snippet-checker/2.2.0/linux/arm64/patchscan
+        run: |
+          set -euo pipefail
+
+          curl -fsSL -o patchscan "${PATCHSCAN_URL}"
+          chmod +x patchscan
+
+          ./patchscan 'HEAD^!' \
+            --detect.project.name "${BLACKDUCK_PROJECT_NAME}" \
+            --detect.project.version.name "${BLACKDUCK_PROJECT_VERSION}" \
+            --detect.excluded.directories "lib/tests/generated"

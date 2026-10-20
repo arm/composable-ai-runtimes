@@ -1,0 +1,59 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+name: Detect CI changes
+
+on:
+  workflow_call:
+    inputs:
+      paths:
+        required: true
+        type: string
+    outputs:
+      changed:
+        value: ${{ jobs.paths.outputs.changed }}
+
+permissions:
+  contents: read
+
+jobs:
+  paths:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      changed: ${{ steps.paths.outputs.changed }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - id: paths
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          CI_PATHS: ${{ inputs.paths }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_NAME" != pull_request ]]; then
+            echo 'changed=true' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          paths=()
+          while IFS= read -r path; do
+            [[ -z "$path" ]] || paths+=(":(glob)$path")
+          done <<< "$CI_PATHS"
+          if [[ ${#paths[@]} == 0 ]]; then
+            echo 'No CI paths configured' >&2
+            exit 1
+          fi
+          if git diff --quiet --no-ext-diff --no-textconv "$BASE_SHA...$HEAD_SHA" -- "${paths[@]}"; then
+            echo 'changed=false' >> "$GITHUB_OUTPUT"
+          else
+            status=$?
+            if [[ "$status" != 1 ]]; then
+              exit "$status"
+            fi
+            echo 'changed=true' >> "$GITHUB_OUTPUT"
+          fi

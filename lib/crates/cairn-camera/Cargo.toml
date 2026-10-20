@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+[package]
+name = "arm-cairn-camera"
+version.workspace = true
+description = "Internal camera service client for Cairn"
+edition.workspace = true
+license.workspace = true
+include = ["src/**", "bin/**", "README.md", "LICENSE", "THIRD-PARTY-DISCLAIMER.txt"]
+
+[lib]
+name = "cairn_camera"
+path = "src/lib.rs"
+
+[[example]]
+name = "generate_camera_proto"
+path = "bin/generate_camera_proto.rs"
+
+[dependencies]
+tonic-health = { version = "=0.14.5" }
+tokio = { version = "=1.53.1", features = ["time"] }
+prost = { version = "=0.14.3" }
+tonic = { version = "=0.14.5" }
+tonic-prost = { version = "=0.14.5"}
+
+[dev-dependencies]
+tokio = { version = "=1.53.1", features = ["macros", "net", "rt", "rt-multi-thread", "sync"] }
+
+tonic-prost-build = { version = "=0.14.5" }

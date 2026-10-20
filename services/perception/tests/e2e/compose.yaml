@@ -1,0 +1,52 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+services:
+  perception-e2e-model-package:
+    image: ${PERCEPTION_E2E_MODEL_PACKAGE_IMAGE:-perception-model-package:e2e}
+    platform: ${PERCEPTION_E2E_PLATFORM:-linux/arm64}
+    build:
+      context: tests/e2e/models
+    volumes:
+      - perception-e2e-models:/models
+
+  messaging-service:
+    extends:
+      file: ../messaging/compose.yaml
+      service: messaging-service
+    ports: !override
+      - target: 6379
+        published: 6379
+        host_ip: 127.0.0.1
+        protocol: tcp
+      - target: 50054
+        host_ip: 127.0.0.1
+        protocol: tcp
+
+  perception-service:
+    image: ${PERCEPTION_E2E_IMAGE:-perception-service:e2e}
+    platform: ${PERCEPTION_E2E_PLATFORM:-linux/arm64}
+    ports: !override
+      - target: 50053
+        host_ip: 127.0.0.1
+        protocol: tcp
+    depends_on:
+      messaging-service:
+        condition: service_healthy
+      perception-e2e-model-package:
+        condition: service_completed_successfully
+      pipewire-source:
+        condition: service_healthy
+    volumes:
+      - ${PERCEPTION_E2E_MODELS:-perception-e2e-models}:/models:ro
+
+  pipewire-source:
+    image: ${PERCEPTION_E2E_PIPEWIRE_IMAGE:-perception-pipewire-source:e2e}
+    platform: ${PERCEPTION_E2E_PLATFORM:-linux/arm64}
+    build:
+      context: tests/e2e/pipewire_source
+    volumes:
+      - pipewire-runtime:/run/pipewire
+
+volumes:
+  perception-e2e-models:

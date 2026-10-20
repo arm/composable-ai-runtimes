@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+services:
+  camera-service:
+    build:
+      context: ../../services/camera
+      dockerfile: Dockerfile
+      target: camera-service-build
+    platform: linux/arm64
+
+    volumes:
+      - ../..:/workspaces/cairn-sdk:cached
+
+    # Required for ptrace-based debuggers like C++, Go, and Rust
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
+
+    command: sleep infinity

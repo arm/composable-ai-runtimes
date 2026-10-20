@@ -1,0 +1,92 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+name: License tooling tests
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/license-tests.yml
+      - .github/workflows/publish-python-packages.yml
+      - .github/workflows/publish-service-images.yml
+      - .github/scripts/sbom/**
+      - .github/scripts/container-notices/**
+      - .github/scripts/probe-notices/**
+      - .github/scripts/rust-notices/**
+      - .github/scripts/check_license_headers.py
+      - services/*/scripts/source_links.py
+      - services/camera/Dockerfile
+      - services/perception/Dockerfile
+      - lib/Cargo.toml
+      - lib/Cargo.lock
+      - lib/crates/*/Cargo.toml
+      - lib/pyproject.toml
+      - lib/.cargo/config.toml
+      - lib/rust-toolchain.toml
+      - services/*/Cargo.toml
+      - services/*/Cargo.lock
+      - services/*/.cargo/config*
+      - '**/LICENSE*'
+      - '**/LICENSES/**'
+      - '**/COPYING*'
+      - '**/COPYRIGHT*'
+      - '**/NOTICE*'
+      - '**/THIRD-PARTY-DISCLAIMER.txt'
+      - '**/licenses/**'
+      - '**/notices/**'
+      - '**/about.toml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  source-report:
+    name: Dependency source report format
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.11.32"
+
+      - name: Check PipeWire inventory against committed build pins
+        run: uv run --no-project python .github/scripts/sbom/check_pipewire.py services/camera services/perception
+
+      - name: Test source report format
+        run: uv run --no-project --with pytest==9.1.1 python -m pytest .github/scripts/sbom/test_source_links.py -q
+
+  rust-review:
+    name: Rust license review
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.11.32"
+
+      - name: Review Python wheel Rust dependencies
+        run: uv run --no-project python .github/scripts/rust-notices/review.py lib/pyproject.toml
+
+      - name: Review service Rust dependencies
+        shell: bash
+        run: |
+          status=0
+          for manifest in services/*/Cargo.toml; do
+            [ -f "$manifest" ] || continue
+            uv run --no-project python .github/scripts/rust-notices/review.py "$manifest" || status=1
+          done
+          exit "$status"

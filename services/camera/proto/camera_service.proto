@@ -1,0 +1,54 @@
+// SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+// SPDX-License-Identifier: Apache-2.0
+
+syntax = "proto3";
+
+package camera.pipewire.v1;
+
+service CameraService {
+  rpc ListCameras (ListRequest) returns (ListCamerasResponse);
+  rpc get_stream_configurations(StreamConfigurationRequest) returns (StreamConfigurationResponse);
+}
+
+message ListRequest {}
+
+message ListCamerasResponse {
+  repeated Camera cameras = 1;
+}
+
+message Camera {
+  uint64 id = 1;
+  string name = 2;
+}
+
+message StreamFormat {
+  Resolution resolution = 1;
+  string pixel_format = 2;
+  FrameRate frame_rate = 3;
+}
+
+message StreamConfigurationRequest {
+  uint64 camera_id = 1;
+  StreamFormat format = 2;
+}
+
+message StreamConfiguration {
+  string target = 1;
+
+  uint64 camera_id = 2;
+  StreamFormat format = 3;
+}
+
+message StreamConfigurationResponse {
+  repeated StreamConfiguration configurations = 1;
+}
+
+message Resolution {
+  uint32 width = 1;
+  uint32 height = 2;
+}
+
+message FrameRate {
+  uint32 numerator = 1;
+  uint32 denominator = 2;
+}

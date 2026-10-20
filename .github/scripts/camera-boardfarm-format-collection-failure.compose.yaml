@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+services:
+  camera-service:
+    build:
+      args:
+        CAMERA_SERVICE_FEATURES: smoke-test-failure-injection
+    environment:
+      CAIRN_CAMERA_SNAPSHOT_FAILURE: camera-node-params-sync

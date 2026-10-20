@@ -1,0 +1,44 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+[build-system]
+requires = ["maturin==1.12.1"]
+build-backend = "maturin"
+
+[project]
+name = "arm-cairn"
+version = "0.0.1"
+description = "Python bindings for the Cairn library"
+readme = "crates/cairn-py/README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE", "THIRD-PARTY-DISCLAIMER.txt", "crates/cairn/SBOM-DISCLAIMER.txt", "notices/rust/**/*"]
+requires-python = ">=3.12,<3.13"
+dependencies = []
+
+[dependency-groups]
+dev = [
+  "grpcio>=1.83.1",
+  "grpcio-health-checking>=1.71.2",
+  "protobuf==5.29.6",
+  "pytest>=9.1.1",
+  "redis[hiredis]",
+]
+
+ci = [
+  "PyYAML==6.0.2",
+  "jsonschema==4.26.0",
+  "requests==2.33.0",
+  "packaging==25.0",
+  "jinja2==3.1.6",
+]
+
+[tool.ruff]
+extend-exclude = ["python/cairn/**/*.pyi"]
+
+[tool.pytest.ini_options]
+markers = ["e2e: tests that deploy the containerized Perception service"]
+
+[tool.maturin]
+manifest-path = "crates/cairn-py/Cargo.toml"
+python-source = "python"
+module-name = "cairn._bindings"

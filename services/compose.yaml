@@ -1,0 +1,46 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+x-redis-port: &redis_port 6379
+x-pipewire-build-args: &pipewire_build_args
+  PIPEWIRE_VERSION: "1.6.9"
+  PIPEWIRE_COMMIT: 8fa27cabdc6c0c1350c69c026af5850ef0af1e26
+
+services:
+  messaging-service:
+    extends:
+      file: messaging/compose.yaml
+      service: messaging-service
+
+  camera-service:
+    extends:
+      file: camera/compose.yaml
+      service: camera-service
+    build:
+      args: *pipewire_build_args
+    depends_on:
+      messaging-service:
+        condition: service_healthy
+    network_mode: host
+    environment:
+      PWC_REDIS_ENABLED: 1
+      PWC_REDIS_HOST: 127.0.0.1
+      PWC_REDIS_PORT: *redis_port
+      PWC_REDIS_CHANNEL_EVENTS: camera.events
+      # PWC_REDIS_PASSWORD is optional, only set if your Redis server requires authentication
+      # PWC_REDIS_PASSWORD:
+
+  perception-service:
+    extends:
+      file: perception/compose.yaml
+      service: perception-service
+    build:
+      args: *pipewire_build_args
+    depends_on:
+      camera-service:
+        condition: service_healthy
+      messaging-service:
+        condition: service_healthy
+
+volumes:
+  pipewire-runtime:

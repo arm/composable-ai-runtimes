@@ -1,0 +1,69 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+name: Check version tag
+description: >-
+  Require an X.Y.Z tag newer than every other version tag with the same prefix.
+  Check out the repository with fetch-depth: 0 before calling this action.
+
+inputs:
+  tag-prefix:
+    description: 'Prefix before X.Y.Z: camera/v, messaging/v, perception/v, rust/v, python/v, or cairn/v'
+    required: true
+  tag:
+    description: 'Tag to check; defaults to the triggering ref name'
+    default: ${{ github.ref_name }}
+
+runs:
+  using: composite
+  steps:
+    - name: Find the highest previous version
+      id: versions
+      shell: bash
+      env:
+        CURRENT_TAG: ${{ inputs.tag }}
+        TAG_PREFIX: ${{ inputs.tag-prefix }}
+      run: |
+        if [[ -z "$TAG_PREFIX" || "$CURRENT_TAG" != "$TAG_PREFIX"* ]]; then
+          echo "::error::The tag must start with the nonempty tag-prefix input."
+          exit 1
+        fi
+        current_version=${CURRENT_TAG#"$TAG_PREFIX"}
+        if [[ ! "$current_version" =~ ^(0|[1-9][0-9]*)(\.(0|[1-9][0-9]*)){2}$ ]]; then
+          echo "::error::The tag must contain an X.Y.Z version after its prefix."
+          exit 1
+        fi
+        if [[ "$(git rev-parse --is-shallow-repository)" == true ]]; then
+          echo "::error::Check out the repository with fetch-depth: 0 to include all version tags."
+          exit 1
+        fi
+        previous_version=$(
+          git tag --list |
+            awk -v current="$CURRENT_TAG" -v prefix="$TAG_PREFIX" '
+              $0 != current && index($0, prefix) == 1 {
+                version = substr($0, length(prefix) + 1)
+                if (version ~ /^(0|[1-9][0-9]*)(\.(0|[1-9][0-9]*)){2}$/) print version
+              }
+            ' |
+            sort -V | tail -n 1
+        )
+        echo "current=$current_version" >> "$GITHUB_OUTPUT"
+        echo "previous=$previous_version" >> "$GITHUB_OUTPUT"
+    - name: Compare versions
+      id: compare
+      uses: madhead/semver-utils@4cf918affe9106ea59f86c6250e5ec4570ac4389 # v5.0.0
+      with:
+        version: ${{ steps.versions.outputs.current }}
+        compare-to: ${{ steps.versions.outputs.previous }}
+        lenient: 'false'
+    - name: Require a newer version
+      if: >-
+        steps.versions.outputs.previous != '' &&
+        steps.compare.outputs.comparison-result != '>'
+      shell: bash
+      env:
+        CURRENT_VERSION: ${{ steps.versions.outputs.current }}
+        PREVIOUS_VERSION: ${{ steps.versions.outputs.previous }}
+      run: |
+        echo "::error::Version $CURRENT_VERSION must be newer than $PREVIOUS_VERSION."
+        exit 1

@@ -1,0 +1,141 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+name: Perception tests
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    if: vars.INTERNAL_REPO == 'true'
+    uses: ./.github/workflows/ci-detect-changes.yml
+    permissions:
+      contents: read
+    with:
+      paths: |
+        .github/workflows/perception-tests.yml
+        services/messaging/**
+        services/perception/**
+        .github/workflows/ci-detect-changes.yml
+        .github/workflows/ci-evaluate-results.yml
+
+  pytest:
+    needs: changes
+    if: vars.INTERNAL_REPO == 'true' && needs.changes.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/perception
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.11.32"
+          enable-cache: true
+
+      - name: Install native test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends \
+            build-essential \
+            gir1.2-gst-plugins-base-1.0 \
+            gir1.2-gstreamer-1.0 \
+            libcairo2-dev \
+            libgirepository-2.0-dev \
+            pkg-config
+
+      - name: Run unit tests
+        run: uv run --locked pytest -m unit
+
+  integration-tests:
+    needs: changes
+    if: vars.INTERNAL_REPO == 'true' && needs.changes.outputs.changed == 'true'
+    name: Integration tests in production image
+    runs-on: self-hosted-ubuntu-24.04-arm64-ephemeral
+    timeout-minutes: 30
+    env:
+      COMPOSE_FILE: compose.yaml:tests/integration/compose.yaml
+      COMPOSE_PROJECT_NAME: perception-integration-${{ github.run_id }}-${{ github.run_attempt }}
+    defaults:
+      run:
+        working-directory: services/perception
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Build production-derived integration test image
+        run: docker compose build perception-integration-tests
+
+      - name: Run integration tests
+        run: docker compose run --rm --no-deps perception-integration-tests
+
+      - name: Clean up integration test resources
+        if: always()
+        run: docker compose down
+
+  deploy-workflow:
+    needs: changes
+    if: vars.INTERNAL_REPO == 'true' && needs.changes.outputs.changed == 'true'
+    name: Run Perception E2E workflow
+    runs-on: self-hosted-ubuntu-24.04-arm64-ephemeral
+    timeout-minutes: 30
+    env:
+      COMPOSE_FILE: compose.yaml:tests/e2e/compose.yaml
+      COMPOSE_PROJECT_NAME: perception-e2e-${{ github.run_id }}-${{ github.run_attempt }}
+    defaults:
+      run:
+        working-directory: services/perception
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.11.32"
+          enable-cache: true
+
+      - name: Run End-to-End tests
+        run: |
+          uv sync --locked --no-dev --group e2e \
+            --no-install-package pycairo \
+            --no-install-package pygobject
+          uv run --no-sync python -m pytest -m e2e tests/e2e
+
+  required:
+    name: CI / Perception tests
+    if: always() && vars.INTERNAL_REPO == 'true' && github.event_name == 'pull_request'
+    needs: [changes, pytest, integration-tests, deploy-workflow]
+    uses: ./.github/workflows/ci-evaluate-results.yml
+    with:
+      results: ${{ toJSON(needs) }}

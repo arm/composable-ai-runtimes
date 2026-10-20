@@ -1,0 +1,134 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+name: Publish Python API Reference
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/publish-python-api-reference.yml
+      - docs/python-api/**
+      - lib/**
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: "3.12"
+
+concurrency:
+  group: publish-python-api-reference-staging
+  cancel-in-progress: false
+
+jobs:
+  changes:
+    if: vars.INTERNAL_REPO == 'true'
+    uses: ./.github/workflows/ci-detect-changes.yml
+    permissions:
+      contents: read
+    with:
+      paths: |
+        .github/workflows/publish-python-api-reference.yml
+        docs/python-api/**
+        lib/**
+        .github/workflows/ci-detect-changes.yml
+        .github/workflows/ci-evaluate-results.yml
+
+  build:
+    needs: changes
+    if: vars.INTERNAL_REPO == 'true' && github.event_name == 'pull_request' && needs.changes.outputs.changed == 'true'
+    name: Build Python API reference
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.10.12"
+
+      - name: Install Python
+        run: uv python install "$PYTHON_VERSION"
+
+      - name: Build API reference
+        run: >-
+          uv run --no-project --python "$PYTHON_VERSION"
+          --with furo==2025.12.19
+          --with sphinx==9.1.0
+          --with sphinx-autoapi==3.8.0
+          python -m sphinx -W --keep-going -b html
+          docs/python-api
+          docs/python-api/_build/html
+
+  publish:
+    name: Publish Python API reference
+    if: >-
+      vars.INTERNAL_REPO == 'false' &&
+      (github.event_name != 'pull_request')
+    runs-on: ubuntu-latest
+    environment: staging
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Validate publishing configuration
+        env:
+          AWS_ROLE_ARN: ${{ vars.CAIRN_DOCS_AWS_ROLE_ARN }}
+          SITE_ID: ${{ vars.CAIRN_PYTHON_API_SITE_ID }}
+        run: |
+          if [[ -z "${AWS_ROLE_ARN}" || -z "${SITE_ID}" ]]; then
+            echo "::error::The staging environment must define CAIRN_DOCS_AWS_ROLE_ARN and CAIRN_PYTHON_API_SITE_ID."
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.10.12"
+
+      - name: Install Python
+        run: uv python install "$PYTHON_VERSION"
+
+      - name: Build API reference
+        run: >-
+          uv run --no-project --python "$PYTHON_VERSION"
+          --with furo==2025.12.19
+          --with sphinx==9.1.0
+          --with sphinx-autoapi==3.8.0
+          python -m sphinx -W --keep-going -b html
+          docs/python-api
+          docs/python-api/_build/html
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+        with:
+          role-to-assume: ${{ vars.CAIRN_DOCS_AWS_ROLE_ARN }}
+          aws-region: eu-north-1
+
+      - name: Upload API reference
+        uses: ARM-Software/docs-action/upload@01066fa9cd8ab0a04971860c5f10ee6336ec79c2
+        with:
+          source-dir: docs/python-api/_build/html
+          site-id: ${{ vars.CAIRN_PYTHON_API_SITE_ID }}
+          environment: staging
+
+  required:
+    name: CI / Python API reference
+    if: always() && vars.INTERNAL_REPO == 'true' && github.event_name == 'pull_request'
+    needs: [changes, build]
+    uses: ./.github/workflows/ci-evaluate-results.yml
+    with:
+      results: ${{ toJSON(needs) }}

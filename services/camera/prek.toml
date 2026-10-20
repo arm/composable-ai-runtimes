@@ -1,0 +1,42 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+minimum_prek_version = "0.4.13"
+default_stages = ["pre-push"]
+
+[[repos]]
+repo = "local"
+
+[[repos.hooks]]
+id = "cargo-fmt"
+name = "cargo fmt"
+language = "system"
+entry = "cargo fmt --all -- --check"
+pass_filenames = false
+files = { glob = ["**/*.rs", "Cargo.toml"] }
+
+[[repos.hooks]]
+id = "cargo-clippy"
+name = "cargo clippy"
+language = "system"
+entry = "cargo clippy --all-targets --all-features --no-deps"
+pass_filenames = false
+files = { glob = ["**/*.rs", "Cargo.toml"] }
+
+[[repos.hooks]]
+id = "cargo-test"
+name = "cargo test"
+language = "system"
+entry = "cargo test --all-targets --all-features"
+pass_filenames = false
+stages = ["pre-push"]
+files = { glob = ["**/*.rs", "Cargo.toml"] }
+
+[[repos.hooks]]
+id = "camera-messaging-proto-generated"
+name = "Camera Messaging protobuf bindings are current"
+language = "system"
+entry = "cargo run --locked --bin generate-messaging-proto -- src/notifications"
+pass_filenames = false
+always_run = true
+stages = ["pre-push"]

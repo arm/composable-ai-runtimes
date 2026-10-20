@@ -1,0 +1,100 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+name: publish-sdk-bundle
+
+on:
+  push:
+    tags:
+      - 'cairn/v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-release-bundle-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CARGO_PACKAGE_URL: https://crates.io/crates/arm-cairn/{version}
+  PYPI_PACKAGE_URL: https://pypi.org/project/arm-cairn/{version}/
+  REGISTRY_NAMESPACE: armlimited
+
+jobs:
+  validate-bundle-config:
+    name: Validate bundle config
+    if: vars.INTERNAL_REPO == 'false'
+    #TODO: Change the runner to GH runner before moving to production
+    runs-on: self-hosted-ubuntu-24.04-arm64
+    outputs:
+      service-images: ${{ steps.service-images.outputs.images }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Require a newer bundle version
+        uses: ./.github/actions/check-version-tag
+        with:
+          tag-prefix: cairn/v
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.10.12"
+      - name: Install CI dependencies
+        run: uv sync --project lib --only-group ci --locked
+      - name: Install ORAS
+        run: |
+          curl -fsSLo oras.tar.gz https://github.com/oras-project/oras/releases/download/v1.3.0/oras_1.3.0_linux_arm64.tar.gz
+          tar -xzf oras.tar.gz oras
+          sudo install -m 0755 oras /usr/local/bin/oras
+          oras version
+      - name: Validate published component versions
+        run: >-
+          uv run --project lib --no-sync .github/scripts/bundle-registry-check.py
+          .github/workflows/release-config/bundle-config.yaml
+          --tag "$GITHUB_REF_NAME"
+          --registry-namespace "$REGISTRY_NAMESPACE"
+          --service-images-output "$RUNNER_TEMP/service-images.json"
+      - name: Export verified service images
+        id: service-images
+        run: echo "images=$(cat "$RUNNER_TEMP/service-images.json")" >> "$GITHUB_OUTPUT"
+
+  generate-release-notes:
+    name: Generate release notes
+    if: vars.INTERNAL_REPO == 'false'
+    needs: validate-bundle-config
+    runs-on: ubuntu-24.04-arm
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.10.12"
+      - name: Install CI dependencies
+        run: uv sync --project lib --only-group ci --locked
+      - name: Generate release notes
+        env:
+          SERVICE_IMAGES: ${{ needs.validate-bundle-config.outputs.service-images }}
+        run: >-
+          uv run --project lib --no-sync .github/scripts/bundle-release-notes.py
+          .github/workflows/release-config/bundle-config.yaml
+          --output "$RUNNER_TEMP/bundle-notes.md"
+          --cargo-package-url "$CARGO_PACKAGE_URL"
+          --pypi-package-url "$PYPI_PACKAGE_URL"
+          --registry-namespace "$REGISTRY_NAMESPACE"
+          --service-images "$SERVICE_IMAGES"
+      - name: Install GH CLI
+        run: |
+            sudo apt-get update
+            sudo apt-get install -y gh
+      - name: Create the bundle release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" .github/workflows/release-config/bundle-config.yaml \
+            --verify-tag --draft \
+            --title "Cairn ${GITHUB_REF_NAME#cairn/v}" \
+            --notes-file "$RUNNER_TEMP/bundle-notes.md"

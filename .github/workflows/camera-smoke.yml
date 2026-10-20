@@ -1,0 +1,460 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+name: Camera Smoke
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+env:
+  TOPO_VERSION: "v14.0.0"
+  UV_VERSION: "0.10.12"
+
+jobs:
+  changes:
+    if: vars.INTERNAL_REPO == 'true'
+    uses: ./.github/workflows/ci-detect-changes.yml
+    permissions:
+      contents: read
+    with:
+      paths: |
+        .python-version
+        compose.yaml
+        .github/scripts/camera-boardfarm-list-cameras-smoke.py
+        .github/scripts/camera-boardfarm-notifications-hotplug.py
+        .github/scripts/camera-boardfarm-pipewire-failure-smoke.py
+        .github/scripts/camera-boardfarm-format-collection-failure-smoke.py
+        .github/scripts/camera-boardfarm-format-collection-failure.compose.yaml
+        .github/scripts/camera-boardfarm-notifications-reconnect.py
+        .github/scripts/camera-boardfarm-pipewire-capture-smoke.py
+        .github/scripts/camera-boardfarm-startup-smoke.py
+        .github/scripts/services-topo-smoke.py
+        .github/scripts/camera-service-lifecycle-smoke.py
+        .github/scripts/camera-service-startup-smoke.py
+        .github/scripts/camera_smoke/**
+        .github/workflows/camera-smoke.yml
+        services/camera/**
+        services/messaging/**
+        services/compose.yaml
+        .github/workflows/ci-detect-changes.yml
+        .github/workflows/ci-evaluate-results.yml
+
+  startup-smoke:
+    needs: changes
+    if: vars.INTERNAL_REPO == 'true' && needs.changes.outputs.changed == 'true'
+    name: Validate and smoke test camera service
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Validate camera service Compose config
+        run: docker compose -f services/camera/compose.yaml config
+
+      - name: Validate services Compose camera wiring
+        run: docker compose -f services/compose.yaml config camera-service
+
+      - name: Log in to GHCR
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build camera service Docker image
+        run: docker build --progress=plain --tag camera-service:latest services/camera
+
+      - name: Install smoke test dependencies
+        run: python3 -m pip install pytest==8.3.5 docker==7.1.0
+
+      - name: Run camera startup smoke check
+        env:
+          CAMERA_STARTUP_SMOKE_BUILD_IMAGE: "0"
+        run: |
+          mkdir -p test-results/camera-startup-smoke
+          python3 -m pytest .github/scripts/camera-service-startup-smoke.py \
+            --junitxml=test-results/camera-startup-smoke/junit.xml
+
+      - name: Run camera lifecycle supervision check
+        env:
+          CAMERA_LIFECYCLE_BUILD_IMAGE: "0"
+        run: |
+          mkdir -p test-results/camera-lifecycle
+          python3 -m pytest .github/scripts/camera-service-lifecycle-smoke.py \
+            --junitxml=test-results/camera-lifecycle/junit.xml
+
+      - name: Upload camera startup smoke results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: camera-startup-smoke-results
+          path: test-results/camera-startup-smoke/
+
+      - name: Upload camera lifecycle results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: camera-lifecycle-results
+          path: test-results/camera-lifecycle/
+
+  boardfarm-startup-smoke:
+    needs: changes
+    if: vars.INTERNAL_REPO == 'true' && needs.changes.outputs.changed == 'true'
+    name: Validate camera on Pi board farm
+    runs-on:
+      - self-hosted
+      - Linux
+      - ARM64
+      - boardfarm
+      - pi5
+    concurrency:
+      group: camera-boardfarm-pi5-usb-camera
+      queue: max
+      cancel-in-progress: false
+    timeout-minutes: 30
+    env:
+      COMPOSE_PROJECT_NAME: camera-boardfarm-${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Prepare camera board-farm runner
+        run: python3 .github/scripts/camera_smoke/runner_maintenance.py
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: ${{ env.UV_VERSION }}
+
+      - name: Run camera board-farm startup smoke check
+        run: |
+          mkdir -p test-results/camera-boardfarm-smoke
+          uv run --with pytest==8.3.5 python -m pytest .github/scripts/camera-boardfarm-startup-smoke.py \
+            --junitxml=test-results/camera-boardfarm-smoke/junit.xml
+
+      - name: Clean up camera board-farm Compose resources
+        if: always()
+        run: docker compose -f services/camera/compose.yaml down --volumes --remove-orphans
+
+      - name: Upload camera board-farm startup smoke results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: camera-boardfarm-smoke-results
+          path: test-results/camera-boardfarm-smoke/
+
+  boardfarm-list-cameras-smoke:
+    needs: changes
+    if: vars.INTERNAL_REPO == 'true' && needs.changes.outputs.changed == 'true'
+    name: Validate camera discovery on Pi board farm
+    runs-on:
+      - self-hosted
+      - Linux
+      - ARM64
+      - boardfarm
+      - pi5
+    concurrency:
+      group: camera-boardfarm-pi5-usb-camera
+      queue: max
+      cancel-in-progress: false
+    timeout-minutes: 30
+    env:
+      COMPOSE_PROJECT_NAME: camera-boardfarm-list-cameras-${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Prepare camera board-farm runner
+        run: python3 .github/scripts/camera_smoke/runner_maintenance.py
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: ${{ env.UV_VERSION }}
+
+      - name: Install grpcurl
+        run: |
+          set -euo pipefail
+          grpcurl_version=1.9.3
+          arch="$(uname -m)"
+          case "${arch}" in
+            aarch64|arm64)
+              grpcurl_arch=arm64
+              ;;
+            *)
+              echo "unsupported grpcurl architecture: ${arch}" >&2
+              exit 1
+              ;;
+          esac
+          mkdir -p test-results/camera-boardfarm-list-cameras-smoke/bin
+          curl -fsSL "https://github.com/fullstorydev/grpcurl/releases/download/v${grpcurl_version}/grpcurl_${grpcurl_version}_linux_${grpcurl_arch}.tar.gz" \
+            | tar -xz -C test-results/camera-boardfarm-list-cameras-smoke/bin grpcurl
+          test-results/camera-boardfarm-list-cameras-smoke/bin/grpcurl -version
+
+      - name: Run camera board-farm list-cameras smoke check
+        env:
+          GRPCURL_BIN: test-results/camera-boardfarm-list-cameras-smoke/bin/grpcurl
+        run: |
+          mkdir -p test-results/camera-boardfarm-list-cameras-smoke
+          uv run --with pytest==8.3.5 python -m pytest .github/scripts/camera-boardfarm-list-cameras-smoke.py \
+            --junitxml=test-results/camera-boardfarm-list-cameras-smoke/junit.xml
+
+      - name: Clean up camera board-farm list-cameras Compose resources
+        if: always()
+        run: docker compose -f services/camera/compose.yaml down --volumes --remove-orphans
+
+      - name: Upload camera board-farm list-cameras smoke results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: camera-boardfarm-list-cameras-smoke-results
+          path: test-results/camera-boardfarm-list-cameras-smoke/
+
+  boardfarm-pipewire-failure-smoke:
+    needs: changes
+    if: vars.INTERNAL_REPO == 'true' && needs.changes.outputs.changed == 'true'
+    name: Validate camera PipeWire failure on Pi board farm
+    runs-on:
+      - self-hosted
+      - Linux
+      - ARM64
+      - boardfarm
+      - pi5
+    concurrency:
+      group: camera-boardfarm-pi5-usb-camera
+      queue: max
+      cancel-in-progress: false
+    timeout-minutes: 30
+    env:
+      COMPOSE_PROJECT_NAME: camera-boardfarm-pipewire-failure-${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Prepare camera board-farm runner
+        run: python3 .github/scripts/camera_smoke/runner_maintenance.py
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: ${{ env.UV_VERSION }}
+
+      - name: Install grpcurl
+        run: |
+          set -euo pipefail
+          grpcurl_version=1.9.3
+          arch="$(uname -m)"
+          case "${arch}" in
+            aarch64|arm64)
+              grpcurl_arch=arm64
+              ;;
+            *)
+              echo "unsupported grpcurl architecture: ${arch}" >&2
+              exit 1
+              ;;
+          esac
+          mkdir -p test-results/camera-boardfarm-pipewire-failure/bin
+          curl -fsSL "https://github.com/fullstorydev/grpcurl/releases/download/v${grpcurl_version}/grpcurl_${grpcurl_version}_linux_${grpcurl_arch}.tar.gz" \
+            | tar -xz -C test-results/camera-boardfarm-pipewire-failure/bin grpcurl
+          test-results/camera-boardfarm-pipewire-failure/bin/grpcurl -version
+
+      - name: Run camera board-farm PipeWire failure smoke check
+        env:
+          GRPCURL_BIN: test-results/camera-boardfarm-pipewire-failure/bin/grpcurl
+        run: |
+          mkdir -p test-results/camera-boardfarm-pipewire-failure
+          uv run --with pytest==8.3.5 python -m pytest .github/scripts/camera-boardfarm-pipewire-failure-smoke.py \
+            --junitxml=test-results/camera-boardfarm-pipewire-failure/junit.xml
+
+      - name: Run camera board-farm format collection failure smoke check
+        env:
+          GRPCURL_BIN: test-results/camera-boardfarm-pipewire-failure/bin/grpcurl
+        run: |
+          mkdir -p test-results/camera-boardfarm-format-collection-failure
+          uv run --with pytest==8.3.5 python -m pytest .github/scripts/camera-boardfarm-format-collection-failure-smoke.py \
+            --junitxml=test-results/camera-boardfarm-format-collection-failure/junit.xml
+
+      - name: Clean up camera board-farm failure Compose resources
+        if: always()
+        run: docker compose -f services/camera/compose.yaml down --volumes --remove-orphans
+
+      - name: Upload camera board-farm failure smoke results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: camera-boardfarm-pipewire-failure-results
+          path: |
+            test-results/camera-boardfarm-pipewire-failure/
+            test-results/camera-boardfarm-format-collection-failure/
+
+  boardfarm-notifications-smoke:
+    needs: changes
+    if: vars.INTERNAL_REPO == 'true' && needs.changes.outputs.changed == 'true'
+    name: Validate camera notifications on Pi board farm
+    runs-on:
+      - self-hosted
+      - Linux
+      - ARM64
+      - boardfarm
+      - pi5
+    concurrency:
+      group: camera-boardfarm-pi5-usb-camera
+      queue: max
+      cancel-in-progress: false
+    timeout-minutes: 30
+    env:
+      COMPOSE_PROJECT_NAME: camera-boardfarm-notifications-${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Prepare camera board-farm runner
+        run: python3 .github/scripts/camera_smoke/runner_maintenance.py
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: ${{ env.UV_VERSION }}
+
+      - name: Run camera board-farm notification smoke checks
+        env:
+          PYTHONPATH: .github/scripts
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: |
+          mkdir -p test-results/camera-boardfarm-notifications
+          uv run \
+            --with pytest==8.3.5 \
+            --with protobuf==5.29.6 \
+            --with redis==5.2.1 \
+            python -m pytest -p no:cacheprovider \
+            .github/scripts/camera-boardfarm-notifications-hotplug.py \
+            .github/scripts/camera-boardfarm-notifications-reconnect.py \
+            --junitxml=test-results/camera-boardfarm-notifications/junit.xml
+
+      - name: Clean up camera board-farm notification Compose resources
+        if: always()
+        run: docker compose -f services/compose.yaml down --volumes --remove-orphans
+
+      - name: Upload camera board-farm notification smoke results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: camera-boardfarm-notifications-results
+          path: test-results/camera-boardfarm-notifications/
+
+  boardfarm-pipewire-capture-smoke:
+    needs: changes
+    if: vars.INTERNAL_REPO == 'true' && needs.changes.outputs.changed == 'true'
+    name: Validate direct PipeWire frame capture on Pi board farm
+    runs-on:
+      - self-hosted
+      - Linux
+      - ARM64
+      - boardfarm
+      - pi5
+    concurrency:
+      group: camera-boardfarm-pi5-usb-camera
+      queue: max
+      cancel-in-progress: false
+    timeout-minutes: 30
+    env:
+      COMPOSE_PROJECT_NAME: camera-boardfarm-pipewire-capture-${{ github.run_id }}
+      CAMERA_BOARDFARM_PIPEWIRE_TARGET_OBJECT: ${{ vars.CAMERA_BOARDFARM_PIPEWIRE_TARGET_OBJECT }}
+      CAMERA_BOARDFARM_PIPEWIRE_CAMERA_NAME: ${{ vars.CAMERA_BOARDFARM_PIPEWIRE_CAMERA_NAME }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Prepare camera board-farm runner
+        run: python3 .github/scripts/camera_smoke/runner_maintenance.py
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: ${{ env.UV_VERSION }}
+
+      - name: Run camera board-farm PipeWire capture smoke check
+        run: |
+          mkdir -p test-results/camera-boardfarm-pipewire-capture-smoke
+          uv run --with pytest==8.3.5 --with docker==7.1.0 python -m pytest .github/scripts/camera-boardfarm-pipewire-capture-smoke.py \
+            --junitxml=test-results/camera-boardfarm-pipewire-capture-smoke/junit.xml
+
+      - name: Clean up camera board-farm PipeWire capture Compose resources
+        if: always()
+        run: docker compose -f services/camera/compose.yaml down --volumes --remove-orphans
+
+      - name: Upload camera board-farm PipeWire capture smoke results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: camera-boardfarm-pipewire-capture-smoke-results
+          path: test-results/camera-boardfarm-pipewire-capture-smoke/
+
+  topo-smoke:
+    needs: changes
+    if: vars.INTERNAL_REPO == 'true' && needs.changes.outputs.changed == 'true'
+    name: Validate local Topo ${{ matrix.engine }} services deployment
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [docker, podman]
+    env:
+      TOPO_SMOKE_ENGINE: ${{ matrix.engine }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: ${{ env.UV_VERSION }}
+
+      - name: Set up rootful Podman
+        if: matrix.engine == 'podman'
+        env:
+          CONTAINER_HOST: unix:///run/podman/podman.sock
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes podman
+          sudo systemctl start podman.socket
+          sudo chgrp "$(id -gn)" /run/podman
+          sudo chmod 710 /run/podman
+          sudo chgrp "$(id -gn)" /run/podman/podman.sock
+          sudo chmod 660 /run/podman/podman.sock
+          echo "CONTAINER_HOST=$CONTAINER_HOST" >> "$GITHUB_ENV"
+          podman info --format '{{.Host.RemoteSocket.Path}}'
+
+      - name: Install Topo
+        run: |
+          curl -fsSL "https://raw.githubusercontent.com/arm/topo/refs/tags/${TOPO_VERSION}/scripts/install.sh" \
+            | sh -s -- --version "$TOPO_VERSION" --path "$HOME/.local/bin"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.local/bin:$PATH"
+          topo --version
+
+      - name: Run local services Topo ${{ matrix.engine }} smoke check
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: |
+          mkdir -p test-results/services-topo-${{ matrix.engine }}-smoke
+          uv run --with pytest==8.3.5 python -m pytest -p no:cacheprovider .github/scripts/services-topo-smoke.py \
+            --junitxml=test-results/services-topo-${{ matrix.engine }}-smoke/junit.xml
+
+      - name: Upload local services Topo ${{ matrix.engine }} smoke results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: services-topo-${{ matrix.engine }}-smoke-results
+          path: test-results/services-topo-${{ matrix.engine }}-smoke/
+
+  required:
+    name: CI / Camera Smoke
+    if: always() && vars.INTERNAL_REPO == 'true' && github.event_name == 'pull_request'
+    needs: [changes, startup-smoke, boardfarm-startup-smoke, boardfarm-list-cameras-smoke, boardfarm-pipewire-failure-smoke, boardfarm-notifications-smoke, boardfarm-pipewire-capture-smoke, topo-smoke]
+    uses: ./.github/workflows/ci-evaluate-results.yml
+    with:
+      results: ${{ toJSON(needs) }}

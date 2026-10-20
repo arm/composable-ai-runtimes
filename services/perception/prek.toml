@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+minimum_prek_version = "0.4.13"
+default_stages = ["pre-push"]
+
+[[repos]]
+repo = "local"
+
+[[repos.hooks]]
+id = "ty"
+name = "ty check"
+language = "system"
+entry = "uv run --locked ty check"
+pass_filenames = false
+files = { glob = ["**/*.py", "**/*.pyi", "pyproject.toml"] }
+
+[[repos.hooks]]
+id = "ruff"
+name = "ruff check"
+language = "system"
+entry = "uv run --locked ruff check"
+pass_filenames = false
+files = { glob = ["**/*.py", "**/*.pyi"] }
+
+[[repos.hooks]]
+id = "perception-proto-generated"
+name = "perception protobuf bindings are current"
+language = "system"
+entry = "./scripts/generate_proto.sh --check"
+pass_filenames = false
+stages = ["pre-push"]
+files = { glob = [
+    "proto/**/*.proto",
+    "../messaging/proto/**/*.proto",
+    "src/cairn/messaging/v1/messaging_pb2.py",
+    "src/cairn/messaging/v1/messaging_pb2.pyi",
+    "src/cairn/perception/v1/perception_pb2.py",
+    "src/cairn/perception/v1/perception_pb2.pyi",
+    "src/cairn/perception/v1/perception_pb2_grpc.py",
+] }

@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+services:
+  perception-integration-tests:
+    image: ${PERCEPTION_INTEGRATION_TEST_IMAGE:-perception-integration-tests:local}
+    platform: ${PERCEPTION_TEST_PLATFORM:-linux/arm64}
+    build:
+      context: .
+      dockerfile: tests/integration/Dockerfile
+      additional_contexts:
+        production: service:perception-service

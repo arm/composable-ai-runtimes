@@ -1,0 +1,193 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: compose.cairn.schema.yaml
+title: Cairn Service Contract Manifest
+$comment: >-
+  Extends compose-spec/compose-spec schema revision
+  11296e387ba76c77db1db768b9153a4304a3c9bd.
+description: >-
+  Schema for Compose-based Cairn Service contract manifests. A manifest is a
+  standalone valid Compose document with Cairn-specific service contract
+  metadata under x-cairn.
+allOf:
+  - $ref: https://raw.githubusercontent.com/compose-spec/compose-spec/11296e387ba76c77db1db768b9153a4304a3c9bd/schema/compose-spec.json
+  - $ref: "#/$defs/cairn_manifest_overlay"
+$defs:
+  cairn_manifest_overlay:
+    description: Cairn-specific validation layered on top of the Compose schema.
+    type: object
+    required:
+      - services
+    properties:
+      services:
+        description: Compose services that publish Cairn Service contract metadata.
+        type: object
+        minProperties: 1
+        additionalProperties:
+          type: object
+          required:
+            - x-cairn
+          properties:
+            x-cairn:
+              $ref: "#/$defs/cairn_service"
+  service_id:
+    type: string
+    pattern: "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)+$"
+  cairn_service:
+    description: Cairn Service contract metadata for a Compose service.
+    type: object
+    additionalProperties: false
+    required:
+      - format_version
+      - service_version
+      - id
+      - role
+      - api
+    properties:
+      format_version:
+        description: Version of the x-cairn Compose extension used by this service entry.
+        const: "0.1"
+      service_version:
+        description: Semantic version of the service contract.
+        type: string
+        pattern: "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-(?:0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$"
+      name:
+        description: Human-readable service name.
+        type: string
+        minLength: 1
+      description:
+        description: Human-readable summary of the service's purpose.
+        type: string
+        minLength: 1
+      id:
+        description: Stable, provider-namespaced service identifier.
+        $ref: "#/$defs/service_id"
+      role:
+        description: >-
+          Classification of the service in a Cairn system. The core
+          classification is reserved for services classified by Cairn
+          maintainers.
+        enum:
+          - core
+          - solution
+      api:
+        $ref: "#/$defs/api"
+      messaging:
+        description: Messaging routes advertised by the Cairn Service.
+        $ref: "#/$defs/messaging"
+      dependencies:
+        $ref: "#/$defs/dependencies"
+  schema_reference:
+    description: >-
+      Schema file included with this manifest in the service contract OCI
+      artifact.
+    type: string
+    minLength: 1
+  api:
+    description: API endpoints exposed by the service.
+    type: object
+    additionalProperties: false
+    required:
+      - grpc
+    properties:
+      grpc:
+        $ref: "#/$defs/grpc_api"
+  grpc_api:
+    description: gRPC endpoint exposed by the service.
+    type: object
+    additionalProperties: false
+    required:
+      - port
+    properties:
+      port:
+        type: integer
+        minimum: 1
+        maximum: 65535
+      contracts:
+        description: >-
+          Public gRPC service contracts served on this endpoint. Omit when the
+          endpoint only exposes non-contract services such as gRPC health
+          checks.
+        type: array
+        minItems: 1
+        uniqueItems: true
+        items:
+          description: >-
+            Public protobuf contract entry point included in the service
+            contract artifact. Every gRPC service defined directly in this file
+            is part of the public service contract.
+          $ref: "#/$defs/schema_reference"
+  messaging:
+    type: object
+    additionalProperties: false
+    properties:
+      publishes:
+        type: array
+        uniqueItems: true
+        items:
+          $ref: "#/$defs/published_topic"
+  published_topic:
+    description: A topic on which the service publishes.
+    type: object
+    additionalProperties: false
+    required:
+      - topic
+      - events
+    properties:
+      topic:
+        description: >-
+          Topic name, optionally containing named placeholders in braces for
+          dynamic values.
+        type: string
+        pattern: "^[a-z][a-z0-9]*(?:[._-](?:[a-z0-9]+|\\{[a-z][a-z0-9_]*\\}))+$"
+      description:
+        type: string
+        minLength: 1
+      events:
+        description: Event payload types published on this topic.
+        type: array
+        minItems: 1
+        uniqueItems: true
+        items:
+          $ref: "#/$defs/published_event"
+  published_event:
+    description: An event payload type published on a messaging topic.
+    type: object
+    additionalProperties: false
+    required:
+      - event_type
+    anyOf:
+      - required:
+          - content_type
+      - required:
+          - schema
+    properties:
+      event_type:
+        description: Stable identifier for this event payload type.
+        $ref: "#/$defs/event_type"
+      content_type:
+        description: >-
+          Describes the event payload format. IANA media types such as
+          application/json or application/octet-stream are preferred.
+          Custom format labels are allowed. This field does not validate
+          the payload contents.
+        type: string
+        pattern: '\S'
+      schema:
+        description: >-
+          Event envelope payload schema included in the service contract
+          artifact.
+        $ref: "#/$defs/schema_reference"
+  event_type:
+    type: string
+    pattern: "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+  dependencies:
+    type: object
+    propertyNames:
+      $ref: "#/$defs/service_id"
+    additionalProperties:
+      enum:
+        - required
+        - optional

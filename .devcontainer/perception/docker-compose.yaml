@@ -1,0 +1,38 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+services:
+  perception-dev:
+    build:
+      context: ../perception
+      dockerfile: Dockerfile
+      target: runtime
+    platform: linux/arm64
+    user: root
+    depends_on:
+      - camera-spoof-source
+    environment:
+      XDG_RUNTIME_DIR: /run/pipewire
+    volumes:
+      - ../..:/workspaces/cairn-sdk:cached
+      - pipewire-runtime:/run/pipewire:ro
+    command: sleep infinity
+
+  camera-spoof-source:
+    image: debian:trixie
+    restart: unless-stopped
+    depends_on:
+      - camera-service
+    environment:
+      XDG_RUNTIME_DIR: /run/pipewire
+    volumes:
+      - ../..:/workspaces/cairn-sdk:cached
+      - pipewire-runtime:/run/pipewire
+    command: >
+      bash -lc "apt-get update && apt-get install -y --no-install-recommends
+      gstreamer1.0-tools
+      gstreamer1.0-plugins-base
+      gstreamer1.0-plugins-good
+      gstreamer1.0-pipewire
+      && rm -rf /var/lib/apt/lists/*
+      && /bin/bash /workspaces/cairn-sdk/services/camera/scripts/dev-spoof-pipewire-camera.sh"

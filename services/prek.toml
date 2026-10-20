@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+minimum_prek_version = "0.4.13"
+default_stages = ["pre-push"]
+
+[[repos]]
+repo = "local"
+
+[[repos.hooks]]
+id = "hadolint"
+name = "hadolint"
+language = "docker_image"
+entry = "hadolint/hadolint:v2.14.0@sha256:27086352fd5e1907ea2b934eb1023f217c5ae087992eb59fde121dce9c9ff21e hadolint"
+files = { glob = ["**/Dockerfile", "**/Dockerfile.*", "**/*.Dockerfile"] }

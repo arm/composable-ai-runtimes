@@ -1,0 +1,108 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+name: Camera Podman Smoke
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  changes:
+    if: vars.INTERNAL_REPO == 'true'
+    uses: ./.github/workflows/ci-detect-changes.yml
+    permissions:
+      contents: read
+    with:
+      paths: |
+        .python-version
+        .github/scripts/camera-boardfarm-list-cameras-smoke.py
+        .github/scripts/camera_smoke/**
+        .github/workflows/camera-podman-smoke.yml
+        services/camera/**
+        .github/workflows/ci-detect-changes.yml
+        .github/workflows/ci-evaluate-results.yml
+
+  boardfarm-rootful-podman-smoke:
+    needs: changes
+    if: vars.INTERNAL_REPO == 'true' && needs.changes.outputs.changed == 'true'
+    name: Validate camera with rootful Podman on Pi board farm
+    runs-on: [self-hosted, Linux, ARM64, boardfarm, pi5]
+    concurrency:
+      group: camera-boardfarm-pi5-usb-camera
+      queue: max
+      cancel-in-progress: false
+    timeout-minutes: 30
+    env:
+      COMPOSE_PROJECT_NAME: camera-boardfarm-podman-${{ github.run_id }}
+      CONTAINER_ENGINE: podman
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Prepare camera board-farm runner
+        run: python3 .github/scripts/camera_smoke/runner_maintenance.py
+
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.10.12"
+
+      - name: Verify rootful Podman
+        run: |
+          mkdir -p test-results/camera-boardfarm-list-cameras-smoke
+          sudo --non-interactive podman info > test-results/camera-boardfarm-list-cameras-smoke/podman-info.txt
+          test "$(sudo --non-interactive podman info --format '{{.Host.Security.Rootless}}')" = false
+
+      - name: Log in to GHCR
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and load camera image
+        run: |
+          set -euo pipefail
+          docker build --tag camera-service:latest services/camera
+          docker save camera-service:latest | sudo --non-interactive podman load
+          sudo --non-interactive podman image exists camera-service:latest
+
+      - name: Install grpcurl
+        run: |
+          curl -fsSL https://github.com/fullstorydev/grpcurl/releases/download/v1.9.3/grpcurl_1.9.3_linux_arm64.tar.gz \
+            | tar -xz -C "${RUNNER_TEMP}" grpcurl
+
+      - name: Launch and query the camera service
+        env:
+          GRPCURL_BIN: ${{ runner.temp }}/grpcurl
+        run: |
+          uv run --with pytest==8.3.5 python -m pytest \
+            .github/scripts/camera-boardfarm-list-cameras-smoke.py \
+            --junitxml=test-results/camera-boardfarm-list-cameras-smoke/junit.xml
+
+      - name: Clean up rootful Podman resources
+        if: always()
+        run: |
+          status=0
+          sudo --non-interactive podman compose --project-name "${COMPOSE_PROJECT_NAME}" -f services/camera/compose.yaml down --volumes --remove-orphans || status=$?
+          sudo --non-interactive podman image rm --force camera-service:latest || status=$?
+          exit "${status}"
+
+      - name: Upload smoke results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: camera-boardfarm-rootful-podman-smoke-results
+          path: test-results/camera-boardfarm-list-cameras-smoke/
+
+  required:
+    name: CI / Camera Podman Smoke
+    if: always() && vars.INTERNAL_REPO == 'true' && github.event_name == 'pull_request'
+    needs: [changes, boardfarm-rootful-podman-smoke]
+    uses: ./.github/workflows/ci-evaluate-results.yml
+    with:
+      results: ${{ toJSON(needs) }}

@@ -1,0 +1,58 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+name: Sync main to arm/composable-ai-runtimes
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-arm-repository-main
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync to arm/composable-ai-runtimes
+    if: vars.INTERNAL_REPO == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout source repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          path: source-repo
+          persist-credentials: false
+
+      - name: Generate Arm repository token
+        id: arm_token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.DEVX_CAIRN_SDK_CLIENT_ID }}
+          private-key: ${{ secrets.DEVX_CAIRN_SDK_PRIVATE_KEY }}
+          owner: arm
+          repositories: composable-ai-runtimes
+          permission-contents: write
+          permission-workflows: write
+
+      - name: Checkout Arm repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          repository: arm/composable-ai-runtimes
+          token: ${{ steps.arm_token.outputs.token }}
+          fetch-depth: 0
+          path: target-repo
+          persist-credentials: true
+
+      - name: Fast-forward arm/composable-ai-runtimes main
+        run: |
+          git -C target-repo remote add source ../source-repo
+          git -C target-repo fetch source main
+          git -C target-repo merge --ff-only source/main
+          git -C target-repo push origin main

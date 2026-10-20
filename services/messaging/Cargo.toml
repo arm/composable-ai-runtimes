@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+[package]
+name = "messaging"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+
+# Match the target compiled by the service Dockerfile.
+[package.metadata.cairn.rust-notices]
+target = "aarch64-unknown-linux-musl"
+
+[dependencies]
+redis = { version = "1.4.1", default-features = false, features = ["tokio-comp"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "time"] }
+tonic = { version = "0.14", features = ["transport"] }
+tonic-health = "0.14"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+
+[dev-dependencies]
+redis-test = "1.0.4"
+tokio = { version = "1", features = ["net", "sync"] }
+tokio-stream = { version = "0.1", features = ["net"] }
+
+[[bin]]
+name = "api"
+path = "src/api/main.rs"

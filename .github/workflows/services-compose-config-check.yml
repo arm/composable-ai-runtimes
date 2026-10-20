@@ -1,0 +1,58 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+name: Services Compose Config Check
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    if: vars.INTERNAL_REPO == 'true'
+    uses: ./.github/workflows/ci-detect-changes.yml
+    permissions:
+      contents: read
+    with:
+      paths: |
+        .github/scripts/cairn-contract/validate-manifests.py
+        services/compose.yaml
+        services/*/compose.yaml
+        docs/spec/schema/compose.cairn.schema.yaml
+        .github/workflows/services-compose-config-check.yml
+        .github/workflows/ci-detect-changes.yml
+        .github/workflows/ci-evaluate-results.yml
+
+  compose-config:
+    needs: changes
+    if: vars.INTERNAL_REPO == 'true' && needs.changes.outputs.changed == 'true'
+    name: Validate services Compose config
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.10.12"
+
+      - name: Validate services Compose config
+        run: docker compose -f services/compose.yaml config
+
+      - name: Validate Cairn service metadata
+        run: uv run --with PyYAML==6.0.2 --with jsonschema==4.25.1 python .github/scripts/cairn-contract/validate-manifests.py
+
+  required:
+    name: CI / Services Compose Config Check
+    if: always() && vars.INTERNAL_REPO == 'true' && github.event_name == 'pull_request'
+    needs: [changes, compose-config]
+    uses: ./.github/workflows/ci-evaluate-results.yml
+    with:
+      results: ${{ toJSON(needs) }}

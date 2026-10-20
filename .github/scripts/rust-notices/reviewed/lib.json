@@ -1,0 +1,33 @@
+{
+  "inputs": {
+    ".github/scripts/rust-notices/about.hbs": "11b60b5ca79b59c8f433f5c66e22f9c77a7d2cfa707b1e7fa7e355262e784801",
+    ".github/scripts/rust-notices/about.toml": "a0ca9a9a03e76186293c368b66bf92fef09e212feca0ebb879a20db06212eb5e",
+    ".github/scripts/rust-notices/toolchain.env": "c714f0899b8e8ae30ce23dccbfa8669adf42919126c2ca7c0f02cbc168f4e613",
+    "lib/.cargo/config.toml": "f2a45091d5fa9a8a1a1f91458dbdffd8907de1e8761ff4e2c96aaa5e6f05bb31",
+    "lib/Cargo.lock": "4a35c08869fd09ed16b251c0fa31ef54154c6bda9eabee60d6e7520f49635d29",
+    "lib/Cargo.toml": "41ec86e13fb9ef7054d1993557e6c67c74e548a2b6706d7f39633cf045ac2735",
+    "lib/crates/cairn-camera/Cargo.toml": "89570009f9195f36217c70b9e9fcffd117d246ba5dd46373270177dd3016417d",
+    "lib/crates/cairn-notification/Cargo.toml": "1ce4d2cda22f5856ce67c4f530b51ab96c2e5267388e52b46bd8ac00179febfb",
+    "lib/crates/cairn-perception/Cargo.toml": "a726195639706f7e6292263e71fb36e380e1536c8a05ddde385e7adccbbf3739",
+    "lib/crates/cairn-py/Cargo.toml": "aa2c67e8f3ad1dcb024cc9161c6091b3e2382ebecd63f54b2e7b69f269b90559",
+    "lib/crates/cairn/Cargo.toml": "e876961e0f8633a3de646cf2cd93fc66ac51f774f9b9040b4fb00b8fea91feca",
+    "lib/pyproject.toml:build-selection": "ef94fb926819783f3d06b5a5207f49a8f40e5cd13004f35d828b435864dc3aae",
+    "lib/rust-toolchain.toml": "54535e7972f043a28a34744d65c9a244da98f3315099bd9ce0fc451e8e787b4f"
+  },
+  "notices": {
+    "COPYRIGHT-library.html": "d93d65853736bde4e8649691233a98848ba709673873aeb39487bc1ca6ee292a",
+    "THIRD_PARTY_NOTICES.txt": "784b7da1fa8026142fdae63a69c5f7eb260d33df904991cf6399b44da5fc371d",
+    "licenses/Apache-2.0.txt": "074e6e32c86a4c0ef8b3ed25b721ca23aca83df277cd88106ef7177c354615ff",
+    "licenses/BSD-2-Clause.txt": "f32fb3b417a194167cfad068223fc975ba96c5960513a10f66a3c28720aec1df",
+    "licenses/CC-BY-SA-4.0.txt": "23ee78c8bae49cf08ea2f0c84945c66b987ebe4520881fb51b3dad4fb43d07c2",
+    "licenses/GCC-exception-3.1.txt": "a3966c9410ef94a1efbfa9ec04e9c1994026a70623fbf0885ce36737bfba3b54",
+    "licenses/GPL-2.0-only.txt": "54b212ba1f97f6948fa5486239ab505dd820b02e50cbfd296b4062c8609a70af",
+    "licenses/GPL-3.0-or-later.txt": "05315fce6c35f79b8a35454828995fa26336f235895ac64557abc028f4ffcea2",
+    "licenses/ISC.txt": "0ff61769b238634e042ab759dddfd104a8e69d091e3600ae3410e401a6164381",
+    "licenses/LLVM-exception.txt": "e34c58338bd89d43e709e226610d8f32b3e3c47f4ad9a99a8dc1d4ac7842488e",
+    "licenses/MIT.txt": "b85dcd3e453d05982552c52b5fc9e0bdd6d23c6f8e844b984a88af32570b0cc0",
+    "licenses/NCSA.txt": "39cb0234065c92b9e6cee3830cbb52b1aa289aa8fe9ba2e66730fec5cf05c630",
+    "licenses/OFL-1.1.txt": "8eea8287e5876b539670cadb82e99f9a7afddec6f6730811be1daf25d2e9bcfd",
+    "licenses/Unicode-3.0.txt": "f5062c9a188d81dfe66b56db4182dcf9e4b17c0d9b0d311a8e20b3a1b075c443"
+  }
+}

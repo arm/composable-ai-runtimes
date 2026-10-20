@@ -1,0 +1,76 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+services:
+  perception-service:
+    image: ${PERCEPTION_SERVICE_IMAGE:-perception-service:local}
+    build:
+      context: .
+    stop_grace_period: 15s
+    environment:
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      XDG_RUNTIME_DIR: /run/pipewire
+    ports:
+      - host_ip: 127.0.0.1
+        target: 9999
+        published: 9999
+        protocol: tcp
+      - host_ip: 127.0.0.1
+        target: 8000
+        published: 8000
+        protocol: tcp
+      - host_ip: 127.0.0.1
+        target: 8001
+        published: 8001
+        protocol: tcp
+    volumes:
+      - pipewire-runtime:/run/pipewire:ro
+    x-cairn:
+      format_version: "0.1"
+      service_version: 0.1.0
+      name: Perception Service
+      description: Deploys and manages perception workflows using Cairn camera sources.
+      id: cairn.perception-service
+      role: solution
+      api:
+        grpc:
+          port: 50053
+          contracts:
+            - proto/cairn/perception/v1/perception.proto
+      messaging:
+        publishes:
+          - topic: cairn.perception.sessions.{session_id}.results
+            description: Results produced by deployed perception workflows.
+            events:
+              - event_type: cairn.perception.result
+                content_type: application/octet-stream
+          - topic: cairn.perception.sessions.{session_id}.events
+            description: Lifecycle updates for a deployed perception workflow.
+            events:
+              - event_type: cairn.perception.session.starting
+                content_type: application/json
+                schema: schemas/perception-lifecycle-event.schema.json
+              - event_type: cairn.perception.session.running
+                content_type: application/json
+                schema: schemas/perception-lifecycle-event.schema.json
+              - event_type: cairn.perception.session.stopping
+                content_type: application/json
+                schema: schemas/perception-lifecycle-event.schema.json
+              - event_type: cairn.perception.session.stopped
+                content_type: application/json
+                schema: schemas/perception-lifecycle-event.schema.json
+              - event_type: cairn.perception.session.failed
+                content_type: application/json
+                schema: schemas/perception-lifecycle-event.schema.json
+              - event_type: cairn.perception.stage.enabled
+                content_type: application/json
+                schema: schemas/perception-lifecycle-event.schema.json
+              - event_type: cairn.perception.stage.disabled
+                content_type: application/json
+                schema: schemas/perception-lifecycle-event.schema.json
+      dependencies:
+        cairn.camera-service: required
+        cairn.messaging-service: required
+
+volumes:
+  pipewire-runtime:

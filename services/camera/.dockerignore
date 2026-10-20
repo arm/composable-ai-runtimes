@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+# Docker reads ignore files from the build context only. The camera image uses
+# services/camera as its context, so the repository root .dockerignore is not
+# applied to this build.
+target/
+
+.gitignore
+
+.DS_Store
+*.log
+*.tmp
+*.swp
+
+.idea/
+.vscode/
+
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+.cache/
+build/
+dist/
+node_modules/
+coverage/
+*.profraw

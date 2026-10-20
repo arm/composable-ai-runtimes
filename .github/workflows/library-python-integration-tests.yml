@@ -1,0 +1,63 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+name: Python Bindings Integration Tests
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    if: vars.INTERNAL_REPO == 'true'
+    uses: ./.github/workflows/ci-detect-changes.yml
+    permissions:
+      contents: read
+    with:
+      paths: |
+        .github/workflows/library-python-integration-tests.yml
+        services/perception/**
+        lib/**
+        .github/workflows/ci-detect-changes.yml
+        .github/workflows/ci-evaluate-results.yml
+
+  python-bindings:
+    needs: changes
+    if: vars.INTERNAL_REPO == 'true' && needs.changes.outputs.changed == 'true'
+    name: Run Python bindings integration tests
+    runs-on: self-hosted-ubuntu-24.04-arm64-ephemeral
+    defaults:
+      run:
+        working-directory: lib
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Install native Python test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler redis-server
+          sudo systemctl stop redis-server
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.10.12"
+          enable-cache: true
+
+      - name: Run Python bindings integration tests
+        run: uv run python -m pytest -m "not e2e" tests
+
+  required:
+    name: CI / Python Bindings Integration Tests
+    if: always() && vars.INTERNAL_REPO == 'true' && github.event_name == 'pull_request'
+    needs: [changes, python-bindings]
+    uses: ./.github/workflows/ci-evaluate-results.yml
+    with:
+      results: ${{ toJSON(needs) }}
