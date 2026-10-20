@@ -112,8 +112,22 @@ jobs:
           name: python-release-dist
           path: dist
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.10.12"
+          enable-cache: false
+
+      - name: Validate distribution metadata
+        run: uv run --no-project --python 3.12 --with twine==7.0.0 python -m twine check dist/*.whl
+
+      - name: Generate PyPI publish attestations
+        run: >-
+          uv run --no-project --python 3.12 --with pypi-attestations==0.0.30
+          python -m pypi_attestations sign dist/*.whl
+
       - name: Publish Python package to PyPI
-        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
+        run: uv publish --trusted-publishing always dist/*.whl dist/*.whl.publish.attestation
 
   publish-docs:
     name: Publish Python API reference to production
