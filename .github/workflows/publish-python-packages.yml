@@ -119,11 +119,11 @@ jobs:
           enable-cache: false
 
       - name: Validate distribution metadata
-        run: uv run --no-project --python 3.12 --with twine==7.0.0 python -m twine check dist/*.whl
+        run: uv run --no-project --isolated --python 3.12 --with twine==7.0.0 python -m twine check dist/*.whl
 
       - name: Generate PyPI publish attestations
         run: >-
-          uv run --no-project --python 3.12 --with pypi-attestations==0.0.30
+          uv run --no-project --isolated --python 3.12 --with pypi-attestations==0.0.30
           python -m pypi_attestations sign dist/*.whl
 
       - name: Publish Python package to PyPI
