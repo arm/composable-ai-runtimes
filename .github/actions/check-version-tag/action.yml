@@ -17,8 +17,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Find the highest previous version
-      id: versions
+    - name: Require a newer version
       shell: bash
       env:
         CURRENT_TAG: ${{ inputs.tag }}
@@ -47,23 +46,11 @@ runs:
             ' |
             sort -V | tail -n 1
         )
-        echo "current=$current_version" >> "$GITHUB_OUTPUT"
-        echo "previous=$previous_version" >> "$GITHUB_OUTPUT"
-    - name: Compare versions
-      id: compare
-      uses: madhead/semver-utils@4cf918affe9106ea59f86c6250e5ec4570ac4389 # v5.0.0
-      with:
-        version: ${{ steps.versions.outputs.current }}
-        compare-to: ${{ steps.versions.outputs.previous }}
-        lenient: 'false'
-    - name: Require a newer version
-      if: >-
-        steps.versions.outputs.previous != '' &&
-        steps.compare.outputs.comparison-result != '>'
-      shell: bash
-      env:
-        CURRENT_VERSION: ${{ steps.versions.outputs.current }}
-        PREVIOUS_VERSION: ${{ steps.versions.outputs.previous }}
-      run: |
-        echo "::error::Version $CURRENT_VERSION must be newer than $PREVIOUS_VERSION."
-        exit 1
+        if [[ -z "$previous_version" ]]; then
+          exit 0
+        fi
+        highest_version=$(printf '%s\n' "$previous_version" "$current_version" | sort -V | tail -n 1)
+        if [[ "$current_version" == "$previous_version" || "$highest_version" != "$current_version" ]]; then
+          echo "::error::Version $current_version must be newer than $previous_version."
+          exit 1
+        fi
