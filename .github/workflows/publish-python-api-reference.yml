@@ -119,7 +119,7 @@ jobs:
           aws-region: eu-north-1
 
       - name: Upload API reference
-        uses: ARM-Software/docs-action/upload@01066fa9cd8ab0a04971860c5f10ee6336ec79c2
+        uses: ARM-Software/docs-action/upload@3c7568b8ae13d83b9a0b4b4112ae1f367eed5ff6
         with:
           source-dir: docs/python-api/_build/html
           site-id: ${{ vars.CAIRN_PYTHON_API_SITE_ID }}
