@@ -130,7 +130,16 @@ jobs:
       - name: Check service version tags
         id: publish-plan
         run: |
-          repository_tags="$(oras repo tags "$SERVICE_REPOSITORY")" || {
+          tags_error="$(mktemp)"
+          if repository_tags="$(oras repo tags "$SERVICE_REPOSITORY" 2> "$tags_error")"; then
+            rm -f "$tags_error"
+          elif grep -q '^Error response from registry: name unknown: repository name not known to registry:' "$tags_error"; then
+            rm -f "$tags_error"
+            echo "Repository ${SERVICE_REPOSITORY} has no published images; continuing with first publication"
+            repository_tags=""
+          else
+            cat "$tags_error" >&2
+            rm -f "$tags_error"
             echo "Failed to list tags for ${SERVICE_REPOSITORY}" >&2
             echo "::group::Registry authentication diagnostics"
             python3 - <<'PY'
@@ -162,7 +171,7 @@ jobs:
             fi
             echo "::endgroup::"
             exit 1
-          }
+          fi
 
           tag_exists() {
             grep -Fxq -- "$1" <<< "$repository_tags"
