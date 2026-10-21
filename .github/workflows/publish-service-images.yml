@@ -290,6 +290,7 @@ jobs:
           fi
 
           docker buildx bake \
+            --allow "fs.write=${RUNNER_TEMP}" \
             "${rust_build_args[@]}" \
             --file compose.yaml \
             --metadata-file "$metadata" \
