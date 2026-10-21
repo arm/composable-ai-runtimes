@@ -289,7 +289,9 @@ jobs:
             rust_build_args+=(--set "${target}.args.EXPECTED_RUST_VERSION=${RUSTUP_TOOLCHAIN}")
           fi
 
+          mkdir -p "$image_layout"
           docker buildx bake \
+            --allow "fs.write=${image_layout}" \
             "${rust_build_args[@]}" \
             --file compose.yaml \
             --metadata-file "$metadata" \
