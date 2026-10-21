@@ -431,11 +431,21 @@ jobs:
               "$image_subject" \
               "$contract_layer"
           )"
-          discover_output="$(
-            oras discover \
-              --artifact-type "$contract_artifact_type" \
-              "$image_subject"
-          )"
+          # Registry referrer listings can lag behind a successful attachment.
+          for attempt in {1..12}; do
+            discover_output="$(
+              oras discover \
+                --artifact-type "$contract_artifact_type" \
+                "$image_subject"
+            )"
+            if grep -Fq "$contract_digest" <<< "$discover_output"; then
+              break
+            fi
+            echo "Contract ${contract_digest} is not yet discoverable (attempt ${attempt}/12)."
+            if (( attempt < 12 )); then
+              sleep 5
+            fi
+          done
           echo "$discover_output"
           if ! grep -Fq "$contract_digest" <<< "$discover_output"; then
             echo "Contract ${contract_digest} was not discoverable from ${image_subject}" >&2
