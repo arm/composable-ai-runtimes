@@ -31,7 +31,7 @@ futures-util = { version = "=0.3.32"}
 prost = { version = "=0.14.3" }
 prost-build = { version = "=0.14.3", optional = true }
 prost-types = { version = "=0.14.3" }
-redis = { version = "=1.4.1", default-features = false, features = ["tokio-comp"] }
+redis = { version = "=1.7.1", default-features = false, features = ["tokio-comp"] }
 tokio = { version = "=1.53.1", features = ["macros", "net", "rt", "rt-multi-thread", "sync", "time"] }
 tracing = { version = "=0.1.44"}
 

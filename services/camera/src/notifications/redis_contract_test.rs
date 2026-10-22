@@ -21,7 +21,7 @@ use testcontainers::{
 use tokio::sync::Mutex;
 
 const REDIS_PORT: u16 = 6379;
-const REDIS_VERSION: &str = "7.2.4";
+const REDIS_VERSION: &str = "8.4.7";
 const CAMERA_EVENTS_CHANNEL: &str = "camera.events";
 const CUSTOM_CAMERA_EVENTS_CHANNEL: &str = "custom.camera.events";
 const REDIS_HOST_ENV: &str = "PWC_REDIS_HOST";

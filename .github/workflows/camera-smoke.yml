@@ -335,7 +335,7 @@ jobs:
           uv run \
             --with pytest==8.3.5 \
             --with protobuf==5.29.6 \
-            --with redis==5.2.1 \
+            --with redis==8.1.0 \
             python -m pytest -p no:cacheprovider \
             .github/scripts/camera-boardfarm-notifications-hotplug.py \
             .github/scripts/camera-boardfarm-notifications-reconnect.py \
