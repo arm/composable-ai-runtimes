@@ -15,11 +15,6 @@ services:
         target: 50054
         published: 50054
         protocol: tcp
-    healthcheck:
-      test: ["CMD", "grpc_health_probe", "-addr=127.0.0.1:50054"]
-      interval: 2s
-      timeout: 2s
-      retries: 10
     x-cairn:
       format_version: "0.1"
       service_version: 0.0.1

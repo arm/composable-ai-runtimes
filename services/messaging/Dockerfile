@@ -37,4 +37,7 @@ COPY LICENSE /usr/share/licenses/cairn/LICENSE
 COPY THIRD-PARTY-DISCLAIMER.txt /THIRD-PARTY-DISCLAIMER.txt
 COPY notices/ /usr/share/licenses/cairn/
 
+HEALTHCHECK --interval=2s --timeout=2s --retries=10 \
+  CMD ["grpc_health_probe", "-addr=127.0.0.1:50054"]
+
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

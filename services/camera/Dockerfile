@@ -178,6 +178,9 @@ RUN chmod +x /usr/local/bin/api /usr/local/bin/grpc_health_probe /usr/local/bin/
   && setcap cap_sys_nice=ep /usr/bin/wireplumber \
   && ldconfig
 
+HEALTHCHECK --interval=5s --timeout=6s --start-period=15s --retries=12 \
+  CMD ["grpc_health_probe", "-addr=127.0.0.1:50051"]
+
 USER camera-service
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

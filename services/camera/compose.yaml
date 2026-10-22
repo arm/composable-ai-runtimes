@@ -21,12 +21,6 @@ services:
       - "c *:* rw" # Wider Cgroup permissions for devices, to reduce compatibility issues across different host configurations.
     environment:
       XDG_RUNTIME_DIR: /run/pipewire
-    healthcheck:
-      test: ["CMD", "grpc_health_probe", "-addr=127.0.0.1:50051"]
-      interval: 5s
-      timeout: 6s
-      start_period: 15s
-      retries: 12
     volumes:
       - pipewire-runtime:/run/pipewire
       - /dev:/dev
