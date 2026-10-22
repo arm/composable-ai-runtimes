@@ -10,6 +10,6 @@ notes: |
 components:
   rust: 0.0.1
   python: 0.0.1
-  camera: 0.1.0
-  messaging: 0.1.0
-  perception: 0.1.0
+  camera: 0.0.1
+  messaging: 0.0.1
+  perception: 0.0.1

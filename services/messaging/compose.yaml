@@ -22,7 +22,7 @@ services:
       retries: 10
     x-cairn:
       format_version: "0.1"
-      service_version: 0.1.0
+      service_version: 0.0.1
       name: Messaging Service
       description: Provides asynchronous publish and subscribe messaging for Cairn services.
       id: cairn.messaging-service

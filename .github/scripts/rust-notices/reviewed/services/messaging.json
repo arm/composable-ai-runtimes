@@ -3,12 +3,12 @@
     ".github/scripts/rust-notices/about.hbs": "11b60b5ca79b59c8f433f5c66e22f9c77a7d2cfa707b1e7fa7e355262e784801",
     ".github/scripts/rust-notices/about.toml": "a0ca9a9a03e76186293c368b66bf92fef09e212feca0ebb879a20db06212eb5e",
     ".github/scripts/rust-notices/toolchain.env": "c714f0899b8e8ae30ce23dccbfa8669adf42919126c2ca7c0f02cbc168f4e613",
-    "services/messaging/Cargo.lock": "79d96999fb4bf8b52a47e71d2a2bfeb53941c62292c1707a1686f7b04f29f3ca",
-    "services/messaging/Cargo.toml": "671c8b30aa0ebbe174f82f4846466f0dd666951e909ad2ab2e92ba309bc33d47"
+    "services/messaging/Cargo.lock": "7d54af0dc97e9861ceff57f920ef8fe322ff9b1bb80d4085c17040a30fd4e4d4",
+    "services/messaging/Cargo.toml": "f3297d7a98fa07f5a888bb8609569d35e366d4c895ffc7cfb1e0933414e3bee3"
   },
   "notices": {
     "COPYRIGHT-library.html": "d93d65853736bde4e8649691233a98848ba709673873aeb39487bc1ca6ee292a",
-    "THIRD_PARTY_NOTICES.txt": "b9ff68f9226d231b39de5bc8d6753787617b14eb47d608318c1f822f8b7dd693",
+    "THIRD_PARTY_NOTICES.txt": "78f0b89ca0922ab3c984961d2b6b13d4ba8562f5fddf293c5b6bb0a87e7a64b9",
     "licenses/Apache-2.0.txt": "074e6e32c86a4c0ef8b3ed25b721ca23aca83df277cd88106ef7177c354615ff",
     "licenses/BSD-2-Clause.txt": "f32fb3b417a194167cfad068223fc975ba96c5960513a10f66a3c28720aec1df",
     "licenses/CC-BY-SA-4.0.txt": "23ee78c8bae49cf08ea2f0c84945c66b987ebe4520881fb51b3dad4fb43d07c2",

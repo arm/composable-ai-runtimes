@@ -483,7 +483,7 @@ def test_get_service_info_returns_v1_metadata(
 
     assert response == perception_pb2.GetServiceInfoResponse(
         api_version="v1",
-        service_version="0.1.0",
+        service_version="0.0.1",
         sessions_survive_restart=False,
     )
 
