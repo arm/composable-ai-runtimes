@@ -13,21 +13,12 @@ on:
       - docs/python-api/**
       - lib/**
   workflow_dispatch:
-    inputs:
-      environment:
-        description: Documentation publishing environment
-        type: choice
-        required: true
-        default: staging
-        options:
-          - staging
-          - production
 
 env:
   PYTHON_VERSION: "3.12"
 
 concurrency:
-  group: publish-python-api-reference-${{ inputs.environment || 'staging' }}
+  group: publish-python-api-reference-staging
   cancel-in-progress: false
 
 jobs:
@@ -83,7 +74,7 @@ jobs:
       vars.INTERNAL_REPO == 'false' &&
       (github.event_name != 'pull_request')
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment || 'staging' }}
+    environment: staging
     permissions:
       contents: read
       id-token: write
@@ -93,10 +84,9 @@ jobs:
         env:
           AWS_ROLE_ARN: ${{ vars.CAIRN_DOCS_AWS_ROLE_ARN }}
           SITE_ID: ${{ vars.CAIRN_PYTHON_API_SITE_ID }}
-          PUBLISH_ENVIRONMENT: ${{ inputs.environment || 'staging' }}
         run: |
           if [[ -z "${AWS_ROLE_ARN}" || -z "${SITE_ID}" ]]; then
-            echo "::error::The ${PUBLISH_ENVIRONMENT} environment must define CAIRN_DOCS_AWS_ROLE_ARN and CAIRN_PYTHON_API_SITE_ID."
+            echo "::error::The staging environment must define CAIRN_DOCS_AWS_ROLE_ARN and CAIRN_PYTHON_API_SITE_ID."
             exit 1
           fi
 
@@ -135,7 +125,7 @@ jobs:
         with:
           source-dir: docs/python-api/_build/html
           site-id: ${{ vars.CAIRN_PYTHON_API_SITE_ID }}
-          environment: ${{ inputs.environment || 'staging' }}
+          environment: staging
 
   required:
     name: CI / Python API reference
