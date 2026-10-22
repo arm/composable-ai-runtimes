@@ -26,7 +26,7 @@ results already visible in CI.
 
 <!-- All checkboxes should be checked by author before review-->
 
-- [ ] 🤖 This change is covered by tests as required.
+- [ ] 🧪 This change is covered by tests as required.
 - [ ] 🤖 Independent agent review is complete or not applicable.
 - [ ] 🤹 All required manual testing has been performed.
 - [ ] 📖 All relevant documentation and README updates are complete.
