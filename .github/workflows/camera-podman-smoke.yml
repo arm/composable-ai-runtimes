@@ -4,6 +4,8 @@
 name: Camera Podman Smoke
 
 on:
+  merge_group:
+    types: [checks_requested]
   pull_request:
     types: [opened, synchronize, reopened]
   workflow_dispatch:
@@ -30,7 +32,7 @@ jobs:
 
   boardfarm-rootful-podman-smoke:
     needs: changes
-    if: vars.INTERNAL_REPO == 'true' && needs.changes.outputs.changed == 'true'
+    if: vars.INTERNAL_REPO == 'true' && needs.changes.outputs.changed == 'true' && (github.event_name == 'merge_group' || github.event_name == 'workflow_dispatch')
     name: Validate camera with rootful Podman on Pi board farm
     runs-on: [self-hosted, Linux, ARM64, boardfarm, pi5]
     concurrency:
@@ -102,8 +104,9 @@ jobs:
 
   required:
     name: CI / Camera Podman Smoke
-    if: always() && vars.INTERNAL_REPO == 'true' && github.event_name == 'pull_request'
+    if: always() && vars.INTERNAL_REPO == 'true' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')
     needs: [changes, boardfarm-rootful-podman-smoke]
     uses: ./.github/workflows/ci-evaluate-results.yml
     with:
       results: ${{ toJSON(needs) }}
+      queue_only_job_ids: '["boardfarm-rootful-podman-smoke"]'

@@ -4,6 +4,8 @@
 name: Camera Smoke
 
 on:
+  merge_group:
+    types: [checks_requested]
   pull_request:
     types:
       - opened
@@ -107,7 +109,7 @@ jobs:
 
   boardfarm-startup-smoke:
     needs: changes
-    if: vars.INTERNAL_REPO == 'true' && needs.changes.outputs.changed == 'true'
+    if: vars.INTERNAL_REPO == 'true' && needs.changes.outputs.changed == 'true' && (github.event_name == 'merge_group' || github.event_name == 'workflow_dispatch')
     name: Validate camera on Pi board farm
     runs-on:
       - self-hosted
@@ -153,7 +155,7 @@ jobs:
 
   boardfarm-list-cameras-smoke:
     needs: changes
-    if: vars.INTERNAL_REPO == 'true' && needs.changes.outputs.changed == 'true'
+    if: vars.INTERNAL_REPO == 'true' && needs.changes.outputs.changed == 'true' && (github.event_name == 'merge_group' || github.event_name == 'workflow_dispatch')
     name: Validate camera discovery on Pi board farm
     runs-on:
       - self-hosted
@@ -220,7 +222,7 @@ jobs:
 
   boardfarm-pipewire-failure-smoke:
     needs: changes
-    if: vars.INTERNAL_REPO == 'true' && needs.changes.outputs.changed == 'true'
+    if: vars.INTERNAL_REPO == 'true' && needs.changes.outputs.changed == 'true' && (github.event_name == 'merge_group' || github.event_name == 'workflow_dispatch')
     name: Validate camera PipeWire failure on Pi board farm
     runs-on:
       - self-hosted
@@ -297,7 +299,7 @@ jobs:
 
   boardfarm-notifications-smoke:
     needs: changes
-    if: vars.INTERNAL_REPO == 'true' && needs.changes.outputs.changed == 'true'
+    if: vars.INTERNAL_REPO == 'true' && needs.changes.outputs.changed == 'true' && (github.event_name == 'merge_group' || github.event_name == 'workflow_dispatch')
     name: Validate camera notifications on Pi board farm
     runs-on:
       - self-hosted
@@ -352,7 +354,7 @@ jobs:
 
   boardfarm-pipewire-capture-smoke:
     needs: changes
-    if: vars.INTERNAL_REPO == 'true' && needs.changes.outputs.changed == 'true'
+    if: vars.INTERNAL_REPO == 'true' && needs.changes.outputs.changed == 'true' && (github.event_name == 'merge_group' || github.event_name == 'workflow_dispatch')
     name: Validate direct PipeWire frame capture on Pi board farm
     runs-on:
       - self-hosted
@@ -459,8 +461,12 @@ jobs:
 
   required:
     name: CI / Camera Smoke
-    if: always() && vars.INTERNAL_REPO == 'true' && github.event_name == 'pull_request'
+    if: always() && vars.INTERNAL_REPO == 'true' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')
     needs: [changes, startup-smoke, boardfarm-startup-smoke, boardfarm-list-cameras-smoke, boardfarm-pipewire-failure-smoke, boardfarm-notifications-smoke, boardfarm-pipewire-capture-smoke, topo-smoke]
     uses: ./.github/workflows/ci-evaluate-results.yml
     with:
       results: ${{ toJSON(needs) }}
+      queue_only_job_ids: >-
+        ["boardfarm-startup-smoke", "boardfarm-list-cameras-smoke",
+         "boardfarm-pipewire-failure-smoke", "boardfarm-notifications-smoke",
+         "boardfarm-pipewire-capture-smoke"]
