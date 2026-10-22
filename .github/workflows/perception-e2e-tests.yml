@@ -4,7 +4,6 @@
 name: Python Perception SDK E2E
 
 on:
-  # Emit a skipped PR check so queue-only E2E can be required without blocking queue entry.
   pull_request:
     types:
       - opened
@@ -19,7 +18,7 @@ permissions:
 
 jobs:
   perception-e2e:
-    if: vars.INTERNAL_REPO == 'true' && github.event_name == 'merge_group'
+    if: vars.INTERNAL_REPO == 'true'
     name: Run Python Perception SDK E2E
     runs-on: self-hosted-ubuntu-24.04-arm64-ephemeral
     timeout-minutes: 30

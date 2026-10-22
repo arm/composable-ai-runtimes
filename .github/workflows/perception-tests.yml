@@ -4,6 +4,8 @@
 name: Perception tests
 
 on:
+  merge_group:
+    types: [checks_requested]
   pull_request:
     types:
       - opened
@@ -135,7 +137,7 @@ jobs:
 
   required:
     name: CI / Perception tests
-    if: always() && vars.INTERNAL_REPO == 'true' && github.event_name == 'pull_request'
+    if: always() && vars.INTERNAL_REPO == 'true' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')
     needs: [changes, pytest, integration-tests, deploy-workflow]
     uses: ./.github/workflows/ci-evaluate-results.yml
     with:

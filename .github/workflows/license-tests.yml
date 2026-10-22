@@ -4,47 +4,57 @@
 name: License tooling tests
 
 on:
+  merge_group:
+    types: [checks_requested]
   pull_request:
-    paths:
-      - .github/workflows/license-tests.yml
-      - .github/workflows/publish-python-packages.yml
-      - .github/workflows/publish-service-images.yml
-      - .github/scripts/sbom/**
-      - .github/scripts/container-notices/**
-      - .github/scripts/probe-notices/**
-      - .github/scripts/rust-notices/**
-      - .github/scripts/check_license_headers.py
-      - services/*/scripts/source_links.py
-      - services/camera/Dockerfile
-      - services/perception/Dockerfile
-      - lib/Cargo.toml
-      - lib/Cargo.lock
-      - lib/crates/*/Cargo.toml
-      - lib/pyproject.toml
-      - lib/.cargo/config.toml
-      - lib/rust-toolchain.toml
-      - services/*/Cargo.toml
-      - services/*/Cargo.lock
-      - services/*/.cargo/config*
-      - '**/LICENSE*'
-      - '**/LICENSES/**'
-      - '**/COPYING*'
-      - '**/COPYRIGHT*'
-      - '**/NOTICE*'
-      - '**/THIRD-PARTY-DISCLAIMER.txt'
-      - '**/licenses/**'
-      - '**/notices/**'
-      - '**/about.toml'
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: true
 
 jobs:
+  changes:
+    uses: ./.github/workflows/ci-detect-changes.yml
+    with:
+      paths: |
+        .github/workflows/license-tests.yml
+        .github/workflows/publish-python-packages.yml
+        .github/workflows/publish-service-images.yml
+        .github/scripts/sbom/**
+        .github/scripts/container-notices/**
+        .github/scripts/probe-notices/**
+        .github/scripts/rust-notices/**
+        .github/scripts/check_license_headers.py
+        services/*/scripts/source_links.py
+        services/camera/Dockerfile
+        services/perception/Dockerfile
+        lib/Cargo.toml
+        lib/Cargo.lock
+        lib/crates/*/Cargo.toml
+        lib/pyproject.toml
+        lib/.cargo/config.toml
+        lib/rust-toolchain.toml
+        services/*/Cargo.toml
+        services/*/Cargo.lock
+        services/*/.cargo/config*
+        **/LICENSE*
+        **/LICENSES/**
+        **/COPYING*
+        **/COPYRIGHT*
+        **/NOTICE*
+        **/THIRD-PARTY-DISCLAIMER.txt
+        **/licenses/**
+        **/notices/**
+        **/about.toml
+        .github/workflows/ci-detect-changes.yml
+        .github/workflows/ci-evaluate-results.yml
+
   source-report:
+    needs: changes
+    if: needs.changes.outputs.changed == 'true'
     name: Dependency source report format
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -66,6 +76,8 @@ jobs:
         run: uv run --no-project --with pytest==9.1.1 python -m pytest .github/scripts/sbom/test_source_links.py -q
 
   rust-review:
+    needs: changes
+    if: needs.changes.outputs.changed == 'true'
     name: Rust license review
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -92,3 +104,11 @@ jobs:
             uv run --no-project python .github/scripts/rust-notices/review.py "$manifest" || status=1
           done
           exit "$status"
+
+  required:
+    name: CI / License tooling tests
+    if: always()
+    needs: [changes, source-report, rust-review]
+    uses: ./.github/workflows/ci-evaluate-results.yml
+    with:
+      results: ${{ toJSON(needs) }}

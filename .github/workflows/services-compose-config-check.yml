@@ -4,6 +4,8 @@
 name: Services Compose Config Check
 
 on:
+  merge_group:
+    types: [checks_requested]
   pull_request:
     types:
       - opened
@@ -52,7 +54,7 @@ jobs:
 
   required:
     name: CI / Services Compose Config Check
-    if: always() && vars.INTERNAL_REPO == 'true' && github.event_name == 'pull_request'
+    if: always() && vars.INTERNAL_REPO == 'true' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')
     needs: [changes, compose-config]
     uses: ./.github/workflows/ci-evaluate-results.yml
     with:
