@@ -3,59 +3,50 @@ SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-s
 SPDX-License-Identifier: Apache-2.0
 -#}
 
-{% set rust_docs_url = "https://docs.rs/arm-cairn/{version}/cairn/" %}
-{% set python_docs_url = "https://reference.devplatform.arm.com/composable-ai-runtimes/" %}
-
-{%- macro docs_link(label, url, version) -%}
-    {%- if url -%}
-        [{{ label }}]({{ url.format(version=version) }})
-    {%- else -%}
-        {{ label }}
-    {%- endif -%}
-{%- endmacro -%}
-
-Cairn {{ version }}
-
+{% set services = components.items() | rejectattr('0', 'in', ['rust', 'python']) | list %}
 {% if notes.strip() %}
 {{ notes.strip("\n") }}
 
 {% endif %}
-This bundle selects the following published component versions.
-
-| Component | Version | Location |
+| Component | Version | Downloads and documentation |
 | --- | --- | --- |
 {% for component, version in components.items() %}
-
-    {%- if component == "rust" %}
-        {% set label = "rust-user-lib" %}
-        {% set location = (
-            "[Cairn Rust library]("
-            ~ cargo_package_url.format(version=version)
-            ~ "); "
-            ~ docs_link("Rust user lib docs", rust_docs_url, version)
-        ) %}
-
-    {%- elif component == "python" %}
-        {% set label = "python-user-lib" %}
-        {% set location = (
-            "[Cairn Python library]("
-            ~ pypi_package_url.format(version=version)
-            ~ "); "
-            ~ docs_link("Python user lib docs", python_docs_url, version)
-        ) %}
-
-    {%- else %}
-        {% set label = component %}
-        {% set repository = (
-            "docker.io/" ~ registry_namespace
-            ~ "/arm-cairn-" ~ component ~ "-service"
-        ) %}
-        {% set contract = repository ~ ":service-" ~ version %}
-        {% set location = (
-            "image: `" ~ service_images[contract] ~ "`; "
-            ~ "contract: `" ~ contract ~ "`"
-        ) %}
-    {%- endif -%}
-
-    | {{ label }} | {{ version }} | {{ location }} |
+{% if component == "rust" %}
+| Rust SDK | {{ version }} | [crates.io]({{ cargo_package_url.format(version=version) }}) · [API reference](https://docs.rs/arm-cairn/{{ version }}/cairn/) |
+{% elif component == "python" %}
+| Python SDK | {{ version }} | [PyPI]({{ pypi_package_url.format(version=version) }}) · [API reference](https://reference.devplatform.arm.com/composable-ai-runtimes/) |
+{% else %}
+| {{ component | capitalize }} service | {{ version }} | [Docker Hub](https://hub.docker.com/r/{{ registry_namespace }}/arm-cairn-{{ component }}-service/tags) |
+{% endif %}
 {% endfor %}
+{% if services %}
+
+### Container images
+
+```text
+{% for component, version in services %}
+docker.io/{{ registry_namespace }}/arm-cairn-{{ component }}-service:{{ version }}
+{% endfor %}
+```
+
+<details>
+<summary>Exact image references for reproducible deployments</summary>
+
+```text
+{% for component, version in services %}
+{{ service_images["docker.io/" ~ registry_namespace ~ "/arm-cairn-" ~ component ~ "-service:service-" ~ version] }}
+{% endfor %}
+```
+
+</details>
+
+### Service contracts
+
+For tooling that consumes Cairn service contracts:
+
+```text
+{% for component, version in services %}
+docker.io/{{ registry_namespace }}/arm-cairn-{{ component }}-service:service-{{ version }}
+{% endfor %}
+```
+{% endif %}
