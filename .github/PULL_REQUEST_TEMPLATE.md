@@ -27,6 +27,7 @@ results already visible in CI.
 <!-- All checkboxes should be checked by author before review-->
 
 - [ ] 🤖 This change is covered by tests as required.
+- [ ] 🤖 Independent agent review is complete or not applicable.
 - [ ] 🤹 All required manual testing has been performed.
 - [ ] 📖 All relevant documentation and README updates are complete.
 - [ ] ⚖️ [License notices, SBOMs, and source records](https://github.com/Arm-Debug/composable-ai-runtimes/blob/main/docs/licensing-guide.md) are updated where affected.

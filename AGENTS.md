@@ -183,6 +183,9 @@ Before completion:
 
 ## Pull requests
 
+All checklist items must be completed and checked before a PR is ready for
+initial review.
+
 Use `.github/PULL_REQUEST_TEMPLATE.md` and fill every section with concrete
 impact and validation details. In `Steps to Validate the Change`, include
 concise, change-specific steps a reviewer can use to validate the behavior or
