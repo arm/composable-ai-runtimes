@@ -4,33 +4,22 @@
 name: Python Perception SDK E2E
 
 on:
+  # Emit a skipped PR check so queue-only E2E can be required without blocking queue entry.
   pull_request:
     types:
       - opened
       - synchronize
       - reopened
 
+  merge_group:
+    types: [checks_requested]
+
 permissions:
   contents: read
 
 jobs:
-  changes:
-    if: vars.INTERNAL_REPO == 'true'
-    uses: ./.github/workflows/ci-detect-changes.yml
-    permissions:
-      contents: read
-    with:
-      paths: |
-        .github/workflows/perception-e2e-tests.yml
-        services/perception/**
-        services/messaging/**
-        lib/**
-        .github/workflows/ci-detect-changes.yml
-        .github/workflows/ci-evaluate-results.yml
-
   perception-e2e:
-    needs: changes
-    if: vars.INTERNAL_REPO == 'true' && needs.changes.outputs.changed == 'true'
+    if: vars.INTERNAL_REPO == 'true' && github.event_name == 'merge_group'
     name: Run Python Perception SDK E2E
     runs-on: self-hosted-ubuntu-24.04-arm64-ephemeral
     timeout-minutes: 30
@@ -50,10 +39,6 @@ jobs:
           enable-cache: true
 
       - name: Log in to Docker Hub
-        if: >-
-          github.actor != 'dependabot[bot]' &&
-          (github.event_name != 'pull_request' ||
-           github.event.pull_request.head.repo.full_name == github.repository)
         uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
         with:
           registry: docker.io
@@ -62,11 +47,3 @@ jobs:
 
       - name: Run Python Perception SDK E2E
         run: uv run --locked python -m pytest -c pyproject.toml -m e2e tests/test_e2e_perception_workflow.py
-
-  required:
-    name: CI / Python Perception SDK E2E
-    if: always() && vars.INTERNAL_REPO == 'true' && github.event_name == 'pull_request'
-    needs: [changes, perception-e2e]
-    uses: ./.github/workflows/ci-evaluate-results.yml
-    with:
-      results: ${{ toJSON(needs) }}
