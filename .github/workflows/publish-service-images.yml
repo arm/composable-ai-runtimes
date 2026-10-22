@@ -143,35 +143,6 @@ jobs:
             cat "$tags_error" >&2
             rm -f "$tags_error"
             echo "Failed to list tags for ${SERVICE_REPOSITORY}" >&2
-            echo "::group::Registry authentication diagnostics"
-            python3 - <<'PY'
-          import json
-          import os
-          from pathlib import Path
-
-          config_dir = Path(os.environ.get("DOCKER_CONFIG") or Path.home() / ".docker")
-          config_path = config_dir / "config.json"
-          print(f"Docker credential config exists: {config_path.is_file()}")
-          if config_path.is_file():
-              config = json.loads(config_path.read_text())
-              print(f"Global credential store configured: {bool(config.get('credsStore'))}")
-              for registry in ("https://index.docker.io/v1/", "docker.io", "registry-1.docker.io"):
-                  entry = config.get("auths", {}).get(registry, {})
-                  fields = ("auth", "identitytoken", "registrytoken")
-                  present = [field for field in fields if entry.get(field)]
-                  helper = bool(config.get("credHelpers", {}).get(registry))
-                  print(f"{registry}: credential fields={present}, credential helper={helper}")
-          PY
-            docker --version
-            oras version
-            echo "Checking the same release reference with Docker; an absent tag may report manifest unknown."
-            if docker manifest inspect "$RELEASE_SERVICE_IMAGE" > /dev/null; then
-              echo "Docker manifest inspection succeeded."
-            else
-              docker_status=$?
-              echo "Docker manifest inspection exited with status ${docker_status}; compare its error with ORAS above."
-            fi
-            echo "::endgroup::"
             exit 1
           fi
 
