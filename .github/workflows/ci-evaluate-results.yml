@@ -9,6 +9,14 @@ on:
       results:
         required: true
         type: string
+      queue_only_job_ids:
+        description: >-
+          JSON array of dependency job IDs that are skipped on pull requests
+          and required to succeed in merge groups. Defaults to [] to preserve
+          existing behavior.
+        required: false
+        type: string
+        default: '[]'
 
 permissions: {}
 
@@ -21,7 +29,9 @@ jobs:
       - name: Check applicable jobs
         shell: python
         env:
+          CI_EVENT_NAME: ${{ github.event_name }}
           CI_RESULTS: ${{ inputs.results }}
+          CI_QUEUE_ONLY_JOB_IDS: ${{ inputs.queue_only_job_ids }}
         run: |
           import json
           import os
@@ -34,8 +44,36 @@ jobs:
               sys.exit("CI path selection did not succeed")
           if not results:
               sys.exit("No CI jobs configured")
-          expected = "success" if changed == "true" else "skipped"
-          failures = [name for name, job in results.items() if job["result"] != expected]
+
+          try:
+              queue_only_job_ids = json.loads(os.environ["CI_QUEUE_ONLY_JOB_IDS"])
+          except json.JSONDecodeError as error:
+              sys.exit(f"Queue-only job IDs must be a JSON array of strings: {error}")
+          if not isinstance(queue_only_job_ids, list) or any(
+              not isinstance(job_id, str) for job_id in queue_only_job_ids
+          ):
+              sys.exit("Queue-only job IDs must be a JSON array of strings")
+          queue_only_job_ids = set(queue_only_job_ids)
+
+          missing_job_ids = queue_only_job_ids - results.keys()
+          if missing_job_ids:
+              sys.exit("Unknown queue-only jobs: " + ", ".join(sorted(missing_job_ids)))
+
+          is_pull_request = os.environ["CI_EVENT_NAME"] == "pull_request"
+          ordinary_expected = "success" if not is_pull_request or changed == "true" else "skipped"
+          queue_only_expected = "skipped" if is_pull_request else "success"
+          failures = [
+              f"{name}={job['result']}"
+              for name, job in results.items()
+              if job["result"] != (
+                  queue_only_expected if name in queue_only_job_ids else ordinary_expected
+              )
+          ]
           if failures:
-              sys.exit(f"Expected {expected}: {', '.join(failures)}")
-          print("Applicable CI jobs passed" if changed == "true" else "CI paths are not affected")
+              sys.exit(f"Unexpected CI job results: {', '.join(failures)}")
+
+          print(
+              "CI paths are not affected"
+              if is_pull_request and changed == "false"
+              else "Applicable CI jobs passed"
+          )
