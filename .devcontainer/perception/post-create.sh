@@ -14,6 +14,6 @@ apt-get install -y --no-install-recommends \
   pkg-config
 rm -rf /var/lib/apt/lists/*
 
-/usr/local/bin/python -m pip install --no-cache-dir uv==0.13.4
+/usr/local/bin/python -m pip install --no-cache-dir uv==0.13.5
 cd /workspaces/cairn-sdk/services/perception
 /usr/local/bin/uv sync --locked

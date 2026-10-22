@@ -20,7 +20,7 @@ rm -rf /var/lib/apt/lists/*
 python3 -m venv /opt/cairn-sdk-venv
 /opt/cairn-sdk-venv/bin/python -m pip install --no-cache-dir \
   "maturin>=1.7,<2.0" \
-  "uv==0.13.4"
+  "uv==0.13.5"
 
 /usr/local/cargo/bin/rustup component add rustfmt clippy
 /usr/local/cargo/bin/rustup toolchain install 1.93 --component rustfmt --component clippy

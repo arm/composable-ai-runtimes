@@ -38,8 +38,8 @@ jobs:
           tag-prefix: cairn/v
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
-          version: "0.13.4"
-          checksum: "1ae72b4718729e2ccc4f1ae2c6d1e531ca8467800e0546e9130b3886023a60ab"
+          version: "0.13.5"
+          checksum: "4bb69cf95ed13f23713bb7bc09f241896ea0c75b7c557e615a20604b82f9c403"
       - name: Install CI dependencies
         run: uv sync --project lib --only-group ci --locked
       - name: Install ORAS
@@ -72,8 +72,8 @@ jobs:
           persist-credentials: false
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
-          version: "0.13.4"
-          checksum: "1ae72b4718729e2ccc4f1ae2c6d1e531ca8467800e0546e9130b3886023a60ab"
+          version: "0.13.5"
+          checksum: "4bb69cf95ed13f23713bb7bc09f241896ea0c75b7c557e615a20604b82f9c403"
       - name: Install CI dependencies
         run: uv sync --project lib --only-group ci --locked
       - name: Generate release notes

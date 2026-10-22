@@ -27,7 +27,7 @@ dependencies = [
 perception_service = "perception_service.__main__:main"
 
 [build-system]
-requires = ["uv_build==0.13.4"]
+requires = ["uv_build==0.13.5"]
 build-backend = "uv_build"
 
 [dependency-groups]
