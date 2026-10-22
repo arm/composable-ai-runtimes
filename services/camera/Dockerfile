@@ -12,7 +12,7 @@ FROM ${BASE_IMAGE} AS package-repositories
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates=20250419 \
+    ca-certificates=20250419+deb13u1 \
     curl=8.14.1-2+deb13u7 \
     gpg=2.4.7-21+deb13u1+b5 \
   && rm -rf /var/lib/apt/lists/*
