@@ -1,11 +1,14 @@
 # SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
 # SPDX-License-Identifier: Apache-2.0
 
-version: 0.0.0
+version: 0.0.1
 
 # Optional Markdown for release highlights, known issues, or upgrade notes.
 notes: |
-  Note : This is a test release for Cairn. (DO NOT USE IN PRODUCTION.)
+  Initial release of Cairn.
+
+  This bundle includes version `0.0.1` of each component. Cairn is in early
+  development; APIs and deployment workflows may change between releases.
 
 components:
   rust: 0.0.1

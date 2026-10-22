@@ -3,9 +3,8 @@ SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-s
 SPDX-License-Identifier: Apache-2.0
 -#}
 
-{# TODO: Replace these test URLs with published documentation URLs. #}
-{% set rust_docs_url = "https://example.com/docs/rust/{version}/" %}
-{% set python_docs_url = "https://example.com/docs/python/{version}/" %}
+{% set rust_docs_url = "https://docs.rs/arm-cairn/{version}/cairn/" %}
+{% set python_docs_url = "https://reference.devplatform.arm.com/composable-ai-runtimes/" %}
 
 {%- macro docs_link(label, url, version) -%}
     {%- if url -%}
