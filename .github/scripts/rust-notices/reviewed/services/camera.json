@@ -3,7 +3,7 @@
     ".github/scripts/rust-notices/about.hbs": "11b60b5ca79b59c8f433f5c66e22f9c77a7d2cfa707b1e7fa7e355262e784801",
     ".github/scripts/rust-notices/about.toml": "a0ca9a9a03e76186293c368b66bf92fef09e212feca0ebb879a20db06212eb5e",
     ".github/scripts/rust-notices/toolchain.env": "c714f0899b8e8ae30ce23dccbfa8669adf42919126c2ca7c0f02cbc168f4e613",
-    "services/camera/Cargo.lock": "e6905072a2869b83312600510cc8014a7e94530c6bf8d4b67c1f70017e0e4e00",
+    "services/camera/Cargo.lock": "a365f28d683d85d1ef6c4f1f4941bfff9a45a6e7516777803dfaf9bc7507ded8",
     "services/camera/Cargo.toml": "861fa52487676899889efab96cfa5f0c8bebdce98d1fe6acb5de8b97219d83d7"
   },
   "notices": {
