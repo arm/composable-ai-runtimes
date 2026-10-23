@@ -25,7 +25,7 @@ COPY src ./src
 
 RUN cargo build --locked --release
 
-FROM docker.io/library/redis:8.4.7-alpine@sha256:0514fa59e3d84e2f3be66731c5401fc2a85b8ea71b49c0116c850f6a558076f4
+FROM docker.io/library/redis:8.4.7-alpine@sha256:f9b3b74607c14a568cf0bda340432ca7ffd0682e3a53183412a8236974bdf69e
 
 LABEL org.opencontainers.image.licenses="Apache-2.0"
 
