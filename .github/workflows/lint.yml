@@ -94,5 +94,5 @@ jobs:
       - name: Run prek pre-push hooks
         uses: j178/prek-action@ee00ace987cbe39678904658577b2993ae0f7f23 # v2 tag
         with:
-          prek-version: "0.4.13"
+          prek-version: "0.5.7"
           extra-args: "--all-files --stage pre-push"

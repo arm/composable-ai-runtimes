@@ -35,7 +35,7 @@ dev = [
     { include-group = "sbom" },
     { include-group = "test" },
     "grpcio-tools==1.83.0",
-    "prek==0.4.13",
+    "prek==0.5.7",
     "pygobject-stubs==2.17.0 ; sys_platform != 'win32'",
     "ruff==0.15.17",
     "ty==0.0.64",

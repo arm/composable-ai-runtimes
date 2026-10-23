@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
 # SPDX-License-Identifier: Apache-2.0
 
-minimum_prek_version = "0.4.13"
+minimum_prek_version = "0.5.7"
 default_stages = ["pre-push"]
 
 [[repos]]
