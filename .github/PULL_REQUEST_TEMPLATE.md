@@ -14,10 +14,11 @@ SPDX-License-Identifier: Apache-2.0
 ## Steps to Validate the Change
 
 <!--
-List concise, change-specific steps a reviewer can use to validate the change.
-Include validation limitations only when they require reviewer attention. Keep
-validation details in this section and avoid duplicating routine automated
-results already visible in CI.
+List concise, change-specific steps a reviewer can use to validate the change,
+or state that no manual validation is needed. Include validation limitations
+only when they require reviewer attention. Keep validation details in this
+section. Do not list CI test or check commands, runs, results, or status
+summaries anywhere in this description; GitHub checks provide that information.
 -->
 
 1.

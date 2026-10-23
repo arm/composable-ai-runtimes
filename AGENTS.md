@@ -193,7 +193,8 @@ initial review.
 Use `.github/PULL_REQUEST_TEMPLATE.md` and fill every section with concrete
 impact and validation details. In `Steps to Validate the Change`, include
 concise, change-specific steps a reviewer can use to validate the behavior or
-outcome. Avoid repeating routine automated checks already visible in CI unless
-they are particularly relevant to the change or require reviewer attention.
+outcome, or state that no manual validation is needed. Do not include CI test
+or check commands, runs, results, or status summaries anywhere in PR
+descriptions; GitHub checks provide that information.
 Use a conventional-commit title such as `docs:`, `test:`, `fix:`, `feat:`, or
 `chore:` with a lowercase subject.
