@@ -6,7 +6,7 @@ name = "perception-service"
 version = "0.0.1"
 description = "Deploy and manage perception workflows using Cairn camera sources"
 readme = "README.md"
-requires-python = ">=3.13,<3.14"
+requires-python = ">=3.13.17,<3.14"
 dependencies = [
     "flatbuffers==25.9.23",
     "grpcio==1.83.0",

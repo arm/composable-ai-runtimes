@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
 # SPDX-License-Identifier: Apache-2.0
 
-FROM docker.io/library/python:3.13.15-slim-trixie@sha256:8d9d0b8bcf6506481eae4907c18f5e3e7902e629f5f6d684f9e7c32e85e3ddf0
+FROM docker.io/library/python:3.13.17-slim-trixie@sha256:19ed48e5e9c132082510ba9efb11bc2098d582f610374670fa30b6b17026617b
 
 ARG OPK_REVISION=3f8a57f6c41a5549c8b8fb3fd7dacea084b0acfb
 ARG MODEL_REVISION=de7e3b272d58269278b23a33cb6517be860ca2c3
