@@ -54,7 +54,11 @@ async fn start_redis_server() -> RedisServer {
         loop {
             let client = redis::Client::open(readiness_endpoint.clone())
                 .expect("test Redis endpoint should be valid");
-            if client.get_multiplexed_async_connection().await.is_ok() {
+            if let Ok(mut connection) = client.get_multiplexed_async_connection().await {
+                let _: () = redis::cmd("QUIT")
+                    .query_async(&mut connection)
+                    .await
+                    .expect("failed to close test Redis readiness connection");
                 break;
             }
             sleep(Duration::from_millis(25)).await;
