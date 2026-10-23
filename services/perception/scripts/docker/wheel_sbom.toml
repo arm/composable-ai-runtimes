@@ -37,13 +37,13 @@ source_sha256 = "cf2a1d2c2e5a56eb2e495c2638e64769b73db07555e1f7ce34cbd9feff6891f
 
 [[packages]]
 name = "grpcio"
-version = "1.83.0"
-license_file = "grpcio-1.83.0.dist-info/licenses/LICENSE"
+version = "1.84.1"
+license_file = "grpcio-1.84.1.dist-info/licenses/LICENSE"
 license_sha256 = "58c86a3f2b5cca0ebdf9ed3e7f4e6dc38e3b38796d8c3dc92064c62a4e39d0dd"
 
 [[packages.payloads]]
 path = "grpc/_cython/cygrpc.cpython-313-aarch64-linux-gnu.so"
-sha256 = "da127e67e94a0d53c6686162fe2bf7df597253a80c235c5fc24f956574d2dca1"
+sha256 = "023b89bdca158b6e85fb58847a7d57f5521c1bdabfe2445d1c4c58f54e8bf7f0"
 [[packages.payloads.components]]
 name = "boringssl"
 license = "Apache-2.0"
@@ -63,7 +63,7 @@ license_url = "https://github.com/google/re2/blob/0c5616df9c0aaa44c9440d87422012
 
 [[packages.payloads]]
 path = "grpc/_cython/_credentials/roots.pem"
-sha256 = "3d636834428627c2fafcf60dbe865f1a259352e508f7779a5714a77033ba6b20"
+sha256 = "e3ada9517680b712e979331df3c34d805ebcdcbb14da13dcce004f4171e4b8ee"
 [[packages.payloads.components]]
 name = "roots.pem"
 purpose = "OTHER"

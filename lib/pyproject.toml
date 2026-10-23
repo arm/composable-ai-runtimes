@@ -17,7 +17,7 @@ dependencies = []
 
 [dependency-groups]
 dev = [
-  "grpcio>=1.83.1",
+  "grpcio>=1.84.1",
   "grpcio-health-checking>=1.71.2",
   "protobuf==5.29.6",
   "pytest>=9.1.1",

@@ -9,7 +9,7 @@ readme = "README.md"
 requires-python = ">=3.13.17,<3.14"
 dependencies = [
     "flatbuffers==25.9.23",
-    "grpcio==1.83.0",
+    "grpcio==1.84.1",
     "grpcio-health-checking==1.83.0",
     "jsonschema==4.26.0",
     "loguru==0.7.3",
