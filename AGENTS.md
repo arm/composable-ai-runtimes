@@ -183,6 +183,10 @@ Before completion:
 
 ## Pull requests
 
+Keep each PR to at most 500 changed lines, counting additions and deletions
+against its base branch. Split changes exceeding 500 lines into multiple
+logically cohesive PRs unless the change cannot be logically split.
+
 All checklist items must be completed and checked before a PR is ready for
 initial review.
 
