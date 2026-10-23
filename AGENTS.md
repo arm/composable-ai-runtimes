@@ -70,8 +70,9 @@ operational constraints, or edge cases before implementation.
 - For CI workflow or smoke-test changes, use the repository's
   `develop-ci-workflows` skill.
 - For a documentation accuracy audit, use `review-docs`.
-- Before review, merge, handoff, or completion, use `update-docs` when branch
-  changes affect documented behavior, commands, APIs, or workflows.
+- Update documentation only when explicitly requested by the user. Use
+  `update-docs` for requested branch-wide documentation updates; review, merge,
+  handoff, or completion alone does not require documentation updates.
 
 Skills hold the detailed procedures for these tasks; do not duplicate those
 procedures in this file.
@@ -83,9 +84,8 @@ comments, user-facing copy, and agent responses.
 
 ## Validation routing
 
-Run the smallest relevant checks for the changed files. Broaden validation for
-contracts, runtime behavior, services, or packaging.
-Smoke tests alone are sufficient only when they cover the changed behavior.
+Run existing tests appropriate to the affected area. Add or modify tests only
+when explicitly requested, including for CI workflow changes.
 
 Repository lint:
 
@@ -175,9 +175,9 @@ validation entry point, path, or compatibility boundary changes.
 
 Before completion:
 
-- run proportionate validation;
-- reconcile affected user documentation, READMEs, and necessary code comments
-  against the branch as a whole;
+- run proportionate validation, including existing tests appropriate to the affected area;
+- suggest updates to existing documentation and READMEs; do not add new
+  documentation sections unless explicitly requested;
 - summarize contract and migration impact, or state that there is none;
 - summarize runtime impact, residual risks, and untested paths.
 
