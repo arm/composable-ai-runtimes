@@ -23,4 +23,4 @@ python3 -m venv /opt/cairn-sdk-venv
   "uv==0.13.5"
 
 /usr/local/cargo/bin/rustup component add rustfmt clippy
-/usr/local/cargo/bin/rustup toolchain install 1.93 --component rustfmt --component clippy
+/usr/local/cargo/bin/rustup toolchain install 1.99.1 --component rustfmt --component clippy

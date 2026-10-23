@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
 # SPDX-License-Identifier: Apache-2.0
 
-ARG RUST_IMAGE=docker.io/library/rust:1.93.1-alpine@sha256:4fec02de605563c297c78a31064c8335bc004fa2b0bf406b1b99441da64e2d2d
+ARG RUST_IMAGE=docker.io/library/rust:1.99.1-alpine3.23@sha256:2a941e16ec6e357ff7112e92336087772584122b6ae4b30eb36cb9adff5b5458
 
 FROM ghcr.io/grpc-ecosystem/grpc-health-probe:v0.4.51@sha256:cc4ff9327e602119103bedef448eec26f8ba02bce5c81107cb3685c360c4a6c0 AS grpc-health-probe
 
