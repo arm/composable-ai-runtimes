@@ -95,7 +95,7 @@ jobs:
 
       - name: Install ORAS
         run: |
-          curl -fsSLo oras.tar.gz https://github.com/oras-project/oras/releases/download/v1.3.0/oras_1.3.0_linux_arm64.tar.gz
+          curl -fsSLo oras.tar.gz https://github.com/oras-project/oras/releases/download/v1.3.5/oras_1.3.5_linux_arm64.tar.gz
           tar -xzf oras.tar.gz oras
           sudo install -m 0755 oras /usr/local/bin/oras
           oras version
@@ -185,7 +185,7 @@ jobs:
       - name: Install Syft
         if: steps.publish-plan.outputs.should_publish == 'true'
         run: |
-          curl -fsSLo syft.tar.gz https://github.com/anchore/syft/releases/download/v1.51.1/syft_1.51.1_linux_arm64.tar.gz
+          curl -fsSLo syft.tar.gz https://github.com/anchore/syft/releases/download/v1.55.0/syft_1.55.0_linux_arm64.tar.gz
           tar -xzf syft.tar.gz syft
           sudo install -m 0755 syft /usr/local/bin/syft
 

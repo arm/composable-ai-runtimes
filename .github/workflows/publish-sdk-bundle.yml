@@ -44,7 +44,7 @@ jobs:
         run: uv sync --project lib --only-group ci --locked
       - name: Install ORAS
         run: |
-          curl -fsSLo oras.tar.gz https://github.com/oras-project/oras/releases/download/v1.3.0/oras_1.3.0_linux_arm64.tar.gz
+          curl -fsSLo oras.tar.gz https://github.com/oras-project/oras/releases/download/v1.3.5/oras_1.3.5_linux_arm64.tar.gz
           tar -xzf oras.tar.gz oras
           sudo install -m 0755 oras /usr/local/bin/oras
           oras version
