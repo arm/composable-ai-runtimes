@@ -24,7 +24,7 @@ jobs:
 
     steps:
       - name: Checkout source repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           path: source-repo
@@ -32,7 +32,7 @@ jobs:
 
       - name: Generate Arm repository token
         id: arm_token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:
           client-id: ${{ vars.DEVX_CAIRN_SDK_CLIENT_ID }}
           private-key: ${{ secrets.DEVX_CAIRN_SDK_PRIVATE_KEY }}
@@ -42,7 +42,7 @@ jobs:
           permission-workflows: write
 
       - name: Checkout Arm repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: arm/composable-ai-runtimes
           token: ${{ steps.arm_token.outputs.token }}

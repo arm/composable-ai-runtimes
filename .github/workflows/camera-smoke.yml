@@ -56,7 +56,7 @@ jobs:
     name: Validate and smoke test camera service
     runs-on: ubuntu-24.04-arm
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Validate camera service Compose config
         run: docker compose -f services/camera/compose.yaml config
@@ -125,7 +125,7 @@ jobs:
     env:
       COMPOSE_PROJECT_NAME: camera-boardfarm-${{ github.run_id }}
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Prepare camera board-farm runner
         run: python3 .github/scripts/camera_smoke/runner_maintenance.py
@@ -171,7 +171,7 @@ jobs:
     env:
       COMPOSE_PROJECT_NAME: camera-boardfarm-list-cameras-${{ github.run_id }}
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Prepare camera board-farm runner
         run: python3 .github/scripts/camera_smoke/runner_maintenance.py
@@ -315,7 +315,7 @@ jobs:
     env:
       COMPOSE_PROJECT_NAME: camera-boardfarm-notifications-${{ github.run_id }}
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Prepare camera board-farm runner
         run: python3 .github/scripts/camera_smoke/runner_maintenance.py
