@@ -59,12 +59,12 @@ jobs:
             libpipewire-0.3-dev \
             pkg-config \
             protobuf-compiler \
-            python3.12-dev \
             redis-server
 
       - name: Install uv
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
+          activate-environment: true
           version: "0.13.5"
           checksum: "4bb69cf95ed13f23713bb7bc09f241896ea0c75b7c557e615a20604b82f9c403"
 
@@ -92,7 +92,8 @@ jobs:
           password: ${{ secrets.DOCKER_TOKEN }}
 
       - name: Run prek pre-push hooks
-        uses: j178/prek-action@ee00ace987cbe39678904658577b2993ae0f7f23 # v2 tag
-        with:
-          prek-version: "0.5.7"
-          extra-args: "--all-files --stage pre-push"
+        run: |
+          uv pip install prek==0.5.7
+          python_libdir="$(python -c 'import sysconfig; print(sysconfig.get_config_var("LIBDIR"))')"
+          export LD_LIBRARY_PATH="$python_libdir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+          prek run --all-files --stage pre-push

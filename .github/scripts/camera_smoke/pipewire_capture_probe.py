@@ -197,21 +197,21 @@ def parse_video_info(caps: Gst.Caps) -> VideoInfo:
     if caps.is_empty() or caps.get_size() < 1:
         raise ProbeError("captured sample did not include valid caps")
 
-    structure = caps.get_structure(0)
-    if structure is None:
-        raise ProbeError("captured sample caps did not include a structure")
+    with caps.get_structure(0) as structure:
+        if structure is None:
+            raise ProbeError("captured sample caps did not include a structure")
 
-    success, width = structure.get_int("width")
-    if not success or width <= 0:
-        raise ProbeError("captured sample caps did not include a valid width")
+        success, width = structure.get_int("width")
+        if not success or width <= 0:
+            raise ProbeError("captured sample caps did not include a valid width")
 
-    success, height = structure.get_int("height")
-    if not success or height <= 0:
-        raise ProbeError("captured sample caps did not include a valid height")
+        success, height = structure.get_int("height")
+        if not success or height <= 0:
+            raise ProbeError("captured sample caps did not include a valid height")
 
-    pixel_format = structure.get_string("format")
-    if not pixel_format:
-        raise ProbeError("captured sample caps did not include a pixel format")
+        pixel_format = structure.get_string("format")
+        if not pixel_format:
+            raise ProbeError("captured sample caps did not include a pixel format")
 
     stride: int | None = None
     stride_error: str | None = None

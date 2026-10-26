@@ -9,13 +9,11 @@ on:
     branches:
       - main
     paths:
+      - .python-version
       - .github/workflows/publish-python-api-reference.yml
       - docs/python-api/**
       - lib/**
   workflow_dispatch:
-
-env:
-  PYTHON_VERSION: "3.12"
 
 concurrency:
   group: publish-python-api-reference-staging
@@ -29,6 +27,7 @@ jobs:
       contents: read
     with:
       paths: |
+        .python-version
         .github/workflows/publish-python-api-reference.yml
         docs/python-api/**
         lib/**
@@ -52,18 +51,15 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
+          activate-environment: true
           version: "0.13.5"
           checksum: "f68d291c75783122dad58ab77def0e13f3233f358731db5d6d7e8715603b928f"
 
-      - name: Install Python
-        run: uv python install "$PYTHON_VERSION"
+      - name: Install documentation dependencies
+        run: uv pip install furo==2025.12.19 sphinx==9.1.0 sphinx-autoapi==3.8.0
 
       - name: Build API reference
         run: >-
-          uv run --no-project --python "$PYTHON_VERSION"
-          --with furo==2025.12.19
-          --with sphinx==9.1.0
-          --with sphinx-autoapi==3.8.0
           python -m sphinx -W --keep-going -b html
           docs/python-api
           docs/python-api/_build/html
@@ -98,18 +94,15 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
+          activate-environment: true
           version: "0.13.5"
           checksum: "f68d291c75783122dad58ab77def0e13f3233f358731db5d6d7e8715603b928f"
 
-      - name: Install Python
-        run: uv python install "$PYTHON_VERSION"
+      - name: Install documentation dependencies
+        run: uv pip install furo==2025.12.19 sphinx==9.1.0 sphinx-autoapi==3.8.0
 
       - name: Build API reference
         run: >-
-          uv run --no-project --python "$PYTHON_VERSION"
-          --with furo==2025.12.19
-          --with sphinx==9.1.0
-          --with sphinx-autoapi==3.8.0
           python -m sphinx -W --keep-going -b html
           docs/python-api
           docs/python-api/_build/html

@@ -32,7 +32,7 @@ class UnraisableHookArgs(Protocol):
 @pytest.fixture
 def messaging_health(
     redis_endpoint: str,
-) -> Generator[tuple[str, health.HealthServicer], None, None]:
+) -> Generator[tuple[str, health.HealthServicer]]:
     with ThreadPoolExecutor(max_workers=1) as executor:
         server = grpc.server(executor, options=(("grpc.so_reuseport", 0),))
         servicer = health.HealthServicer()
@@ -52,7 +52,7 @@ def messaging_endpoint(messaging_health: tuple[str, health.HealthServicer]) -> s
 
 
 @pytest.fixture
-def redis_endpoint() -> Generator[str, None, None]:
+def redis_endpoint() -> Generator[str]:
     port = 6379
     with socket.socket() as reservation:
         reservation.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

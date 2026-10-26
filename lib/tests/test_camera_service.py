@@ -119,7 +119,7 @@ def run_mock_camera_service(
 @pytest.fixture
 def camera_service(
     request: pytest.FixtureRequest,
-) -> Generator[tuple[str, Any], None, None]:
+) -> Generator[tuple[str, Any]]:
     response_kind = getattr(request, "param", "valid")
     context = multiprocessing.get_context("spawn")
     ready = context.Queue()

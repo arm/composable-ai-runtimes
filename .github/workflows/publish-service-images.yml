@@ -50,11 +50,14 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
+          activate-environment: true
           version: "0.13.5"
           checksum: "4bb69cf95ed13f23713bb7bc09f241896ea0c75b7c557e615a20604b82f9c403"
 
       - name: Validate service contracts
-        run: uv run --with PyYAML==6.0.2 --with jsonschema==4.25.1 python .github/scripts/cairn-contract/validate-manifests.py
+        run: |
+          uv pip install PyYAML==6.0.2 jsonschema==4.25.1
+          python .github/scripts/cairn-contract/validate-manifests.py
 
   publish:
     name: Publish ${{ matrix.service }} service image
@@ -90,8 +93,12 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
+          activate-environment: true
           version: "0.13.5"
           checksum: "4bb69cf95ed13f23713bb7bc09f241896ea0c75b7c557e615a20604b82f9c403"
+
+      - name: Install Python dependencies
+        run: uv pip install PyYAML==6.0.2
 
       - name: Install ORAS
         run: |
@@ -123,7 +130,7 @@ jobs:
         env:
           SERVICE: ${{ matrix.service }}
         run: |
-          service_version="$(uv run --with PyYAML==6.0.2 python .github/scripts/cairn-contract/get-service-version.py "$SERVICE")"
+          service_version="$(python .github/scripts/cairn-contract/get-service-version.py "$SERVICE")"
           service_tag_version="${service_version//+/_}"
           service_contract_tag="service-${service_tag_version}"
           echo "SERVICE_VERSION=${service_version}" >> "$GITHUB_ENV"
@@ -223,7 +230,7 @@ jobs:
         run: |
           source .github/scripts/rust-notices/toolchain.env
           cargo install --locked cargo-about --version "$CARGO_ABOUT_VERSION" --features cli
-          notice_args="$(uv run --no-project python .github/scripts/rust-notices/review.py "services/$SERVICE/Cargo.toml" --cargo-args)"
+          notice_args="$(python .github/scripts/rust-notices/review.py "services/$SERVICE/Cargo.toml" --cargo-args)"
           mapfile -t notice_args <<< "$notice_args"
           bash .github/scripts/rust-notices/generate.sh "services/$SERVICE/notices/rust" "${notice_args[@]}"
           cargo install --locked cargo-cyclonedx --version 0.5.9
@@ -311,7 +318,7 @@ jobs:
           docker cp "$container:/THIRD-PARTY-DISCLAIMER.txt" "$disclaimer"
           cmp THIRD-PARTY-DISCLAIMER.txt "$disclaimer"
           if [[ "$RUST_SERVICE" == true ]]; then
-            uv run --no-project python .github/scripts/rust-notices/review.py "services/$SERVICE/Cargo.toml" --check
+            python .github/scripts/rust-notices/review.py "services/$SERVICE/Cargo.toml" --check
             notices="$RUNNER_TEMP/rust-notices-${SERVICE}"
             docker cp "$container:/usr/share/licenses/cairn/rust" "$notices"
             diff --recursive "services/$SERVICE/notices/rust" "$notices"
@@ -336,7 +343,7 @@ jobs:
           if [[ -n "${RUST_SBOM:-}" ]]; then
             rust_sbom_args=(--rust-sbom "$RUST_SBOM")
           fi
-          uv run --no-project python .github/scripts/sbom/generate.py \
+          python .github/scripts/sbom/generate.py \
             "$IMAGE_LAYOUT" "$IMAGE_DIGEST" \
             lib/crates/cairn/SBOM-DISCLAIMER.txt "${rust_sbom_args[@]}"
 
@@ -360,7 +367,7 @@ jobs:
           source_hook="services/${SERVICE}/scripts/source_links.py"
           if [[ -f "$source_hook" ]]; then
             supplement="$RUNNER_TEMP/${SERVICE}-source-supplement.json"
-            uv run --no-project python "$source_hook" \
+            python "$source_hook" \
               --image "cairn-license-check:${SERVICE}" --output "$supplement"
             supplement_args=(--supplement "$supplement")
           fi
@@ -402,7 +409,7 @@ jobs:
         env:
           SERVICE: ${{ matrix.service }}
         run: |
-          uv run --with PyYAML==6.0.2 python .github/scripts/cairn-contract/package-service-contract.py \
+          python .github/scripts/cairn-contract/package-service-contract.py \
               "$SERVICE" \
               "$RUNNER_TEMP/cairn-contract-${SERVICE}.tar"
 

@@ -9,7 +9,7 @@
     "lib/crates/cairn-camera/Cargo.toml": "89570009f9195f36217c70b9e9fcffd117d246ba5dd46373270177dd3016417d",
     "lib/crates/cairn-notification/Cargo.toml": "9e2c64d46f2d11931f905f23e5288c340b8117c4b07d24c89368baa665fd1862",
     "lib/crates/cairn-perception/Cargo.toml": "a726195639706f7e6292263e71fb36e380e1536c8a05ddde385e7adccbbf3739",
-    "lib/crates/cairn-py/Cargo.toml": "aa2c67e8f3ad1dcb024cc9161c6091b3e2382ebecd63f54b2e7b69f269b90559",
+    "lib/crates/cairn-py/Cargo.toml": "6113e8074b7e7d35d452b2efbaa964a5c759d96ef334a82382964d6e98db3d30",
     "lib/crates/cairn/Cargo.toml": "e876961e0f8633a3de646cf2cd93fc66ac51f774f9b9040b4fb00b8fea91feca",
     "lib/pyproject.toml:build-selection": "ef94fb926819783f3d06b5a5207f49a8f40e5cd13004f35d828b435864dc3aae",
     "lib/rust-toolchain.toml": "b0f9b64cb5235c90b8b763557490c39aa461c2efda0a623d1dd1d46409d4dc2e"

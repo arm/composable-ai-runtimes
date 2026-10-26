@@ -13,11 +13,10 @@ apt-get install -y --no-install-recommends \
   libpipewire-0.3-dev \
   pipewire-bin \
   pkg-config \
-  protobuf-compiler \
-  python3-venv
+  protobuf-compiler
 rm -rf /var/lib/apt/lists/*
 
-python3 -m venv /opt/cairn-sdk-venv
+/usr/local/bin/python3 -m venv /opt/cairn-sdk-venv
 /opt/cairn-sdk-venv/bin/python -m pip install --no-cache-dir \
   "maturin>=1.7,<2.0" \
   "uv==0.13.5"

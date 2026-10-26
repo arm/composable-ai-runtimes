@@ -20,6 +20,7 @@ jobs:
     uses: ./.github/workflows/ci-detect-changes.yml
     with:
       paths: |
+        .python-version
         .github/workflows/license-tests.yml
         .github/workflows/publish-python-packages.yml
         .github/workflows/publish-service-images.yml
@@ -66,14 +67,17 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
+          activate-environment: true
           version: "0.13.5"
           checksum: "f68d291c75783122dad58ab77def0e13f3233f358731db5d6d7e8715603b928f"
 
       - name: Check PipeWire inventory against committed build pins
-        run: uv run --no-project python .github/scripts/sbom/check_pipewire.py services/camera services/perception
+        run: python .github/scripts/sbom/check_pipewire.py services/camera services/perception
 
       - name: Test source report format
-        run: uv run --no-project --with pytest==9.1.1 python -m pytest .github/scripts/sbom/test_source_links.py -q
+        run: |
+          uv pip install pytest==9.1.1
+          python -m pytest .github/scripts/sbom/test_source_links.py -q
 
   rust-review:
     needs: changes
@@ -89,11 +93,12 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
+          activate-environment: true
           version: "0.13.5"
           checksum: "f68d291c75783122dad58ab77def0e13f3233f358731db5d6d7e8715603b928f"
 
       - name: Review Python wheel Rust dependencies
-        run: uv run --no-project python .github/scripts/rust-notices/review.py lib/pyproject.toml
+        run: python .github/scripts/rust-notices/review.py lib/pyproject.toml
 
       - name: Review service Rust dependencies
         shell: bash
@@ -101,7 +106,7 @@ jobs:
           status=0
           for manifest in services/*/Cargo.toml; do
             [ -f "$manifest" ] || continue
-            uv run --no-project python .github/scripts/rust-notices/review.py "$manifest" || status=1
+            python .github/scripts/rust-notices/review.py "$manifest" || status=1
           done
           exit "$status"
 
