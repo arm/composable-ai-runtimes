@@ -34,7 +34,7 @@ checksum = "03918c3dbd7701a85c6b9887732e2921175f26c350b4563841d0958c21d57e6d"
 
 [[package]]
 name = "arm-cairn"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "arm-cairn-camera",
  "arm-cairn-notification",
@@ -43,7 +43,7 @@ dependencies = [
 
 [[package]]
 name = "arm-cairn-camera"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "prost",
  "tokio",
@@ -55,7 +55,7 @@ dependencies = [
 
 [[package]]
 name = "arm-cairn-notification"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "bytes",
  "futures-util",
@@ -72,7 +72,7 @@ dependencies = [
 
 [[package]]
 name = "arm-cairn-perception"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "arm-cairn-camera",
  "open_perception_kit",
@@ -86,7 +86,7 @@ dependencies = [
 
 [[package]]
 name = "arm-cairn-py"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "arm-cairn",
  "chrono",

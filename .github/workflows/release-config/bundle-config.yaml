@@ -1,18 +1,28 @@
 # SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
 # SPDX-License-Identifier: Apache-2.0
 
-version: 0.0.1
+version: 0.0.2
 
 # Optional Markdown for release highlights, known issues, or upgrade notes.
 notes: |
-  Initial release of Cairn.
-
-  This bundle includes version `0.0.1` of each component. Cairn is in early
+  This bundle includes version `0.0.2` of each component. Cairn is in early
   development; APIs and deployment workflows may change between releases.
 
+  ### Changes since 0.0.1
+
+  - Updated certificate bundles, dependencies, and tooling in response to the
+    [eMudhra CA key compromise](https://bugzilla.mozilla.org/show_bug.cgi?id=2083449).
+  - Updated the Python SDK, Perception service, and SDK tooling to Python 3.13.17.
+  - Added built-in health checks to camera and messaging images.
+
+  ### Upgrade notes
+
+  The Python SDK now requires Python `>=3.13.17,<3.14`. Recreate existing Python
+  3.12 environments before upgrading.
+
 components:
-  rust: 0.0.1
-  python: 0.0.1
-  camera: 0.0.1
-  messaging: 0.0.1
-  perception: 0.0.1
+  rust: 0.0.2
+  python: 0.0.2
+  camera: 0.0.2
+  messaging: 0.0.2
+  perception: 0.0.2

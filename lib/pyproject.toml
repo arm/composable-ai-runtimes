@@ -7,7 +7,7 @@ build-backend = "maturin"
 
 [project]
 name = "arm-cairn"
-version = "0.0.1"
+version = "0.0.2"
 description = "Python bindings for the Cairn library"
 readme = "crates/cairn-py/README.md"
 license = "Apache-2.0"

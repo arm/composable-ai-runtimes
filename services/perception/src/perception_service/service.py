@@ -64,7 +64,7 @@ from perception_service.workflow.stages.output import OpkSinkStageDefinition
 from perception_service.workflow.validation import validate_pipeline, validate_workflow
 
 SERVER_SHUTDOWN_GRACE_SECONDS: Final = 5
-SERVICE_VERSION: Final = "0.0.1"
+SERVICE_VERSION: Final = "0.0.2"
 PERCEPTION_SERVICE_NAME: Final = perception_pb2.DESCRIPTOR.services_by_name[
     "PerceptionService"
 ].full_name

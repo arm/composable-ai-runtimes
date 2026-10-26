@@ -27,7 +27,7 @@ services:
       - pipewire-runtime:/run/pipewire:ro
     x-cairn:
       format_version: "0.1"
-      service_version: 0.0.1
+      service_version: 0.0.2
       name: Perception Service
       description: Deploys and manages perception workflows using Cairn camera sources.
       id: cairn.perception-service

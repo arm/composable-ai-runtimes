@@ -7,13 +7,13 @@ default-members = ["crates/cairn-camera", "crates/cairn-notification", "crates/c
 resolver = "3"
 
 [workspace.package]
-version = "0.0.1"
+version = "0.0.2"
 edition = "2024"
 license = "Apache-2.0"
 
 [workspace.dependencies]
-cairn-camera = { package = "arm-cairn-camera", path = "crates/cairn-camera", version = "=0.0.1" }
-cairn-notification = { package = "arm-cairn-notification", path = "crates/cairn-notification", version = "=0.0.1" }
-cairn-perception = { package = "arm-cairn-perception", path = "crates/cairn-perception", version = "=0.0.1" }
-cairn = { package = "arm-cairn", path = "crates/cairn", version = "=0.0.1" }
+cairn-camera = { package = "arm-cairn-camera", path = "crates/cairn-camera", version = "=0.0.2" }
+cairn-notification = { package = "arm-cairn-notification", path = "crates/cairn-notification", version = "=0.0.2" }
+cairn-perception = { package = "arm-cairn-perception", path = "crates/cairn-perception", version = "=0.0.2" }
+cairn = { package = "arm-cairn", path = "crates/cairn", version = "=0.0.2" }
 open_perception_kit = "=0.1.1"

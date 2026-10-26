@@ -27,7 +27,7 @@ services:
       - /run/udev:/run/udev:ro
     x-cairn:
       format_version: "0.1"
-      service_version: 0.0.1
+      service_version: 0.0.2
       name: Camera Service
       description: Provides camera discovery and camera lifecycle notifications.
       id: cairn.camera-service
