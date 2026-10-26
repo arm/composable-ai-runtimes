@@ -232,7 +232,7 @@ jobs:
           mv "services/$SERVICE/rust.json" "$RUNNER_TEMP/rust-sbom.json"
           echo "RUST_SBOM=$RUNNER_TEMP/rust-sbom.json" >> "$GITHUB_ENV"
 
-      - name: Set up Go for probe notice collection
+      - name: Set up Go for publishing tools
         if: steps.publish-plan.outputs.should_publish == 'true'
         uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
@@ -253,9 +253,11 @@ jobs:
         env:
           SERVICE: ${{ matrix.service }}
           RUST_SERVICE: ${{ steps.rust-service.outputs.enabled }}
+          BUILDX_METADATA_PROVENANCE: min
         run: |
           target="${SERVICE}-service"
-          metadata="$RUNNER_TEMP/build-metadata-${SERVICE}.json"
+          buildx_metadata="$RUNNER_TEMP/build-metadata-${SERVICE}.json"
+          layer_source_metadata="$RUNNER_TEMP/layer-source-metadata-${SERVICE}.json"
           image_layout="$RUNNER_TEMP/service-image-${SERVICE}"
           rust_build_args=()
           if [[ "$RUST_SERVICE" == true ]]; then
@@ -267,16 +269,28 @@ jobs:
             --allow "fs.write=${image_layout}" \
             "${rust_build_args[@]}" \
             --file compose.yaml \
-            --metadata-file "$metadata" \
+            --metadata-file "$buildx_metadata" \
             --set "${target}.tags=" \
             --set "${target}.output=type=oci,name=${SERVICE_REPOSITORY},dest=${image_layout},tar=false" \
             --sbom=false \
             --provenance=mode=min \
             "$target"
 
-          image_digest="$(jq -er --arg target "$target" '.[$target]["containerimage.digest"]' "$metadata")"
+          # Extract the output image digest and build inputs used to discover shared layers.
+          jq -e --arg target "$target" '
+            .[$target] // error("missing build target")
+            | .["buildx.build.provenance"] as $provenance
+            | if $provenance.buildType != "https://mobyproject.org/buildkit@v1" then
+                error("missing or unsupported BuildKit provenance")
+              else {
+                image_digest: .["containerimage.digest"],
+                materials: ($provenance | if has("materials") then .materials else [] end)
+              } end
+          ' "$buildx_metadata" > "$layer_source_metadata"
+          image_digest="$(jq -er '.image_digest' "$layer_source_metadata")"
           echo "IMAGE_DIGEST=${image_digest}" >> "$GITHUB_ENV"
           echo "IMAGE_LAYOUT=${image_layout}" >> "$GITHUB_ENV"
+          echo "LAYER_SOURCE_METADATA=${layer_source_metadata}" >> "$GITHUB_ENV"
 
       - name: Validate image licenses and notices
         if: steps.publish-plan.outputs.should_publish == 'true'
@@ -378,9 +392,10 @@ jobs:
       - name: Publish prepared image, SBOMs, and source links
         if: steps.publish-plan.outputs.should_publish == 'true'
         run: |
-          oras cp --recursive --from-oci-layout \
-            "${IMAGE_LAYOUT}@${IMAGE_DIGEST}" \
-            "${SERVICE_REPOSITORY}@${IMAGE_DIGEST}"
+          uv run --no-project python .github/scripts/image-publishing/publish_image.py \
+            --oci-layout-dir "$IMAGE_LAYOUT" \
+            --destination-repository "$SERVICE_REPOSITORY" \
+            --layer-source-metadata "$LAYER_SOURCE_METADATA"
 
       - name: Package service contract
         if: steps.publish-plan.outputs.should_publish == 'true'

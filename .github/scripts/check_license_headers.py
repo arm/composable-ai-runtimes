@@ -65,7 +65,7 @@ HASH_COMMENT_SUFFIXES = frozenset(
 HASH_COMMENT_NAMES = frozenset(
     {".dockerignore", ".gitignore", "CODEOWNERS", "Dockerfile"}
 )
-SLASH_COMMENT_SUFFIXES = frozenset({".proto", ".rs"})
+SLASH_COMMENT_SUFFIXES = frozenset({".go", ".proto", ".rs"})
 
 
 class HeaderStyle(Enum):
@@ -93,7 +93,7 @@ def is_excluded(path: PurePosixPath) -> bool:
 
     if (
         path in EXCLUDED_PATHS
-        or path.name in {"LICENSE", "THIRD-PARTY-DISCLAIMER.txt"}
+        or path.name in {"LICENSE", "THIRD-PARTY-DISCLAIMER.txt", "go.sum"}
         or path.suffix in EXCLUDED_SUFFIXES
     ):
         return True
@@ -115,7 +115,7 @@ def header_style(path: PurePosixPath) -> HeaderStyle | None:
         return HeaderStyle.CSS
     if path.suffix == ".rst":
         return HeaderStyle.RST
-    if path.suffix in SLASH_COMMENT_SUFFIXES:
+    if path.suffix in SLASH_COMMENT_SUFFIXES or path.name == "go.mod":
         return HeaderStyle.SLASH
     if path.suffix in HASH_COMMENT_SUFFIXES or path.name in HASH_COMMENT_NAMES:
         return HeaderStyle.HASH
