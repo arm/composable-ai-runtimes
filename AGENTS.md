@@ -61,7 +61,7 @@ operational constraints, or edge cases before implementation.
   preludes.
 - Apply least privilege to capabilities, devices, and volumes. Never commit
   secrets or environment-specific private endpoints. Justify new privileged
-  mappings in the relevant README and Compose comments.
+  mappings in Compose comments.
 
 ## Task-specific workflows
 
@@ -176,8 +176,7 @@ validation entry point, path, or compatibility boundary changes.
 Before completion:
 
 - run proportionate validation, including existing tests appropriate to the affected area;
-- suggest updates to existing documentation and READMEs; do not add new
-  documentation sections unless explicitly requested;
+- report relevant documentation and test gaps without making unrequested edits;
 - summarize contract and migration impact, or state that there is none;
 - summarize runtime impact, residual risks, and untested paths.
 
