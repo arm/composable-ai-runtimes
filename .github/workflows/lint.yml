@@ -91,9 +91,13 @@ jobs:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
-      - name: Run prek pre-push hooks
+      - name: Configure Python shared library path
         run: |
-          uv pip install prek==0.5.7
           python_libdir="$(python -c 'import sysconfig; print(sysconfig.get_config_var("LIBDIR"))')"
-          export LD_LIBRARY_PATH="$python_libdir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-          prek run --all-files --stage pre-push
+          echo "LD_LIBRARY_PATH=$python_libdir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" >> "$GITHUB_ENV"
+
+      - name: Run prek pre-push hooks
+        uses: j178/prek-action@ee00ace987cbe39678904658577b2993ae0f7f23 # v2 tag
+        with:
+          prek-version: "0.5.7"
+          extra-args: "--all-files --stage pre-push"
