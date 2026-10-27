@@ -32,6 +32,11 @@ list alone does not describe everything shipped.
 - Check affected upstream licenses and preserve their notices and attribution.
 - For Rust dependencies or build selections, follow the
   [Rust notice review procedure](../.github/scripts/rust-notices/README.md).
+- After Rust version, dependency, or build-selection changes, run
+  `.github/scripts/sbom/generate-rust.sh` from the repository root and commit
+  `lib/crates/cairn/bom.json`. Use `--check` to verify freshness without rewriting
+  it. Requires `jq`, the pinned Rust toolchain, and `cargo-sbom` 0.10.0
+  (`cd lib && cargo install cargo-sbom --version 0.10.0 --locked`).
 - For packaging or publication changes, use the linked release workflow to
   identify affected inventory and source-report inputs and validate the result.
   Automated scans can miss bundled or source-built components.

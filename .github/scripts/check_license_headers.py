@@ -63,7 +63,7 @@ HASH_COMMENT_SUFFIXES = frozenset(
     }
 )
 HASH_COMMENT_NAMES = frozenset(
-    {".dockerignore", ".gitignore", "CODEOWNERS", "Dockerfile"}
+    {".dockerignore", ".gitattributes", ".gitignore", "CODEOWNERS", "Dockerfile"}
 )
 SLASH_COMMENT_SUFFIXES = frozenset({".go", ".proto", ".rs"})
 

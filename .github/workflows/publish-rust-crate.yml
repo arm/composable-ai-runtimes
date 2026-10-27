@@ -47,16 +47,8 @@ jobs:
       - name: Install cargo-sbom
         run: cargo install cargo-sbom --version 0.10.0 --locked
 
-      - name: Generate Cargo CycloneDX SBOM
-        working-directory: lib
-        env:
-          SBOM_PATH: crates/cairn/bom.json
-        run: |
-          cargo sbom \
-            --cargo-package arm-cairn \
-            --project-directory . \
-            --output-format cyclone_dx_json_1_6 \
-            > "${SBOM_PATH}"
+      - name: Check committed Rust SBOM
+        run: .github/scripts/sbom/generate-rust.sh --check
 
       - name: Package and publish Rust crates
         working-directory: lib
@@ -77,6 +69,8 @@ jobs:
             if [[ "${crate}" == "arm-cairn" ]]; then
               tar -xOf "$crate_path" "${crate}-${crate_version}/SBOM-DISCLAIMER.txt" \
                 | cmp crates/cairn/SBOM-DISCLAIMER.txt -
+              tar -xOf "$crate_path" "${crate}-${crate_version}/bom.json" \
+                | cmp crates/cairn/bom.json -
             fi
             cargo publish -p "${crate}"
           done
