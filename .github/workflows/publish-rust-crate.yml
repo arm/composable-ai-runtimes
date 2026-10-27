@@ -7,66 +7,35 @@ on:
   push:
     tags:
       - "rust/v*"
-  workflow_dispatch:
-    inputs:
-      source_sha:
-        description: 'Full commit SHA on public main containing the committed SBOM'
-        required: true
-        type: string
-      package_version:
-        description: 'Expected arm-cairn version to recover (for example 0.0.2)'
-        required: true
-        type: string
 
 concurrency:
-  group: ${{ github.workflow }}-${{ inputs.package_version && format('rust/v{0}', inputs.package_version) || github.ref_name }}
-  cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   publish:
     name: Package and publish Cairn Rust crates
-    if: >-
-      vars.INTERNAL_REPO == 'false' &&
-      (github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main')
+    if: vars.INTERNAL_REPO == 'false'
     runs-on: ubuntu-24.04-arm
     environment: crates-io
     permissions:
       contents: read
 
     steps:
-      - name: Validate recovery inputs
-        if: github.event_name == 'workflow_dispatch'
-        env:
-          SOURCE_SHA: ${{ inputs.source_sha }}
-          PACKAGE_VERSION: ${{ inputs.package_version }}
-        run: |
-          if [[ ! "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ || ! "$PACKAGE_VERSION" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
-            echo "::error::Recovery requires a full commit SHA and an X.Y.Z package version."
-            exit 1
-          fi
-
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
-          ref: ${{ inputs.source_sha || github.ref }}
 
       - name: Require a newer Rust version
-        if: github.event_name == 'push'
         uses: ./.github/actions/check-version-tag
         with:
           tag-prefix: rust/v
 
       - name: Verify release commit is on main
-        env:
-          SOURCE_SHA: ${{ inputs.source_sha }}
         run: |
-          if [[ -n "$SOURCE_SHA" && "$(git rev-parse HEAD)" != "$SOURCE_SHA" ]]; then
-            echo "::error::Checkout does not match the requested recovery commit."
-            exit 1
-          fi
           if ! git merge-base --is-ancestor HEAD refs/remotes/origin/main; then
-            echo "::error::Rust publication requires a commit on main."
+            echo "::error::Rust release tags must point to a commit on main."
             exit 1
           fi
 
@@ -86,21 +55,10 @@ jobs:
         shell: bash
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
-          UMBRELLA_ONLY: ${{ github.event_name == 'workflow_dispatch' }}
-          PACKAGE_VERSION: ${{ inputs.package_version }}
         run: |
-          crates=(arm-cairn-camera arm-cairn-notification arm-cairn-perception arm-cairn)
-          if [[ "$UMBRELLA_ONLY" == true ]]; then
-            crates=(arm-cairn)
-          fi
-          expected_version="${PACKAGE_VERSION:-${GITHUB_REF_NAME#rust/v}}"
-          for crate in "${crates[@]}"; do
-            crate_version=$(cargo metadata --format-version 1 --no-deps | jq -er --arg crate "$crate" '.packages[] | select(.name == $crate) | .version')
-            if [[ "$crate_version" != "$expected_version" ]]; then
-              echo "::error::$crate version $crate_version does not match expected $expected_version."
-              exit 1
-            fi
+          for crate in arm-cairn-camera arm-cairn-notification arm-cairn-perception arm-cairn; do
             cargo package -p "${crate}"
+            crate_version=$(cargo metadata --format-version 1 --no-deps | jq -er --arg crate "$crate" '.packages[] | select(.name == $crate) | .version')
             crate_filename="${crate}-${crate_version}.crate"
             crate_path="target/package/${crate_filename}"
             echo "Validating license in ${crate_path}"
