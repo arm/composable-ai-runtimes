@@ -24,7 +24,8 @@ jobs:
         .github/workflows/license-tests.yml
         .github/workflows/publish-python-packages.yml
         .github/workflows/publish-rust-crate.yml
-        lib/crates/cairn/bom.json
+        lib/crates/*/bom.json
+        lib/crates/*/SBOM-DISCLAIMER.txt
         .github/workflows/publish-service-images.yml
         .github/scripts/sbom/**
         .github/scripts/container-notices/**
@@ -115,7 +116,7 @@ jobs:
   rust-sbom:
     needs: changes
     if: needs.changes.outputs.changed == 'true'
-    name: Rust SBOM is current
+    name: Rust SBOMs are current
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -127,7 +128,7 @@ jobs:
           toolchain: "1.99.1"
       - name: Install cargo-sbom
         run: cargo install cargo-sbom --version 0.10.0 --locked
-      - name: Check committed Rust SBOM
+      - name: Check committed Rust SBOMs
         run: .github/scripts/sbom/generate-rust.sh --check
 
   required:

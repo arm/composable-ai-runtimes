@@ -12,6 +12,8 @@ include = [
   "src/lib.rs",
   "src/service.rs",
   "README.md",
+  "bom.json",
+  "SBOM-DISCLAIMER.txt",
   "LICENSE",
   "THIRD-PARTY-DISCLAIMER.txt",
 ]

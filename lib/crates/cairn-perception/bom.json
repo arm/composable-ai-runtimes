@@ -1,0 +1,2205 @@
+{
+  "bomFormat": "CycloneDX",
+  "components": [
+    {
+      "author": "David Tolnay <dtolnay@gmail.com>",
+      "bom-ref": "CycloneDxRef-Component-anyhow-1.0.104",
+      "description": "Flexible concrete Error type built on std::error::Error",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/anyhow"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/dtolnay/anyhow"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "anyhow",
+      "purl": "pkg:cargo/anyhow@1.0.104",
+      "type": "library",
+      "version": "1.0.104"
+    },
+    {
+      "author": "",
+      "bom-ref": "CycloneDxRef-Component-arm-cairn-camera-0.0.2",
+      "description": "Internal camera service client for Cairn",
+      "externalReferences": [],
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "arm-cairn-camera",
+      "type": "library",
+      "version": "0.0.2"
+    },
+    {
+      "author": "David Tolnay <dtolnay@gmail.com>",
+      "bom-ref": "CycloneDxRef-Component-async-trait-0.1.92",
+      "description": "Type erasure for async trait methods",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/async-trait"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/dtolnay/async-trait"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "async-trait",
+      "purl": "pkg:cargo/async-trait@0.1.92",
+      "type": "application",
+      "version": "0.1.92"
+    },
+    {
+      "author": "Stjepan Glavina <stjepang@gmail.com>, Contributors to futures-rs",
+      "bom-ref": "CycloneDxRef-Component-atomic-waker-1.1.2",
+      "description": "A synchronization primitive for task wakeup",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/smol-rs/atomic-waker"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "name": "atomic-waker",
+      "purl": "pkg:cargo/atomic-waker@1.1.2",
+      "type": "library",
+      "version": "1.1.2"
+    },
+    {
+      "author": "",
+      "bom-ref": "CycloneDxRef-Component-axum-0.8.9",
+      "description": "HTTP routing and request handling library that focuses on ergonomics and modularity",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/tokio-rs/axum"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/tokio-rs/axum"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "axum",
+      "purl": "pkg:cargo/axum@0.8.9",
+      "type": "library",
+      "version": "0.8.9"
+    },
+    {
+      "author": "",
+      "bom-ref": "CycloneDxRef-Component-axum-core-0.5.6",
+      "description": "Core types and traits for axum",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/tokio-rs/axum"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/tokio-rs/axum"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "axum-core",
+      "purl": "pkg:cargo/axum-core@0.5.6",
+      "type": "library",
+      "version": "0.5.6"
+    },
+    {
+      "author": "Marshall Pierce <marshall@mpierce.org>",
+      "bom-ref": "CycloneDxRef-Component-base64-0.22.1",
+      "description": "encodes and decodes base64 as bytes or utf8",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/base64"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/marshallpierce/rust-base64"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "base64",
+      "purl": "pkg:cargo/base64@0.22.1",
+      "type": "library",
+      "version": "0.22.1"
+    },
+    {
+      "author": "The Rust Project Developers",
+      "bom-ref": "CycloneDxRef-Component-bitflags-2.13.1",
+      "description": "A macro to generate structures which behave like bitflags.\n",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/bitflags"
+        },
+        {
+          "type": "website",
+          "url": "https://github.com/bitflags/bitflags"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/bitflags/bitflags"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "bitflags",
+      "purl": "pkg:cargo/bitflags@2.13.1",
+      "type": "library",
+      "version": "2.13.1"
+    },
+    {
+      "author": "Carl Lerche <me@carllerche.com>, Sean McArthur <sean@seanmonstar.com>",
+      "bom-ref": "CycloneDxRef-Component-bytes-1.11.1",
+      "description": "Types and traits for working with bytes",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/tokio-rs/bytes"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "bytes",
+      "purl": "pkg:cargo/bytes@1.11.1",
+      "type": "library",
+      "version": "1.11.1"
+    },
+    {
+      "author": "",
+      "bom-ref": "CycloneDxRef-Component-either-1.18.0",
+      "description": "The enum `Either` with variants `Left` and `Right` is a general purpose sum type with two cases.\n",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/either/1/"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/rayon-rs/either"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "either",
+      "purl": "pkg:cargo/either@1.18.0",
+      "type": "library",
+      "version": "1.18.0"
+    },
+    {
+      "author": "",
+      "bom-ref": "CycloneDxRef-Component-equivalent-1.0.2",
+      "description": "Traits for key comparison in maps.",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/indexmap-rs/equivalent"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "name": "equivalent",
+      "purl": "pkg:cargo/equivalent@1.0.2",
+      "type": "library",
+      "version": "1.0.2"
+    },
+    {
+      "author": "Robert Winslow <hello@rwinslow.com>, FlatBuffers Maintainers",
+      "bom-ref": "CycloneDxRef-Component-flatbuffers-25.9.23",
+      "description": "Official FlatBuffers Rust runtime library.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://google.github.io/flatbuffers/"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/google/flatbuffers"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "flatbuffers",
+      "purl": "pkg:cargo/flatbuffers@25.9.23",
+      "type": "library",
+      "version": "25.9.23"
+    },
+    {
+      "author": "Alex Crichton <alex@alexcrichton.com>",
+      "bom-ref": "CycloneDxRef-Component-fnv-1.0.7",
+      "description": "Fowler–Noll–Vo hash function",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://doc.servo.org/fnv/"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/servo/rust-fnv"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "name": "fnv",
+      "purl": "pkg:cargo/fnv@1.0.7",
+      "type": "library",
+      "version": "1.0.7"
+    },
+    {
+      "author": "",
+      "bom-ref": "CycloneDxRef-Component-futures-channel-0.3.34",
+      "description": "Channels for asynchronous communication using futures-rs.\n",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://rust-lang.github.io/futures-rs"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/rust-lang/futures-rs"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "futures-channel",
+      "purl": "pkg:cargo/futures-channel@0.3.34",
+      "type": "library",
+      "version": "0.3.34"
+    },
+    {
+      "author": "",
+      "bom-ref": "CycloneDxRef-Component-futures-core-0.3.34",
+      "description": "The core traits and types in for the `futures` library.\n",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://rust-lang.github.io/futures-rs"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/rust-lang/futures-rs"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "futures-core",
+      "purl": "pkg:cargo/futures-core@0.3.34",
+      "type": "library",
+      "version": "0.3.34"
+    },
+    {
+      "author": "",
+      "bom-ref": "CycloneDxRef-Component-futures-macro-0.3.32",
+      "description": "The futures-rs procedural macro implementations.\n",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://rust-lang.github.io/futures-rs"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/rust-lang/futures-rs"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "futures-macro",
+      "purl": "pkg:cargo/futures-macro@0.3.32",
+      "type": "application",
+      "version": "0.3.32"
+    },
+    {
+      "author": "",
+      "bom-ref": "CycloneDxRef-Component-futures-sink-0.3.34",
+      "description": "The asynchronous `Sink` trait for the futures-rs library.\n",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://rust-lang.github.io/futures-rs"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/rust-lang/futures-rs"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "futures-sink",
+      "purl": "pkg:cargo/futures-sink@0.3.34",
+      "type": "library",
+      "version": "0.3.34"
+    },
+    {
+      "author": "",
+      "bom-ref": "CycloneDxRef-Component-futures-task-0.3.34",
+      "description": "Tools for working with tasks.\n",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://rust-lang.github.io/futures-rs"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/rust-lang/futures-rs"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "futures-task",
+      "purl": "pkg:cargo/futures-task@0.3.34",
+      "type": "library",
+      "version": "0.3.34"
+    },
+    {
+      "author": "",
+      "bom-ref": "CycloneDxRef-Component-futures-util-0.3.32",
+      "description": "Common utilities and extension traits for the futures-rs library.\n",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://rust-lang.github.io/futures-rs"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/rust-lang/futures-rs"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "futures-util",
+      "purl": "pkg:cargo/futures-util@0.3.32",
+      "type": "library",
+      "version": "0.3.32"
+    },
+    {
+      "author": "Carl Lerche <me@carllerche.com>, Sean McArthur <sean@seanmonstar.com>",
+      "bom-ref": "CycloneDxRef-Component-h2-0.4.19",
+      "description": "An HTTP/2 client and server",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/h2"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/hyperium/h2"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "h2",
+      "purl": "pkg:cargo/h2@0.4.19",
+      "type": "library",
+      "version": "0.4.19"
+    },
+    {
+      "author": "",
+      "bom-ref": "CycloneDxRef-Component-hashbrown-0.17.1",
+      "description": "A Rust port of Google's SwissTable hash map",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/rust-lang/hashbrown"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "hashbrown",
+      "purl": "pkg:cargo/hashbrown@0.17.1",
+      "type": "library",
+      "version": "0.17.1"
+    },
+    {
+      "author": "Alex Crichton <alex@alexcrichton.com>, Carl Lerche <me@carllerche.com>, Sean McArthur <sean@seanmonstar.com>",
+      "bom-ref": "CycloneDxRef-Component-http-1.5.0",
+      "description": "A set of types for representing HTTP requests and responses.\n",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/http"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/hyperium/http"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "http",
+      "purl": "pkg:cargo/http@1.5.0",
+      "type": "library",
+      "version": "1.5.0"
+    },
+    {
+      "author": "Carl Lerche <me@carllerche.com>, Lucio Franco <luciofranco14@gmail.com>, Sean McArthur <sean@seanmonstar.com>",
+      "bom-ref": "CycloneDxRef-Component-http-body-1.1.0",
+      "description": "Trait representing an asynchronous, streaming, HTTP request or response body.\n",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/http-body"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/hyperium/http-body"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "http-body",
+      "purl": "pkg:cargo/http-body@1.1.0",
+      "type": "library",
+      "version": "1.1.0"
+    },
+    {
+      "author": "Carl Lerche <me@carllerche.com>, Lucio Franco <luciofranco14@gmail.com>, Sean McArthur <sean@seanmonstar.com>",
+      "bom-ref": "CycloneDxRef-Component-http-body-util-0.1.5",
+      "description": "Combinators and adapters for HTTP request or response bodies.\n",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/http-body-util"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/hyperium/http-body"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "http-body-util",
+      "purl": "pkg:cargo/http-body-util@0.1.5",
+      "type": "library",
+      "version": "0.1.5"
+    },
+    {
+      "author": "Sean McArthur <sean@seanmonstar.com>",
+      "bom-ref": "CycloneDxRef-Component-httparse-1.10.1",
+      "description": "A tiny, safe, speedy, zero-copy HTTP/1.x parser.",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/httparse"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/seanmonstar/httparse"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "httparse",
+      "purl": "pkg:cargo/httparse@1.10.1",
+      "type": "library",
+      "version": "1.10.1"
+    },
+    {
+      "author": "Pyfisch <pyfisch@posteo.org>",
+      "bom-ref": "CycloneDxRef-Component-httpdate-1.0.3",
+      "description": "HTTP date parsing and formatting",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/pyfisch/httpdate"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "httpdate",
+      "purl": "pkg:cargo/httpdate@1.0.3",
+      "type": "library",
+      "version": "1.0.3"
+    },
+    {
+      "author": "Sean McArthur <sean@seanmonstar.com>",
+      "bom-ref": "CycloneDxRef-Component-hyper-1.11.1",
+      "description": "A protective and efficient HTTP library for all.",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/hyper"
+        },
+        {
+          "type": "website",
+          "url": "https://hyper.rs"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/hyperium/hyper"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "hyper",
+      "purl": "pkg:cargo/hyper@1.11.1",
+      "type": "library",
+      "version": "1.11.1"
+    },
+    {
+      "author": "Herman J. Radtke III <herman@hermanradtke.com>",
+      "bom-ref": "CycloneDxRef-Component-hyper-timeout-0.5.2",
+      "description": "A connect, read and write timeout aware connector to be used with hyper Client.",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://github.com/hjr3/hyper-timeout"
+        },
+        {
+          "type": "website",
+          "url": "https://github.com/hjr3/hyper-timeout"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/hjr3/hyper-timeout"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "hyper-timeout",
+      "purl": "pkg:cargo/hyper-timeout@0.5.2",
+      "type": "library",
+      "version": "0.5.2"
+    },
+    {
+      "author": "Sean McArthur <sean@seanmonstar.com>",
+      "bom-ref": "CycloneDxRef-Component-hyper-util-0.1.20",
+      "description": "hyper utilities",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/hyper-util"
+        },
+        {
+          "type": "website",
+          "url": "https://hyper.rs"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/hyperium/hyper-util"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "hyper-util",
+      "purl": "pkg:cargo/hyper-util@0.1.20",
+      "type": "library",
+      "version": "0.1.20"
+    },
+    {
+      "author": "",
+      "bom-ref": "CycloneDxRef-Component-indexmap-2.14.1",
+      "description": "A hash table with consistent order and fast iteration.",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/indexmap/"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/indexmap-rs/indexmap"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "name": "indexmap",
+      "purl": "pkg:cargo/indexmap@2.14.1",
+      "type": "library",
+      "version": "2.14.1"
+    },
+    {
+      "author": "bluss",
+      "bom-ref": "CycloneDxRef-Component-itertools-0.14.0",
+      "description": "Extra iterator adaptors, iterator methods, free functions, and macros.",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/itertools/"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/rust-itertools/itertools"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "itertools",
+      "purl": "pkg:cargo/itertools@0.14.0",
+      "type": "library",
+      "version": "0.14.0"
+    },
+    {
+      "author": "David Tolnay <dtolnay@gmail.com>",
+      "bom-ref": "CycloneDxRef-Component-itoa-1.0.18",
+      "description": "Fast integer primitive to string conversion",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/itoa"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/dtolnay/itoa"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "itoa",
+      "purl": "pkg:cargo/itoa@1.0.18",
+      "type": "library",
+      "version": "1.0.18"
+    },
+    {
+      "author": "",
+      "bom-ref": "CycloneDxRef-Component-libc-0.2.189",
+      "description": "Raw FFI bindings to platform libraries like libc.",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/rust-lang/libc"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "libc",
+      "purl": "pkg:cargo/libc@0.2.189",
+      "type": "library",
+      "version": "0.2.189"
+    },
+    {
+      "author": "Ibraheem Ahmed <ibraheem@ibraheem.ca>",
+      "bom-ref": "CycloneDxRef-Component-matchit-0.8.4",
+      "description": "A high performance, zero-copy URL router.",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/ibraheemdev/matchit"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT AND BSD-3-Clause"
+        }
+      ],
+      "name": "matchit",
+      "purl": "pkg:cargo/matchit@0.8.4",
+      "type": "library",
+      "version": "0.8.4"
+    },
+    {
+      "author": "Andrew Gallant <jamslam@gmail.com>, bluss",
+      "bom-ref": "CycloneDxRef-Component-memchr-2.8.3",
+      "description": "Provides extremely fast (uses SIMD on x86_64, aarch64 and wasm32) routines for\n1, 2 or 3 byte search and single substring search.\n",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/memchr/"
+        },
+        {
+          "type": "website",
+          "url": "https://github.com/BurntSushi/memchr"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/BurntSushi/memchr"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "Unlicense OR MIT"
+        }
+      ],
+      "name": "memchr",
+      "purl": "pkg:cargo/memchr@2.8.3",
+      "type": "library",
+      "version": "2.8.3"
+    },
+    {
+      "author": "Sean McArthur <sean@seanmonstar.com>",
+      "bom-ref": "CycloneDxRef-Component-mime-0.3.17",
+      "description": "Strongly Typed Mimes",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/mime"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/hyperium/mime"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "mime",
+      "purl": "pkg:cargo/mime@0.3.17",
+      "type": "library",
+      "version": "0.3.17"
+    },
+    {
+      "author": "Carl Lerche <me@carllerche.com>, Thomas de Zeeuw <thomasdezeeuw@gmail.com>, Tokio Contributors <team@tokio.rs>",
+      "bom-ref": "CycloneDxRef-Component-mio-1.2.2",
+      "description": "Lightweight non-blocking I/O.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/tokio-rs/mio"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/tokio-rs/mio"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "mio",
+      "purl": "pkg:cargo/mio@1.2.2",
+      "type": "library",
+      "version": "1.2.2"
+    },
+    {
+      "author": "Aleksey Kladov <aleksey.kladov@gmail.com>",
+      "bom-ref": "CycloneDxRef-Component-once_cell-1.21.4",
+      "description": "Single assignment cells and lazy values.",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/once_cell"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/matklad/once_cell"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "once_cell",
+      "purl": "pkg:cargo/once_cell@1.21.4",
+      "type": "library",
+      "version": "1.21.4"
+    },
+    {
+      "author": "",
+      "bom-ref": "CycloneDxRef-Component-open_perception_kit-0.1.1",
+      "description": "Generated open_perception_kit Rust SDK",
+      "externalReferences": [],
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "open_perception_kit",
+      "purl": "pkg:cargo/open_perception_kit@0.1.1",
+      "type": "library",
+      "version": "0.1.1"
+    },
+    {
+      "author": "The rust-url developers",
+      "bom-ref": "CycloneDxRef-Component-percent-encoding-2.3.2",
+      "description": "Percent encoding and decoding",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/servo/rust-url/"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "percent-encoding",
+      "purl": "pkg:cargo/percent-encoding@2.3.2",
+      "type": "library",
+      "version": "2.3.2"
+    },
+    {
+      "author": "",
+      "bom-ref": "CycloneDxRef-Component-pin-project-1.1.13",
+      "description": "A crate for safe and ergonomic pin-projection.\n",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/taiki-e/pin-project"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "name": "pin-project",
+      "purl": "pkg:cargo/pin-project@1.1.13",
+      "type": "library",
+      "version": "1.1.13"
+    },
+    {
+      "author": "",
+      "bom-ref": "CycloneDxRef-Component-pin-project-internal-1.1.13",
+      "description": "Implementation detail of the `pin-project` crate.\n",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/taiki-e/pin-project"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "name": "pin-project-internal",
+      "purl": "pkg:cargo/pin-project-internal@1.1.13",
+      "type": "application",
+      "version": "1.1.13"
+    },
+    {
+      "author": "",
+      "bom-ref": "CycloneDxRef-Component-pin-project-lite-0.2.17",
+      "description": "A lightweight version of pin-project written with declarative macros.\n",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/taiki-e/pin-project-lite"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "name": "pin-project-lite",
+      "purl": "pkg:cargo/pin-project-lite@0.2.17",
+      "type": "library",
+      "version": "0.2.17"
+    },
+    {
+      "author": "David Tolnay <dtolnay@gmail.com>, Alex Crichton <alex@alexcrichton.com>",
+      "bom-ref": "CycloneDxRef-Component-proc-macro2-1.0.107",
+      "description": "A substitute implementation of the compiler's `proc_macro` API to decouple token-based libraries from the procedural macro use case.",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/proc-macro2"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/dtolnay/proc-macro2"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "proc-macro2",
+      "purl": "pkg:cargo/proc-macro2@1.0.107",
+      "type": "library",
+      "version": "1.0.107"
+    },
+    {
+      "author": "Dan Burkert <dan@danburkert.com>, Lucio Franco <luciofranco14@gmail.com>, Casper Meijn <casper@meijn.net>, Tokio Contributors <team@tokio.rs>",
+      "bom-ref": "CycloneDxRef-Component-prost-0.14.3",
+      "description": "A Protocol Buffers implementation for the Rust Language.",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/tokio-rs/prost"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "prost",
+      "purl": "pkg:cargo/prost@0.14.3",
+      "type": "library",
+      "version": "0.14.3"
+    },
+    {
+      "author": "Dan Burkert <dan@danburkert.com>, Lucio Franco <luciofranco14@gmail.com>, Casper Meijn <casper@meijn.net>, Tokio Contributors <team@tokio.rs>",
+      "bom-ref": "CycloneDxRef-Component-prost-derive-0.14.4",
+      "description": "Generate encoding and decoding implementations for Prost annotated types.",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/tokio-rs/prost"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "prost-derive",
+      "purl": "pkg:cargo/prost-derive@0.14.4",
+      "type": "application",
+      "version": "0.14.4"
+    },
+    {
+      "author": "David Tolnay <dtolnay@gmail.com>",
+      "bom-ref": "CycloneDxRef-Component-quote-1.0.47",
+      "description": "Quasi-quoting macro quote!(...)",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/quote/"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/dtolnay/quote"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "quote",
+      "purl": "pkg:cargo/quote@1.0.47",
+      "type": "library",
+      "version": "1.0.47"
+    },
+    {
+      "author": "Erick Tryzelaar <erick.tryzelaar@gmail.com>, David Tolnay <dtolnay@gmail.com>",
+      "bom-ref": "CycloneDxRef-Component-serde_core-1.0.229",
+      "description": "Serde traits only, with no support for derive -- use the `serde` crate instead",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/serde_core"
+        },
+        {
+          "type": "website",
+          "url": "https://serde.rs"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/serde-rs/serde"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "serde_core",
+      "purl": "pkg:cargo/serde_core@1.0.229",
+      "type": "library",
+      "version": "1.0.229"
+    },
+    {
+      "author": "Erick Tryzelaar <erick.tryzelaar@gmail.com>, David Tolnay <dtolnay@gmail.com>",
+      "bom-ref": "CycloneDxRef-Component-serde_derive-1.0.229",
+      "description": "Macros 1.1 implementation of #[derive(Serialize, Deserialize)]",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://serde.rs/derive.html"
+        },
+        {
+          "type": "website",
+          "url": "https://serde.rs"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/serde-rs/serde"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "serde_derive",
+      "purl": "pkg:cargo/serde_derive@1.0.229",
+      "type": "application",
+      "version": "1.0.229"
+    },
+    {
+      "author": "Carl Lerche <me@carllerche.com>",
+      "bom-ref": "CycloneDxRef-Component-slab-0.4.12",
+      "description": "Pre-allocated storage for a uniform data type",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/tokio-rs/slab"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "slab",
+      "purl": "pkg:cargo/slab@0.4.12",
+      "type": "library",
+      "version": "0.4.12"
+    },
+    {
+      "author": "The Servo Project Developers",
+      "bom-ref": "CycloneDxRef-Component-smallvec-1.16.0",
+      "description": "'Small vector' optimization: store up to a small number of items on the stack",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/smallvec/"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/servo/rust-smallvec"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "smallvec",
+      "purl": "pkg:cargo/smallvec@1.16.0",
+      "type": "library",
+      "version": "1.16.0"
+    },
+    {
+      "author": "Alex Crichton <alex@alexcrichton.com>, Thomas de Zeeuw <thomasdezeeuw@gmail.com>",
+      "bom-ref": "CycloneDxRef-Component-socket2-0.6.5",
+      "description": "Utilities for handling networking sockets with a maximal amount of configuration\npossible intended.\n",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/socket2"
+        },
+        {
+          "type": "website",
+          "url": "https://github.com/rust-lang/socket2"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/rust-lang/socket2"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "socket2",
+      "purl": "pkg:cargo/socket2@0.6.5",
+      "type": "library",
+      "version": "0.6.5"
+    },
+    {
+      "author": "David Tolnay <dtolnay@gmail.com>",
+      "bom-ref": "CycloneDxRef-Component-syn-2.0.119",
+      "description": "Parser for Rust source code",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/syn"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/dtolnay/syn"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "syn",
+      "purl": "pkg:cargo/syn@2.0.119",
+      "type": "library",
+      "version": "2.0.119"
+    },
+    {
+      "author": "David Tolnay <dtolnay@gmail.com>",
+      "bom-ref": "CycloneDxRef-Component-syn-3.0.4",
+      "description": "Parser for Rust source code",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/syn"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/dtolnay/syn"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "syn",
+      "purl": "pkg:cargo/syn@3.0.4",
+      "type": "library",
+      "version": "3.0.4"
+    },
+    {
+      "author": "Actyx AG <developer@actyx.io>",
+      "bom-ref": "CycloneDxRef-Component-sync_wrapper-1.0.2",
+      "description": "A tool for enlisting the compiler's help in proving the absence of concurrency",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/sync_wrapper"
+        },
+        {
+          "type": "website",
+          "url": "https://docs.rs/sync_wrapper"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/Actyx/sync_wrapper"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "name": "sync_wrapper",
+      "purl": "pkg:cargo/sync_wrapper@1.0.2",
+      "type": "library",
+      "version": "1.0.2"
+    },
+    {
+      "author": "Tokio Contributors <team@tokio.rs>",
+      "bom-ref": "CycloneDxRef-Component-tokio-1.53.1",
+      "description": "An event-driven, non-blocking I/O platform for writing asynchronous I/O\nbacked applications.\n",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://tokio.rs"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/tokio-rs/tokio"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "tokio",
+      "purl": "pkg:cargo/tokio@1.53.1",
+      "type": "library",
+      "version": "1.53.1"
+    },
+    {
+      "author": "Tokio Contributors <team@tokio.rs>",
+      "bom-ref": "CycloneDxRef-Component-tokio-macros-2.7.2",
+      "description": "Tokio's proc macros.\n",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://tokio.rs"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/tokio-rs/tokio"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "tokio-macros",
+      "purl": "pkg:cargo/tokio-macros@2.7.2",
+      "type": "application",
+      "version": "2.7.2"
+    },
+    {
+      "author": "Tokio Contributors <team@tokio.rs>",
+      "bom-ref": "CycloneDxRef-Component-tokio-stream-0.1.19",
+      "description": "Utilities to work with `Stream` and `tokio`.\n",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://tokio.rs"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/tokio-rs/tokio"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "tokio-stream",
+      "purl": "pkg:cargo/tokio-stream@0.1.19",
+      "type": "library",
+      "version": "0.1.19"
+    },
+    {
+      "author": "Tokio Contributors <team@tokio.rs>",
+      "bom-ref": "CycloneDxRef-Component-tokio-util-0.7.19",
+      "description": "Additional utilities for working with Tokio.\n",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://tokio.rs"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/tokio-rs/tokio"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "tokio-util",
+      "purl": "pkg:cargo/tokio-util@0.7.19",
+      "type": "library",
+      "version": "0.7.19"
+    },
+    {
+      "author": "Lucio Franco <luciofranco14@gmail.com>",
+      "bom-ref": "CycloneDxRef-Component-tonic-0.14.5",
+      "description": "A gRPC over HTTP/2 implementation focused on high performance, interoperability, and flexibility.\n",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/hyperium/tonic"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/hyperium/tonic"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "tonic",
+      "purl": "pkg:cargo/tonic@0.14.5",
+      "type": "library",
+      "version": "0.14.5"
+    },
+    {
+      "author": "James Nugent <james@jen20.com>",
+      "bom-ref": "CycloneDxRef-Component-tonic-health-0.14.5",
+      "description": "Health Checking module of `tonic` gRPC implementation.\n",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/hyperium/tonic"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/hyperium/tonic"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "tonic-health",
+      "purl": "pkg:cargo/tonic-health@0.14.5",
+      "type": "library",
+      "version": "0.14.5"
+    },
+    {
+      "author": "Lucio Franco <luciofranco14@gmail.com>",
+      "bom-ref": "CycloneDxRef-Component-tonic-prost-0.14.5",
+      "description": "Prost codec implementation for tonic",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/hyperium/tonic"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/hyperium/tonic"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "tonic-prost",
+      "purl": "pkg:cargo/tonic-prost@0.14.5",
+      "type": "library",
+      "version": "0.14.5"
+    },
+    {
+      "author": "Tower Maintainers <team@tower-rs.com>",
+      "bom-ref": "CycloneDxRef-Component-tower-0.5.3",
+      "description": "Tower is a library of modular and reusable components for building robust\nclients and servers.\n",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/tower-rs/tower"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/tower-rs/tower"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "tower",
+      "purl": "pkg:cargo/tower@0.5.3",
+      "type": "library",
+      "version": "0.5.3"
+    },
+    {
+      "author": "Tower Maintainers <team@tower-rs.com>",
+      "bom-ref": "CycloneDxRef-Component-tower-layer-0.3.3",
+      "description": "Decorates a `Service` to allow easy composition between `Service`s.\n",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/tower-layer/0.3.3"
+        },
+        {
+          "type": "website",
+          "url": "https://github.com/tower-rs/tower"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/tower-rs/tower"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "tower-layer",
+      "purl": "pkg:cargo/tower-layer@0.3.3",
+      "type": "library",
+      "version": "0.3.3"
+    },
+    {
+      "author": "Tower Maintainers <team@tower-rs.com>",
+      "bom-ref": "CycloneDxRef-Component-tower-service-0.3.3",
+      "description": "Trait representing an asynchronous, request / response based, client or server.\n",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/tower-service/0.3.3"
+        },
+        {
+          "type": "website",
+          "url": "https://github.com/tower-rs/tower"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/tower-rs/tower"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "tower-service",
+      "purl": "pkg:cargo/tower-service@0.3.3",
+      "type": "library",
+      "version": "0.3.3"
+    },
+    {
+      "author": "Eliza Weisman <eliza@buoyant.io>, Tokio Contributors <team@tokio.rs>",
+      "bom-ref": "CycloneDxRef-Component-tracing-0.1.44",
+      "description": "Application-level tracing for Rust.\n",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://tokio.rs"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/tokio-rs/tracing"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "tracing",
+      "purl": "pkg:cargo/tracing@0.1.44",
+      "type": "library",
+      "version": "0.1.44"
+    },
+    {
+      "author": "Tokio Contributors <team@tokio.rs>, Eliza Weisman <eliza@buoyant.io>, David Barsky <dbarsky@amazon.com>",
+      "bom-ref": "CycloneDxRef-Component-tracing-attributes-0.1.31",
+      "description": "Procedural macro attributes for automatically instrumenting functions.\n",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://tokio.rs"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/tokio-rs/tracing"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "tracing-attributes",
+      "purl": "pkg:cargo/tracing-attributes@0.1.31",
+      "type": "application",
+      "version": "0.1.31"
+    },
+    {
+      "author": "Tokio Contributors <team@tokio.rs>",
+      "bom-ref": "CycloneDxRef-Component-tracing-core-0.1.36",
+      "description": "Core primitives for application-level tracing.\n",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://tokio.rs"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/tokio-rs/tracing"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "tracing-core",
+      "purl": "pkg:cargo/tracing-core@0.1.36",
+      "type": "library",
+      "version": "0.1.36"
+    },
+    {
+      "author": "Sean McArthur <sean@seanmonstar.com>",
+      "bom-ref": "CycloneDxRef-Component-try-lock-0.2.5",
+      "description": "A lightweight atomic lock.",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/try-lock"
+        },
+        {
+          "type": "website",
+          "url": "https://github.com/seanmonstar/try-lock"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/seanmonstar/try-lock"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "try-lock",
+      "purl": "pkg:cargo/try-lock@0.2.5",
+      "type": "library",
+      "version": "0.2.5"
+    },
+    {
+      "author": "David Tolnay <dtolnay@gmail.com>",
+      "bom-ref": "CycloneDxRef-Component-unicode-ident-1.0.24",
+      "description": "Determine whether characters have the XID_Start or XID_Continue properties according to Unicode Standard Annex #31",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/unicode-ident"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/dtolnay/unicode-ident"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "(MIT OR Apache-2.0) AND Unicode-3.0"
+        }
+      ],
+      "name": "unicode-ident",
+      "purl": "pkg:cargo/unicode-ident@1.0.24",
+      "type": "library",
+      "version": "1.0.24"
+    },
+    {
+      "author": "Sean McArthur <sean@seanmonstar.com>",
+      "bom-ref": "CycloneDxRef-Component-want-0.3.1",
+      "description": "Detect when another Future wants a result.",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/want"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/seanmonstar/want"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "want",
+      "purl": "pkg:cargo/want@0.3.1",
+      "type": "library",
+      "version": "0.3.1"
+    },
+    {
+      "author": "The Cranelift Project Developers",
+      "bom-ref": "CycloneDxRef-Component-wasi-0.11.1+wasi-snapshot-preview1",
+      "description": "Experimental WASI API bindings for Rust",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/wasi"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/bytecodealliance/wasi"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR Apache-2.0 OR MIT"
+        }
+      ],
+      "name": "wasi",
+      "purl": "pkg:cargo/wasi@0.11.1%2Bwasi-snapshot-preview1",
+      "type": "library",
+      "version": "0.11.1+wasi-snapshot-preview1"
+    },
+    {
+      "author": "",
+      "bom-ref": "CycloneDxRef-Component-windows-link-0.2.1",
+      "description": "Linking for Windows",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/microsoft/windows-rs"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "windows-link",
+      "purl": "pkg:cargo/windows-link@0.2.1",
+      "type": "library",
+      "version": "0.2.1"
+    },
+    {
+      "author": "",
+      "bom-ref": "CycloneDxRef-Component-windows-sys-0.61.2",
+      "description": "Rust for Windows",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/microsoft/windows-rs"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "windows-sys",
+      "purl": "pkg:cargo/windows-sys@0.61.2",
+      "type": "library",
+      "version": "0.61.2"
+    }
+  ],
+  "dependencies": [
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-prost-0.14.3",
+        "CycloneDxRef-Component-tokio-1.53.1",
+        "CycloneDxRef-Component-tonic-0.14.5",
+        "CycloneDxRef-Component-tonic-health-0.14.5",
+        "CycloneDxRef-Component-tonic-prost-0.14.5"
+      ],
+      "ref": "CycloneDxRef-Component-arm-cairn-camera-0.0.2"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-arm-cairn-camera-0.0.2",
+        "CycloneDxRef-Component-open_perception_kit-0.1.1",
+        "CycloneDxRef-Component-prost-0.14.3",
+        "CycloneDxRef-Component-tokio-1.53.1",
+        "CycloneDxRef-Component-tonic-0.14.5",
+        "CycloneDxRef-Component-tonic-health-0.14.5",
+        "CycloneDxRef-Component-tonic-prost-0.14.5"
+      ],
+      "ref": "CycloneDxRef-Component-arm-cairn-perception-0.0.2"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-proc-macro2-1.0.107",
+        "CycloneDxRef-Component-quote-1.0.47",
+        "CycloneDxRef-Component-syn-3.0.4"
+      ],
+      "ref": "CycloneDxRef-Component-async-trait-0.1.92"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-axum-core-0.5.6",
+        "CycloneDxRef-Component-bytes-1.11.1",
+        "CycloneDxRef-Component-futures-util-0.3.32",
+        "CycloneDxRef-Component-http-1.5.0",
+        "CycloneDxRef-Component-http-body-1.1.0",
+        "CycloneDxRef-Component-http-body-util-0.1.5",
+        "CycloneDxRef-Component-itoa-1.0.18",
+        "CycloneDxRef-Component-matchit-0.8.4",
+        "CycloneDxRef-Component-memchr-2.8.3",
+        "CycloneDxRef-Component-mime-0.3.17",
+        "CycloneDxRef-Component-percent-encoding-2.3.2",
+        "CycloneDxRef-Component-pin-project-lite-0.2.17",
+        "CycloneDxRef-Component-serde_core-1.0.229",
+        "CycloneDxRef-Component-sync_wrapper-1.0.2",
+        "CycloneDxRef-Component-tower-0.5.3",
+        "CycloneDxRef-Component-tower-layer-0.3.3",
+        "CycloneDxRef-Component-tower-service-0.3.3"
+      ],
+      "ref": "CycloneDxRef-Component-axum-0.8.9"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-bytes-1.11.1",
+        "CycloneDxRef-Component-futures-core-0.3.34",
+        "CycloneDxRef-Component-http-1.5.0",
+        "CycloneDxRef-Component-http-body-1.1.0",
+        "CycloneDxRef-Component-http-body-util-0.1.5",
+        "CycloneDxRef-Component-mime-0.3.17",
+        "CycloneDxRef-Component-pin-project-lite-0.2.17",
+        "CycloneDxRef-Component-sync_wrapper-1.0.2",
+        "CycloneDxRef-Component-tower-layer-0.3.3",
+        "CycloneDxRef-Component-tower-service-0.3.3"
+      ],
+      "ref": "CycloneDxRef-Component-axum-core-0.5.6"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-bitflags-2.13.1"
+      ],
+      "ref": "CycloneDxRef-Component-flatbuffers-25.9.23"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-futures-core-0.3.34"
+      ],
+      "ref": "CycloneDxRef-Component-futures-channel-0.3.34"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-proc-macro2-1.0.107",
+        "CycloneDxRef-Component-quote-1.0.47",
+        "CycloneDxRef-Component-syn-2.0.119"
+      ],
+      "ref": "CycloneDxRef-Component-futures-macro-0.3.32"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-futures-core-0.3.34",
+        "CycloneDxRef-Component-futures-macro-0.3.32",
+        "CycloneDxRef-Component-futures-sink-0.3.34",
+        "CycloneDxRef-Component-futures-task-0.3.34",
+        "CycloneDxRef-Component-pin-project-lite-0.2.17",
+        "CycloneDxRef-Component-slab-0.4.12"
+      ],
+      "ref": "CycloneDxRef-Component-futures-util-0.3.32"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-atomic-waker-1.1.2",
+        "CycloneDxRef-Component-bytes-1.11.1",
+        "CycloneDxRef-Component-fnv-1.0.7",
+        "CycloneDxRef-Component-futures-core-0.3.34",
+        "CycloneDxRef-Component-futures-sink-0.3.34",
+        "CycloneDxRef-Component-http-1.5.0",
+        "CycloneDxRef-Component-indexmap-2.14.1",
+        "CycloneDxRef-Component-slab-0.4.12",
+        "CycloneDxRef-Component-tokio-1.53.1",
+        "CycloneDxRef-Component-tokio-util-0.7.19",
+        "CycloneDxRef-Component-tracing-0.1.44"
+      ],
+      "ref": "CycloneDxRef-Component-h2-0.4.19"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-bytes-1.11.1",
+        "CycloneDxRef-Component-itoa-1.0.18"
+      ],
+      "ref": "CycloneDxRef-Component-http-1.5.0"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-bytes-1.11.1",
+        "CycloneDxRef-Component-http-1.5.0"
+      ],
+      "ref": "CycloneDxRef-Component-http-body-1.1.0"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-bytes-1.11.1",
+        "CycloneDxRef-Component-futures-core-0.3.34",
+        "CycloneDxRef-Component-http-1.5.0",
+        "CycloneDxRef-Component-http-body-1.1.0",
+        "CycloneDxRef-Component-pin-project-lite-0.2.17"
+      ],
+      "ref": "CycloneDxRef-Component-http-body-util-0.1.5"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-atomic-waker-1.1.2",
+        "CycloneDxRef-Component-bytes-1.11.1",
+        "CycloneDxRef-Component-futures-channel-0.3.34",
+        "CycloneDxRef-Component-futures-core-0.3.34",
+        "CycloneDxRef-Component-h2-0.4.19",
+        "CycloneDxRef-Component-http-1.5.0",
+        "CycloneDxRef-Component-http-body-1.1.0",
+        "CycloneDxRef-Component-httparse-1.10.1",
+        "CycloneDxRef-Component-httpdate-1.0.3",
+        "CycloneDxRef-Component-itoa-1.0.18",
+        "CycloneDxRef-Component-pin-project-lite-0.2.17",
+        "CycloneDxRef-Component-smallvec-1.16.0",
+        "CycloneDxRef-Component-tokio-1.53.1",
+        "CycloneDxRef-Component-want-0.3.1"
+      ],
+      "ref": "CycloneDxRef-Component-hyper-1.11.1"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-hyper-1.11.1",
+        "CycloneDxRef-Component-hyper-util-0.1.20",
+        "CycloneDxRef-Component-pin-project-lite-0.2.17",
+        "CycloneDxRef-Component-tokio-1.53.1",
+        "CycloneDxRef-Component-tower-service-0.3.3"
+      ],
+      "ref": "CycloneDxRef-Component-hyper-timeout-0.5.2"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-bytes-1.11.1",
+        "CycloneDxRef-Component-futures-channel-0.3.34",
+        "CycloneDxRef-Component-futures-util-0.3.32",
+        "CycloneDxRef-Component-http-1.5.0",
+        "CycloneDxRef-Component-http-body-1.1.0",
+        "CycloneDxRef-Component-hyper-1.11.1",
+        "CycloneDxRef-Component-libc-0.2.189",
+        "CycloneDxRef-Component-pin-project-lite-0.2.17",
+        "CycloneDxRef-Component-socket2-0.6.5",
+        "CycloneDxRef-Component-tokio-1.53.1",
+        "CycloneDxRef-Component-tower-service-0.3.3",
+        "CycloneDxRef-Component-tracing-0.1.44"
+      ],
+      "ref": "CycloneDxRef-Component-hyper-util-0.1.20"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-equivalent-1.0.2",
+        "CycloneDxRef-Component-hashbrown-0.17.1"
+      ],
+      "ref": "CycloneDxRef-Component-indexmap-2.14.1"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-either-1.18.0"
+      ],
+      "ref": "CycloneDxRef-Component-itertools-0.14.0"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-libc-0.2.189",
+        "CycloneDxRef-Component-wasi-0.11.1+wasi-snapshot-preview1",
+        "CycloneDxRef-Component-windows-sys-0.61.2"
+      ],
+      "ref": "CycloneDxRef-Component-mio-1.2.2"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-flatbuffers-25.9.23"
+      ],
+      "ref": "CycloneDxRef-Component-open_perception_kit-0.1.1"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-pin-project-internal-1.1.13"
+      ],
+      "ref": "CycloneDxRef-Component-pin-project-1.1.13"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-proc-macro2-1.0.107",
+        "CycloneDxRef-Component-quote-1.0.47",
+        "CycloneDxRef-Component-syn-2.0.119"
+      ],
+      "ref": "CycloneDxRef-Component-pin-project-internal-1.1.13"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-unicode-ident-1.0.24"
+      ],
+      "ref": "CycloneDxRef-Component-proc-macro2-1.0.107"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-bytes-1.11.1",
+        "CycloneDxRef-Component-prost-derive-0.14.4"
+      ],
+      "ref": "CycloneDxRef-Component-prost-0.14.3"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-anyhow-1.0.104",
+        "CycloneDxRef-Component-itertools-0.14.0",
+        "CycloneDxRef-Component-proc-macro2-1.0.107",
+        "CycloneDxRef-Component-quote-1.0.47",
+        "CycloneDxRef-Component-syn-2.0.119"
+      ],
+      "ref": "CycloneDxRef-Component-prost-derive-0.14.4"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-proc-macro2-1.0.107"
+      ],
+      "ref": "CycloneDxRef-Component-quote-1.0.47"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-serde_derive-1.0.229"
+      ],
+      "ref": "CycloneDxRef-Component-serde_core-1.0.229"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-proc-macro2-1.0.107",
+        "CycloneDxRef-Component-quote-1.0.47",
+        "CycloneDxRef-Component-syn-3.0.4"
+      ],
+      "ref": "CycloneDxRef-Component-serde_derive-1.0.229"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-libc-0.2.189",
+        "CycloneDxRef-Component-windows-sys-0.61.2"
+      ],
+      "ref": "CycloneDxRef-Component-socket2-0.6.5"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-proc-macro2-1.0.107",
+        "CycloneDxRef-Component-quote-1.0.47",
+        "CycloneDxRef-Component-unicode-ident-1.0.24"
+      ],
+      "ref": "CycloneDxRef-Component-syn-2.0.119"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-proc-macro2-1.0.107",
+        "CycloneDxRef-Component-quote-1.0.47",
+        "CycloneDxRef-Component-unicode-ident-1.0.24"
+      ],
+      "ref": "CycloneDxRef-Component-syn-3.0.4"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-bytes-1.11.1",
+        "CycloneDxRef-Component-libc-0.2.189",
+        "CycloneDxRef-Component-mio-1.2.2",
+        "CycloneDxRef-Component-pin-project-lite-0.2.17",
+        "CycloneDxRef-Component-socket2-0.6.5",
+        "CycloneDxRef-Component-tokio-macros-2.7.2",
+        "CycloneDxRef-Component-windows-sys-0.61.2"
+      ],
+      "ref": "CycloneDxRef-Component-tokio-1.53.1"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-proc-macro2-1.0.107",
+        "CycloneDxRef-Component-quote-1.0.47",
+        "CycloneDxRef-Component-syn-3.0.4"
+      ],
+      "ref": "CycloneDxRef-Component-tokio-macros-2.7.2"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-futures-core-0.3.34",
+        "CycloneDxRef-Component-pin-project-lite-0.2.17",
+        "CycloneDxRef-Component-tokio-1.53.1",
+        "CycloneDxRef-Component-tokio-util-0.7.19"
+      ],
+      "ref": "CycloneDxRef-Component-tokio-stream-0.1.19"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-bytes-1.11.1",
+        "CycloneDxRef-Component-futures-core-0.3.34",
+        "CycloneDxRef-Component-futures-sink-0.3.34",
+        "CycloneDxRef-Component-libc-0.2.189",
+        "CycloneDxRef-Component-pin-project-lite-0.2.17",
+        "CycloneDxRef-Component-tokio-1.53.1"
+      ],
+      "ref": "CycloneDxRef-Component-tokio-util-0.7.19"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-async-trait-0.1.92",
+        "CycloneDxRef-Component-axum-0.8.9",
+        "CycloneDxRef-Component-base64-0.22.1",
+        "CycloneDxRef-Component-bytes-1.11.1",
+        "CycloneDxRef-Component-h2-0.4.19",
+        "CycloneDxRef-Component-http-1.5.0",
+        "CycloneDxRef-Component-http-body-1.1.0",
+        "CycloneDxRef-Component-http-body-util-0.1.5",
+        "CycloneDxRef-Component-hyper-1.11.1",
+        "CycloneDxRef-Component-hyper-timeout-0.5.2",
+        "CycloneDxRef-Component-hyper-util-0.1.20",
+        "CycloneDxRef-Component-percent-encoding-2.3.2",
+        "CycloneDxRef-Component-pin-project-1.1.13",
+        "CycloneDxRef-Component-socket2-0.6.5",
+        "CycloneDxRef-Component-sync_wrapper-1.0.2",
+        "CycloneDxRef-Component-tokio-1.53.1",
+        "CycloneDxRef-Component-tokio-stream-0.1.19",
+        "CycloneDxRef-Component-tower-0.5.3",
+        "CycloneDxRef-Component-tower-layer-0.3.3",
+        "CycloneDxRef-Component-tower-service-0.3.3",
+        "CycloneDxRef-Component-tracing-0.1.44"
+      ],
+      "ref": "CycloneDxRef-Component-tonic-0.14.5"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-prost-0.14.3",
+        "CycloneDxRef-Component-tokio-1.53.1",
+        "CycloneDxRef-Component-tokio-stream-0.1.19",
+        "CycloneDxRef-Component-tonic-0.14.5",
+        "CycloneDxRef-Component-tonic-prost-0.14.5"
+      ],
+      "ref": "CycloneDxRef-Component-tonic-health-0.14.5"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-bytes-1.11.1",
+        "CycloneDxRef-Component-prost-0.14.3",
+        "CycloneDxRef-Component-tonic-0.14.5"
+      ],
+      "ref": "CycloneDxRef-Component-tonic-prost-0.14.5"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-futures-core-0.3.34",
+        "CycloneDxRef-Component-futures-util-0.3.32",
+        "CycloneDxRef-Component-indexmap-2.14.1",
+        "CycloneDxRef-Component-pin-project-lite-0.2.17",
+        "CycloneDxRef-Component-slab-0.4.12",
+        "CycloneDxRef-Component-sync_wrapper-1.0.2",
+        "CycloneDxRef-Component-tokio-1.53.1",
+        "CycloneDxRef-Component-tokio-util-0.7.19",
+        "CycloneDxRef-Component-tower-layer-0.3.3",
+        "CycloneDxRef-Component-tower-service-0.3.3",
+        "CycloneDxRef-Component-tracing-0.1.44"
+      ],
+      "ref": "CycloneDxRef-Component-tower-0.5.3"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-pin-project-lite-0.2.17",
+        "CycloneDxRef-Component-tracing-attributes-0.1.31",
+        "CycloneDxRef-Component-tracing-core-0.1.36"
+      ],
+      "ref": "CycloneDxRef-Component-tracing-0.1.44"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-proc-macro2-1.0.107",
+        "CycloneDxRef-Component-quote-1.0.47",
+        "CycloneDxRef-Component-syn-2.0.119"
+      ],
+      "ref": "CycloneDxRef-Component-tracing-attributes-0.1.31"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-once_cell-1.21.4"
+      ],
+      "ref": "CycloneDxRef-Component-tracing-core-0.1.36"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-try-lock-0.2.5"
+      ],
+      "ref": "CycloneDxRef-Component-want-0.3.1"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-windows-link-0.2.1"
+      ],
+      "ref": "CycloneDxRef-Component-windows-sys-0.61.2"
+    }
+  ],
+  "metadata": {
+    "component": {
+      "components": [
+        {
+          "author": "",
+          "bom-ref": "CycloneDxRef-Component-arm-cairn-perception-0.0.2",
+          "description": "Internal perception service client for Cairn",
+          "externalReferences": [],
+          "licenses": [
+            {
+              "expression": "Apache-2.0"
+            }
+          ],
+          "name": "arm-cairn-perception",
+          "type": "library",
+          "version": "0.0.2"
+        }
+      ],
+      "name": "arm-cairn-perception",
+      "type": "application"
+    },
+    "timestamp": "2026-10-28T13:43:35.130Z",
+    "tools": [
+      {
+        "name": "cargo-sbom",
+        "version": "0.10.0"
+      }
+    ]
+  },
+  "serialNumber": "urn:uuid:509d2a46-6bee-48a9-b219-a1ec589e39d3",
+  "specVersion": "1.6",
+  "version": 1
+}

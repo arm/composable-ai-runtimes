@@ -2,3 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 lib/crates/cairn/bom.json linguist-generated
+lib/crates/cairn-camera/bom.json linguist-generated
+lib/crates/cairn-notification/bom.json linguist-generated
+lib/crates/cairn-perception/bom.json linguist-generated

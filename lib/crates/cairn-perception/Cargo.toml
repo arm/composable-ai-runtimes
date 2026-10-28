@@ -7,7 +7,7 @@ version.workspace = true
 description = "Internal perception service client for Cairn"
 edition.workspace = true
 license.workspace = true
-include = ["src/**", "bin/**", "README.md", "LICENSE", "THIRD-PARTY-DISCLAIMER.txt"]
+include = ["src/**", "bin/**", "README.md", "bom.json", "LICENSE", "SBOM-DISCLAIMER.txt", "THIRD-PARTY-DISCLAIMER.txt"]
 
 [lib]
 name = "cairn_perception"

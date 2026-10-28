@@ -28,6 +28,9 @@ EXCLUDED_PATHS = frozenset(
         PurePosixPath(".python-version"),
         PurePosixPath("LICENSE"),
         PurePosixPath("lib/crates/cairn/SBOM-DISCLAIMER.txt"),
+        PurePosixPath("lib/crates/cairn-camera/SBOM-DISCLAIMER.txt"),
+        PurePosixPath("lib/crates/cairn-notification/SBOM-DISCLAIMER.txt"),
+        PurePosixPath("lib/crates/cairn-perception/SBOM-DISCLAIMER.txt"),
         PurePosixPath("lib/python/cairn/__init__.pyi"),
         PurePosixPath("lib/python/cairn/py.typed"),
         # The sample image retains its upstream license unchanged.

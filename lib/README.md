@@ -14,7 +14,7 @@ bindings are published as the `arm-cairn` wheel.
 - Rust toolchain (via `rustup`)
 - Redis server (`redis-server`) available on `PATH` and local port `6379` free
   for notification-service tests
-- Python 3.12 when building or testing the Python bindings
+- Python `>=3.13.17,<3.14` when building or testing the Python bindings
 
 ## Building and Validation
 
