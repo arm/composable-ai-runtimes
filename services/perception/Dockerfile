@@ -145,6 +145,10 @@ COPY pyproject.toml uv.lock ./
 RUN --mount=type=cache,target=/root/.cache/uv \
   uv sync --locked --no-dev --no-install-project
 
+COPY scripts/docker/install_loguru_license.py /tmp/
+RUN --mount=type=bind,source=notices/python/loguru-0.7.3/LICENSE,target=/tmp/loguru-LICENSE \
+    /app/.venv/bin/python /tmp/install_loguru_license.py /tmp/loguru-LICENSE
+
 COPY scripts/docker/wheel_sbom.py scripts/docker/wheel_sbom.toml /tmp/wheel-sbom/
 RUN --mount=type=cache,target=/root/.cache/uv \
     UV_PROJECT_ENVIRONMENT=/tmp/sbom-venv uv sync --locked --only-group sbom --no-install-project \
