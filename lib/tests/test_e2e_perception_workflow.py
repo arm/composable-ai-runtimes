@@ -79,7 +79,7 @@ def test_python_sdk_deploys_a_working_perception_workflow(
             raise AssertionError("deployed session did not expose a results topic")
 
         received: asyncio.Queue[Notification] = asyncio.Queue()
-        async with NotificationService(messaging_endpoint) as notifications:
+        async with await NotificationService.connect(messaging_endpoint) as notifications:
             await notifications.subscribe(result_topic, received.put)
             notification = await asyncio.wait_for(received.get(), timeout=30)
             result = PerceptionResult.decode(notification.payload)

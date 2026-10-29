@@ -77,6 +77,33 @@ impl PyNotificationService {
         })
     }
 
+    /// Connect to the messaging service without blocking the Python event loop.
+    ///
+    /// Await this method. ``None`` uses the health endpoint
+    /// ``http://127.0.0.1:50054``. Once ready, connects to local Redis.
+    /// Connection failures raise ``RuntimeError``.
+    #[staticmethod]
+    #[pyo3(signature = (endpoint=None))]
+    #[gen_stub(override_return_type(
+        type_repr = "collections.abc.Awaitable[NotificationService]",
+        imports = ("collections.abc",)
+    ))]
+    fn connect<'py>(py: Python<'py>, endpoint: Option<String>) -> PyResult<Bound<'py, PyAny>> {
+        tokio_runtime::future_into_py(py, async move {
+            let inner = NotificationService::new(endpoint)
+                .await
+                .map_err(|error| PyRuntimeError::new_err(error.to_string()))?;
+            Python::attach(|py| {
+                Py::new(
+                    py,
+                    Self {
+                        inner: Arc::new(Mutex::new(inner)),
+                    },
+                )
+            })
+        })
+    }
+
     /// Enter an asynchronous context for this notification service.
     #[gen_stub(override_return_type(
         type_repr = "collections.abc.Awaitable[NotificationService]",

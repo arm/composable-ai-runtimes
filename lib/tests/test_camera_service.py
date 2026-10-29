@@ -151,6 +151,14 @@ def camera_from_service(endpoint: str) -> Camera:
     return cameras[0]
 
 
+def test_connect_rejects_invalid_endpoint() -> None:
+    async def connect() -> None:
+        with pytest.raises(RuntimeError, match="health watch"):
+            await CameraService.connect("http://[::1")
+
+    asyncio.run(connect())
+
+
 def test_stream_filter_defaults_leave_all_constraints_unset() -> None:
     filter = StreamFormatFilter()
     assert filter.resolution is None

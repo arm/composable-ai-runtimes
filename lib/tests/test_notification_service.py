@@ -281,6 +281,14 @@ def test_non_awaitable_callback_result_is_reported_and_delivery_continues(
     asyncio.run(exercise(redis_endpoint))
 
 
+def test_connect_rejects_invalid_endpoint() -> None:
+    async def connect() -> None:
+        with pytest.raises(RuntimeError, match="health watch"):
+            await NotificationService.connect("http://[::1")
+
+    asyncio.run(connect())
+
+
 def test_constructor_rejects_redis_url() -> None:
     with pytest.raises(RuntimeError, match="health watch"):
         NotificationService("redis://127.0.0.1:6379/0")

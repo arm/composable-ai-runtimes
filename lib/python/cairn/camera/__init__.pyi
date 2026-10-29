@@ -55,6 +55,15 @@ class CameraService:
         r"""
         Create a camera service client.
         """
+    @staticmethod
+    def connect(endpoint: typing.Optional[builtins.str] = None) -> collections.abc.Awaitable[CameraService]:
+        r"""
+        Connect to the camera service without blocking the Python event loop.
+        
+        Call and await this method inside a running asyncio loop.
+        ``None`` uses ``http://127.0.0.1:50051``. Initialization failures
+        raise ``RuntimeError``; no client is returned until the service is ready.
+        """
     def list_cameras(self) -> builtins.list[Camera]:
         r"""
         List the cameras currently reported by the camera service.

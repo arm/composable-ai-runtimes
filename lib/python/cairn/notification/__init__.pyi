@@ -41,6 +41,15 @@ class NotificationService:
         r"""
         Create a notification service client.
         """
+    @staticmethod
+    def connect(endpoint: typing.Optional[builtins.str] = None) -> collections.abc.Awaitable[NotificationService]:
+        r"""
+        Connect to the messaging service without blocking the Python event loop.
+        
+        Await this method. ``None`` uses the health endpoint
+        ``http://127.0.0.1:50054``. Once ready, connects to local Redis.
+        Connection failures raise ``RuntimeError``.
+        """
     def __aenter__(self) -> collections.abc.Awaitable[NotificationService]:
         r"""
         Enter an asynchronous context for this notification service.
