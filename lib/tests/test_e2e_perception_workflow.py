@@ -236,12 +236,16 @@ def test_python_sdk_controls_perception_stages(
                 await asyncio.wait_for(received.get(), timeout=30)
 
                 assert await session.disable_stage(stage.id) is None
+                disabled = await session.get_status()
+                assert disabled.disabled_stage_ids == [stage.id]
                 for control in (session.disable_stage, session.enable_stage):
                     with pytest.raises(PerceptionError):
                         await control("missing-stage")
                 resolved_stage = next(item for item in session.stages if item.id == stage.id)
                 assert resolved_stage.controllable
                 assert await session.enable_stage(resolved_stage.id) is None
+                enabled = await session.get_status()
+                assert enabled.disabled_stage_ids == []
                 while not received.empty():
                     received.get_nowait()
                 await asyncio.wait_for(received.get(), timeout=30)
