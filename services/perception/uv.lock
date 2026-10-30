@@ -275,7 +275,6 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "grpcio-tools" },
-    { name = "jsonschema" },
     { name = "prek" },
     { name = "pygobject-stubs", marker = "sys_platform != 'win32'" },
     { name = "pytest" },
@@ -291,7 +290,6 @@ sbom = [
     { name = "spdx-tools" },
 ]
 test = [
-    { name = "jsonschema" },
     { name = "pytest" },
     { name = "pytest-cov" },
 ]
@@ -316,7 +314,6 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "grpcio-tools", specifier = "==1.83.0" },
-    { name = "jsonschema", specifier = "==4.26.0" },
     { name = "prek", specifier = "==0.5.7" },
     { name = "pygobject-stubs", marker = "sys_platform != 'win32'", specifier = "==2.17.0" },
     { name = "pytest", specifier = "==9.1.1" },
@@ -328,7 +325,6 @@ dev = [
 e2e = [{ name = "pytest", specifier = "==9.1.1" }]
 sbom = [{ name = "spdx-tools", specifier = "==0.8.5" }]
 test = [
-    { name = "jsonschema", specifier = "==4.26.0" },
     { name = "pytest", specifier = "==9.1.1" },
     { name = "pytest-cov", specifier = "==7.1.0" },
 ]

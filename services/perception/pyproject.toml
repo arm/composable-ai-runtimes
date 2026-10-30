@@ -48,7 +48,6 @@ sbom = [
 ]
 test = [
     { include-group = "e2e" },
-    "jsonschema==4.26.0",
     "pytest-cov==7.1.0",
 ]
 
