@@ -11,7 +11,7 @@ devices. Use this package to discover cameras, deploy inference workflows, and
 receive detection events through consistent Python APIs.
 
 Install with `pip install arm-cairn` and import as `cairn`.
-Release wheels support Python 3.12 on Linux ARM64.
+Release wheels support Python `>=3.13.17,<3.14` on Linux ARM64.
 
 ## License
 
