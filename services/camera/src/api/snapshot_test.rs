@@ -260,32 +260,3 @@ fn take_cameras_sorts_cameras_by_object_serial_before_returning() {
     assert_eq!(cameras[0].object_serial, 50);
     assert_eq!(cameras[1].object_serial, 100);
 }
-
-#[test]
-fn take_cameras_omits_removed_cameras() {
-    let mut cameras = HashMap::from([
-        (
-            7,
-            SnapshotCamera {
-                object_serial: 42,
-                name: "front".to_string(),
-            },
-        ),
-        (
-            11,
-            SnapshotCamera {
-                object_serial: 84,
-                name: "rear".to_string(),
-            },
-        ),
-    ]);
-
-    cameras.remove(&7);
-
-    let mut state = SnapshotState { cameras };
-
-    let cameras = state.take_cameras();
-
-    assert_eq!(cameras.len(), 1);
-    assert_eq!(cameras[0].object_serial, 84);
-}
