@@ -17,3 +17,9 @@ cairn-notification = { package = "arm-cairn-notification", path = "crates/cairn-
 cairn-perception = { package = "arm-cairn-perception", path = "crates/cairn-perception", version = "=0.0.2" }
 cairn = { package = "arm-cairn", path = "crates/cairn", version = "=0.0.2" }
 open_perception_kit = "=0.1.1"
+tokio = "=1.53.1"
+tonic = "=0.14.5"
+tonic-health = "=0.14.5"
+tonic-prost = "=0.14.5"
+tonic-prost-build = "=0.14.5"
+prost = "=0.14.3"

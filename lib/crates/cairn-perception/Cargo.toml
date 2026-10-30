@@ -18,14 +18,14 @@ name = "generate_perception_proto"
 path = "bin/generate_perception_proto.rs"
 
 [dependencies]
-tonic-health = { version = "=0.14.5" }
-tokio = { version = "=1.53.1", features = ["time"] }
+tonic-health = { workspace = true }
+tokio = { workspace = true, features = ["time"] }
 cairn-camera = { workspace = true }
 open_perception_kit = { workspace = true }
-prost = { version = "=0.14.3" }
-tonic = { version = "=0.14.5" }
-tonic-prost = { version = "=0.14.5" }
+prost = { workspace = true }
+tonic = { workspace = true }
+tonic-prost = { workspace = true }
 
 [dev-dependencies]
-tokio = { version = "=1.53.1", features = ["macros", "net", "rt", "rt-multi-thread", "sync"] }
-tonic-prost-build = { version = "=0.14.5" }
+tokio = { workspace = true, features = ["macros", "net", "rt", "rt-multi-thread", "sync"] }
+tonic-prost-build = { workspace = true }
