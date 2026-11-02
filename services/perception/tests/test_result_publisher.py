@@ -8,8 +8,6 @@ import pytest
 from cairn.messaging.v1.messaging_pb2 import CairnEvent
 from perception_service.opk.frame_results import FrameResultRecord
 from perception_service.messaging.result_publisher import (
-    EVENT_ORIGIN,
-    RESULT_EVENT_TYPE,
     RedisResultPublisher,
     ResultStats,
     source_frame_gap,
@@ -123,8 +121,8 @@ def test_publishes_the_canonical_cairn_event() -> None:
     channel, payload = published[0]
     event = decode_event(payload)
     assert channel == "cairn.perception.sessions.session-123.results"
-    assert event.origin == EVENT_ORIGIN
-    assert event.event_type == RESULT_EVENT_TYPE
+    assert event.origin == "cairn.perception-service"
+    assert event.event_type == "cairn.perception.result"
     assert event.topic == channel
     assert event.HasField("timestamp")
     assert event.payload == b"\x07"

@@ -15,8 +15,6 @@ from redis.client import PubSub
 
 from cairn.messaging.v1.messaging_pb2 import CairnEvent
 from cairn.perception.v1 import perception_pb2, perception_pb2_grpc
-from perception_service.messaging import EVENT_ORIGIN
-from perception_service.messaging.result_publisher import RESULT_EVENT_TYPE
 
 pytestmark = pytest.mark.e2e
 
@@ -126,7 +124,7 @@ def assert_lifecycle_event(
     state: str,
     stage_id: str | None = None,
 ) -> None:
-    assert event.origin == EVENT_ORIGIN
+    assert event.origin == "cairn.perception-service"
     assert event.event_type == event_type
     assert event.topic == session.topics.events
     assert event.HasField("timestamp")
@@ -233,8 +231,8 @@ def test_deploy_result_and_stop(
                 ],
             )
 
-    assert event.origin == EVENT_ORIGIN
-    assert event.event_type == RESULT_EVENT_TYPE
+    assert event.origin == "cairn.perception-service"
+    assert event.event_type == "cairn.perception.result"
     assert event.topic == session.topics.results
     assert event.HasField("timestamp")
     assert event.payload
