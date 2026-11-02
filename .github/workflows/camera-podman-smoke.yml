@@ -26,6 +26,7 @@ jobs:
         .github/scripts/camera-boardfarm-list-cameras-smoke.py
         .github/scripts/camera_smoke/**
         .github/workflows/camera-podman-smoke.yml
+        .github/pyproject.toml
         services/camera/**
         .github/workflows/ci-detect-changes.yml
         .github/workflows/ci-evaluate-results.yml
@@ -56,7 +57,7 @@ jobs:
         run: python3 .github/scripts/camera_smoke/runner_maintenance.py
 
       - name: Install smoke test dependencies
-        run: uv pip install pytest==8.3.5
+        run: uv pip install --group .github/pyproject.toml:camera-smoke
 
       - name: Verify rootful Podman
         run: |

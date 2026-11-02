@@ -56,7 +56,7 @@ jobs:
 
       - name: Validate service contracts
         run: |
-          uv pip install PyYAML==6.0.2 jsonschema==4.25.1
+          uv pip install --group .github/pyproject.toml:compose-validation
           python .github/scripts/cairn-contract/validate-manifests.py
 
   publish:

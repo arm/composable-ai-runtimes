@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+[dependency-groups]
+camera-smoke = ["pytest==8.3.5"]
+camera-container-smoke = [
+    {include-group = "camera-smoke"},
+    "docker==7.1.0",
+]
+compose-validation = ["PyYAML==6.0.2", "jsonschema==4.25.1"]
+python-api = ["furo==2025.12.19", "sphinx==9.1.0", "sphinx-autoapi==3.8.0"]

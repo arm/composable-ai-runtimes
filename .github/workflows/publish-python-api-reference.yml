@@ -11,6 +11,7 @@ on:
     paths:
       - .python-version
       - .github/workflows/publish-python-api-reference.yml
+      - .github/pyproject.toml
       - docs/python-api/**
       - lib/**
   workflow_dispatch:
@@ -29,6 +30,7 @@ jobs:
       paths: |
         .python-version
         .github/workflows/publish-python-api-reference.yml
+        .github/pyproject.toml
         docs/python-api/**
         lib/**
         .github/workflows/ci-detect-changes.yml
@@ -56,7 +58,7 @@ jobs:
           checksum: "f68d291c75783122dad58ab77def0e13f3233f358731db5d6d7e8715603b928f"
 
       - name: Install documentation dependencies
-        run: uv pip install furo==2025.12.19 sphinx==9.1.0 sphinx-autoapi==3.8.0
+        run: uv pip install --group .github/pyproject.toml:python-api
 
       - name: Build API reference
         run: >-
@@ -99,7 +101,7 @@ jobs:
           checksum: "f68d291c75783122dad58ab77def0e13f3233f358731db5d6d7e8715603b928f"
 
       - name: Install documentation dependencies
-        run: uv pip install furo==2025.12.19 sphinx==9.1.0 sphinx-autoapi==3.8.0
+        run: uv pip install --group .github/pyproject.toml:python-api
 
       - name: Build API reference
         run: >-

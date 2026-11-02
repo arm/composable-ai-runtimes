@@ -30,6 +30,7 @@ jobs:
         services/*/compose.yaml
         docs/spec/schema/compose.cairn.schema.yaml
         .github/workflows/services-compose-config-check.yml
+        .github/pyproject.toml
         .github/workflows/ci-detect-changes.yml
         .github/workflows/ci-evaluate-results.yml
 
@@ -53,7 +54,7 @@ jobs:
 
       - name: Validate Cairn service metadata
         run: |
-          uv pip install PyYAML==6.0.2 jsonschema==4.25.1
+          uv pip install --group .github/pyproject.toml:compose-validation
           python .github/scripts/cairn-contract/validate-manifests.py
 
   required:

@@ -44,6 +44,7 @@ jobs:
         .github/scripts/camera-service-startup-smoke.py
         .github/scripts/camera_smoke/**
         .github/workflows/camera-smoke.yml
+        .github/pyproject.toml
         services/camera/**
         services/messaging/**
         services/compose.yaml
@@ -82,7 +83,7 @@ jobs:
           checksum: "4bb69cf95ed13f23713bb7bc09f241896ea0c75b7c557e615a20604b82f9c403"
 
       - name: Install smoke test dependencies
-        run: uv pip install pytest==8.3.5 docker==7.1.0
+        run: uv pip install --group .github/pyproject.toml:camera-container-smoke
 
       - name: Run camera startup smoke check
         env:
@@ -145,7 +146,7 @@ jobs:
         run: python3 .github/scripts/camera_smoke/runner_maintenance.py
 
       - name: Install smoke test dependencies
-        run: uv pip install pytest==8.3.5
+        run: uv pip install --group .github/pyproject.toml:camera-smoke
 
       - name: Run camera board-farm startup smoke check
         run: |
@@ -195,7 +196,7 @@ jobs:
         run: python3 .github/scripts/camera_smoke/runner_maintenance.py
 
       - name: Install smoke test dependencies
-        run: uv pip install pytest==8.3.5
+        run: uv pip install --group .github/pyproject.toml:camera-smoke
 
       - name: Install grpcurl
         run: |
@@ -266,7 +267,7 @@ jobs:
         run: python3 .github/scripts/camera_smoke/runner_maintenance.py
 
       - name: Install smoke test dependencies
-        run: uv pip install pytest==8.3.5
+        run: uv pip install --group .github/pyproject.toml:camera-smoke
 
       - name: Install grpcurl
         run: |
@@ -347,7 +348,7 @@ jobs:
         run: python3 .github/scripts/camera_smoke/runner_maintenance.py
 
       - name: Install smoke test dependencies
-        run: uv pip install pytest==8.3.5 protobuf==5.29.6 redis==8.1.0
+        run: uv pip install --group .github/pyproject.toml:camera-smoke protobuf==5.29.6 redis==8.1.0
 
       - name: Run camera board-farm notification smoke checks
         env:
@@ -404,7 +405,7 @@ jobs:
         run: python3 .github/scripts/camera_smoke/runner_maintenance.py
 
       - name: Install smoke test dependencies
-        run: uv pip install pytest==8.3.5 docker==7.1.0
+        run: uv pip install --group .github/pyproject.toml:camera-container-smoke
 
       - name: Run camera board-farm PipeWire capture smoke check
         run: |
@@ -446,7 +447,7 @@ jobs:
           checksum: "4bb69cf95ed13f23713bb7bc09f241896ea0c75b7c557e615a20604b82f9c403"
 
       - name: Install smoke test dependencies
-        run: uv pip install pytest==8.3.5
+        run: uv pip install --group .github/pyproject.toml:camera-smoke
 
       - name: Set up rootful Podman
         if: matrix.engine == 'podman'
