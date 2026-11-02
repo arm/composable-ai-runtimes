@@ -66,7 +66,7 @@ jobs:
         run: docker compose -f services/compose.yaml config camera-service
 
       - name: Log in to GHCR
-        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -254,7 +254,7 @@ jobs:
     env:
       COMPOSE_PROJECT_NAME: camera-boardfarm-pipewire-failure-${{ github.run_id }}
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install uv
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
@@ -310,7 +310,7 @@ jobs:
 
       - name: Upload camera board-farm failure smoke results
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: camera-boardfarm-pipewire-failure-results
           path: |
@@ -392,7 +392,7 @@ jobs:
       CAMERA_BOARDFARM_PIPEWIRE_TARGET_OBJECT: ${{ vars.CAMERA_BOARDFARM_PIPEWIRE_TARGET_OBJECT }}
       CAMERA_BOARDFARM_PIPEWIRE_CAMERA_NAME: ${{ vars.CAMERA_BOARDFARM_PIPEWIRE_CAMERA_NAME }}
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install uv
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
@@ -419,7 +419,7 @@ jobs:
 
       - name: Upload camera board-farm PipeWire capture smoke results
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: camera-boardfarm-pipewire-capture-smoke-results
           path: test-results/camera-boardfarm-pipewire-capture-smoke/
@@ -437,7 +437,7 @@ jobs:
     env:
       TOPO_SMOKE_ENGINE: ${{ matrix.engine }}
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install uv
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
@@ -482,7 +482,7 @@ jobs:
 
       - name: Upload local services Topo ${{ matrix.engine }} smoke results
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: services-topo-${{ matrix.engine }}-smoke-results
           path: test-results/services-topo-${{ matrix.engine }}-smoke/
