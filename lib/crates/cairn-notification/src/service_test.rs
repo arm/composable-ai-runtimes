@@ -111,10 +111,10 @@ async fn connect_redis_opens_a_subscriber_connection() {
 }
 
 #[tokio::test]
-async fn new_rejects_invalid_grpc_endpoint() {
+async fn connect_rejects_invalid_grpc_endpoint() {
     let endpoint = "not-a-grpc-endpoint".to_string();
 
-    let result = NotificationService::new(Some(endpoint)).await;
+    let result = NotificationService::connect(Some(endpoint)).await;
 
     let error = result
         .err()

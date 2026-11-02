@@ -54,7 +54,8 @@ impl PyCameraService {
     fn new(py: pyo3::Python<'_>, endpoint: Option<String>) -> PyResult<Self> {
         let inner = py
             .detach(|| {
-                tokio_runtime::get_runtime().block_on(camera_service::CameraService::new(endpoint))
+                tokio_runtime::get_runtime()
+                    .block_on(camera_service::CameraService::connect(endpoint))
             })
             .map_err(map_transport_error)?;
 
@@ -74,7 +75,7 @@ impl PyCameraService {
     ))]
     fn connect<'py>(py: Python<'py>, endpoint: Option<String>) -> PyResult<Bound<'py, PyAny>> {
         tokio_runtime::future_into_py(py, async move {
-            let inner = camera_service::CameraService::new(endpoint)
+            let inner = camera_service::CameraService::connect(endpoint)
                 .await
                 .map_err(map_transport_error)?;
             Python::attach(|py| Py::new(py, Self { inner }))

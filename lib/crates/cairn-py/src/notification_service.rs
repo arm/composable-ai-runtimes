@@ -69,7 +69,9 @@ impl PyNotificationService {
     #[gen_stub(override_return_type(type_repr = "'NotificationService'"))]
     fn new(py: Python<'_>, endpoint: Option<String>) -> PyResult<Self> {
         let inner = py
-            .detach(|| tokio_runtime::get_runtime().block_on(NotificationService::new(endpoint)))
+            .detach(|| {
+                tokio_runtime::get_runtime().block_on(NotificationService::connect(endpoint))
+            })
             .map_err(|error| PyRuntimeError::new_err(error.to_string()))?;
 
         Ok(Self {
@@ -90,7 +92,7 @@ impl PyNotificationService {
     ))]
     fn connect<'py>(py: Python<'py>, endpoint: Option<String>) -> PyResult<Bound<'py, PyAny>> {
         tokio_runtime::future_into_py(py, async move {
-            let inner = NotificationService::new(endpoint)
+            let inner = NotificationService::connect(endpoint)
                 .await
                 .map_err(|error| PyRuntimeError::new_err(error.to_string()))?;
             Python::attach(|py| {

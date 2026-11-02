@@ -144,7 +144,7 @@ pub struct NotificationService {
 impl NotificationService {
     /// Waits for the gRPC endpoint to report readiness, then connects to local Redis.
     /// Uses the default gRPC endpoint when omitted.
-    pub async fn new(endpoint: Option<String>) -> Result<Self, NotificationServiceError> {
+    pub async fn connect(endpoint: Option<String>) -> Result<Self, NotificationServiceError> {
         let endpoint = endpoint.unwrap_or_else(|| DEFAULT_ENDPOINT.to_string());
         wait_for_serving(&endpoint)
             .await

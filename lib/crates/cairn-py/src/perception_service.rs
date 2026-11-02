@@ -644,7 +644,7 @@ impl PyPerceptionService {
     ))]
     fn connect<'py>(py: Python<'py>, endpoint: Option<String>) -> PyResult<Bound<'py, PyAny>> {
         tokio_runtime::future_into_py(py, async move {
-            let service = RustPerceptionService::new(endpoint)
+            let service = RustPerceptionService::connect(endpoint)
                 .await
                 .map_err(perception_error)?;
             Python::attach(|py| Py::new(py, Self(Arc::new(Mutex::new(service)))))

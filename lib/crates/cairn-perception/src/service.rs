@@ -103,7 +103,7 @@ impl PerceptionService {
     ///
     /// Returns [`PerceptionServiceError::Transport`] when the client cannot connect to the
     /// endpoint.
-    pub async fn new(endpoint: Option<String>) -> Result<Self, PerceptionServiceError> {
+    pub async fn connect(endpoint: Option<String>) -> Result<Self, PerceptionServiceError> {
         let endpoint = endpoint.unwrap_or_else(|| DEFAULT_PERCEPTION_SERVICE_ENDPOINT.to_string());
         let channel = wait_for_serving(&endpoint).await.map_err(|error| {
             PerceptionServiceError::Transport(format!(

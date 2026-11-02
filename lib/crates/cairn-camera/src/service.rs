@@ -261,7 +261,7 @@ impl CameraService {
     /// # Errors
     ///
     /// Returns [`CameraServiceError::Transport`] when the client cannot connect to the endpoint.
-    pub async fn new(endpoint: Option<String>) -> Result<Self, CameraServiceError> {
+    pub async fn connect(endpoint: Option<String>) -> Result<Self, CameraServiceError> {
         let endpoint = endpoint.unwrap_or_else(|| DEFAULT_CAMERA_SERVICE_ENDPOINT.to_string());
         let channel = wait_for_serving(&endpoint)
             .await

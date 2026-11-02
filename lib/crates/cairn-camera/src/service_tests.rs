@@ -193,7 +193,7 @@ async fn start_mock_server() -> MockServerHandle {
 #[tokio::test]
 async fn list_cameras_maps_proto_to_library_type() {
     let server = start_mock_server().await;
-    let mut service = CameraService::new(Some(server.endpoint().to_string()))
+    let mut service = CameraService::connect(Some(server.endpoint().to_string()))
         .await
         .expect("failed to create client");
 
@@ -208,8 +208,8 @@ async fn list_cameras_maps_proto_to_library_type() {
 }
 
 #[tokio::test]
-async fn new_returns_unavailable_for_unreachable_endpoint() {
-    match CameraService::new(Some("http://127.0.0.1:1".to_string())).await {
+async fn connect_returns_unavailable_for_unreachable_endpoint() {
+    match CameraService::connect(Some("http://127.0.0.1:1".to_string())).await {
         Ok(_) => panic!("expected client creation to fail"),
         Err(CameraServiceError::Transport(message)) => {
             assert!(
@@ -224,7 +224,7 @@ async fn new_returns_unavailable_for_unreachable_endpoint() {
 #[tokio::test]
 async fn configurations_preserve_filters_and_map_response_fields() {
     let server = start_mock_server().await;
-    let mut service = CameraService::new(Some(server.endpoint().to_owned()))
+    let mut service = CameraService::connect(Some(server.endpoint().to_owned()))
         .await
         .unwrap();
     let filter = StreamFormatFilter {
@@ -287,7 +287,7 @@ async fn configurations_preserve_filters_and_map_response_fields() {
 #[tokio::test]
 async fn configurations_report_status_and_malformed_response_errors() {
     let server = start_mock_server().await;
-    let mut service = CameraService::new(Some(server.endpoint().to_owned()))
+    let mut service = CameraService::connect(Some(server.endpoint().to_owned()))
         .await
         .unwrap();
     for (camera_id, expected) in [
@@ -335,7 +335,7 @@ async fn start_health_server(
 #[tokio::test]
 async fn waits_for_serving() {
     let (endpoint, reporter, server) = start_health_server(ServingStatus::NotServing).await;
-    let readiness = CameraService::new(Some(endpoint.clone()));
+    let readiness = CameraService::connect(Some(endpoint.clone()));
     tokio::pin!(readiness);
     assert!(
         timeout(Duration::from_millis(100), &mut readiness)
@@ -361,7 +361,7 @@ async fn accepts_already_serving() {
     let (endpoint, _reporter, server) = start_health_server(ServingStatus::Serving).await;
     timeout(
         Duration::from_secs(2),
-        CameraService::new(Some(endpoint.clone())),
+        CameraService::connect(Some(endpoint.clone())),
     )
     .await
     .expect("already-serving health did not complete readiness")

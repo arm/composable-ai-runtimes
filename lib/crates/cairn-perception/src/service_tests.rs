@@ -30,7 +30,7 @@ use perception::{
 };
 
 async fn connect_to_mock_server(server: &MockServerHandle) -> PerceptionService {
-    PerceptionService::new(Some(server.endpoint().to_owned()))
+    PerceptionService::connect(Some(server.endpoint().to_owned()))
         .await
         .expect("failed to create client")
 }
@@ -810,7 +810,7 @@ async fn start_health_server(
 #[tokio::test]
 async fn waits_for_serving() {
     let (endpoint, reporter, server) = start_health_server(ServingStatus::NotServing).await;
-    let readiness = PerceptionService::new(Some(endpoint));
+    let readiness = PerceptionService::connect(Some(endpoint));
     tokio::pin!(readiness);
     assert!(
         timeout(Duration::from_millis(100), &mut readiness)
@@ -836,7 +836,7 @@ async fn accepts_already_serving() {
     let (endpoint, _reporter, server) = start_health_server(ServingStatus::Serving).await;
     timeout(
         Duration::from_secs(2),
-        PerceptionService::new(Some(endpoint)),
+        PerceptionService::connect(Some(endpoint)),
     )
     .await
     .expect("already-serving health did not complete readiness")
