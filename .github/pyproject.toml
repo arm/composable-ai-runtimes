@@ -9,3 +9,6 @@ camera-container-smoke = [
 ]
 compose-validation = ["PyYAML==6.0.2", "jsonschema==4.26.0"]
 python-api = ["furo==2025.12.19", "sphinx==9.1.0", "sphinx-autoapi==3.8.0"]
+
+[tool.uv]
+required-version = "==0.13.5"

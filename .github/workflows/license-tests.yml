@@ -20,6 +20,7 @@ jobs:
     uses: ./.github/workflows/ci-detect-changes.yml
     with:
       paths: |
+        .github/pyproject.toml
         .python-version
         .github/workflows/license-tests.yml
         .github/workflows/publish-python-packages.yml
@@ -71,7 +72,7 @@ jobs:
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
           activate-environment: true
-          version: "0.13.5"
+          version-file: ${{ github.workspace }}/.github/pyproject.toml
           checksum: "f68d291c75783122dad58ab77def0e13f3233f358731db5d6d7e8715603b928f"
 
       - name: Check PipeWire inventory against committed build pins
@@ -97,7 +98,7 @@ jobs:
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
           activate-environment: true
-          version: "0.13.5"
+          version-file: ${{ github.workspace }}/.github/pyproject.toml
           checksum: "f68d291c75783122dad58ab77def0e13f3233f358731db5d6d7e8715603b928f"
 
       - name: Review Python wheel Rust dependencies

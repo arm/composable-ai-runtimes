@@ -28,17 +28,19 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Checkout Python version
+      - name: Checkout Python tooling
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          sparse-checkout: .python-version
+          sparse-checkout: |
+            .python-version
+            .github/pyproject.toml
           sparse-checkout-cone-mode: false
 
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
           activate-environment: true
-          version: "0.13.5"
+          version-file: ${{ github.workspace }}/.github/pyproject.toml
           checksum: "f68d291c75783122dad58ab77def0e13f3233f358731db5d6d7e8715603b928f"
 
       - name: Check applicable jobs

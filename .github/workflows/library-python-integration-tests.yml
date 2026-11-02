@@ -23,6 +23,7 @@ jobs:
       contents: read
     with:
       paths: |
+        .github/pyproject.toml
         .python-version
         .github/workflows/library-python-integration-tests.yml
         services/perception/**
@@ -52,7 +53,7 @@ jobs:
         with:
           activate-environment: true
           working-directory: lib
-          version: "0.13.5"
+          version-file: ${{ github.workspace }}/.github/pyproject.toml
           checksum: "4bb69cf95ed13f23713bb7bc09f241896ea0c75b7c557e615a20604b82f9c403"
           enable-cache: true
 

@@ -14,6 +14,11 @@ apt-get install -y --no-install-recommends \
   pkg-config
 rm -rf /var/lib/apt/lists/*
 
-/usr/local/bin/python -m pip install --no-cache-dir uv==0.13.5
+uv_requirement=$(/usr/local/bin/python -c '
+import tomllib
+with open("/workspaces/cairn-sdk/.github/pyproject.toml", "rb") as manifest:
+    print("uv" + tomllib.load(manifest)["tool"]["uv"]["required-version"])
+')
+/usr/local/bin/python -m pip install --no-cache-dir "$uv_requirement"
 cd /workspaces/cairn-sdk/services/perception
 /usr/local/bin/uv sync --locked
