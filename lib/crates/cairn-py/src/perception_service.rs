@@ -15,8 +15,8 @@ use cairn::perception_service::{
     ValidationIssue as RustValidationIssue, ValidationResult as RustValidationResult,
     ValidationSeverity,
 };
-use pyo3::exceptions::PyException;
-use pyo3::types::{PyAnyMethods, PyList, PyModule, PyModuleMethods};
+use pyo3::exceptions::{PyException, PyTypeError};
+use pyo3::types::{PyAnyMethods, PyDict, PyList, PyModule, PyModuleMethods, PyTuple};
 use pyo3::{Bound, Py, PyAny, PyErr, PyResult, Python, pyclass, pymethods};
 use pyo3_async_runtimes::tokio as tokio_runtime;
 use pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pyclass_enum, gen_stub_pymethods};
@@ -632,6 +632,16 @@ pub struct PyPerceptionService(Arc<Mutex<RustPerceptionService>>);
 #[gen_stub_pymethods]
 #[pymethods]
 impl PyPerceptionService {
+    #[new]
+    #[gen_stub(skip)]
+    #[pyo3(signature = (*_args, **_kwargs))]
+    fn new(_args: &Bound<'_, PyTuple>, _kwargs: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
+        Err(PyTypeError::new_err(
+            "PerceptionService cannot be constructed directly. \
+             Use 'await PerceptionService.connect(endpoint)' inside an async function.",
+        ))
+    }
+
     /// Connect to the Perception service.
     ///
     /// Await this method. ``None`` uses ``http://127.0.0.1:50053``.

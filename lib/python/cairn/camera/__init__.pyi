@@ -51,10 +51,6 @@ class CameraService:
         r"""
         Discover stream configurations for a camera, optionally filtered by format.
         """
-    def __new__(cls, endpoint: typing.Optional[builtins.str] = None) -> 'CameraService':
-        r"""
-        Create a camera service client.
-        """
     @staticmethod
     def connect(endpoint: typing.Optional[builtins.str] = None) -> collections.abc.Awaitable[CameraService]:
         r"""

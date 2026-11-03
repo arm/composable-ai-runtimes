@@ -231,7 +231,7 @@ def test_python_sdk_controls_perception_stages(
                 raise AssertionError("deployed session did not expose a results topic")
 
             received: asyncio.Queue[Notification] = asyncio.Queue()
-            async with NotificationService(messaging_endpoint) as notifications:
+            async with await NotificationService.connect(messaging_endpoint) as notifications:
                 await notifications.subscribe(result_topic, received.put)
                 await asyncio.wait_for(received.get(), timeout=30)
 

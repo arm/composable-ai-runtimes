@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use cairn::camera_service;
+use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::{Bound, PyResult};
-use pyo3::types::{PyAnyMethods, PyModule, PyModuleMethods};
+use pyo3::types::{PyAnyMethods, PyDict, PyModule, PyModuleMethods, PyTuple};
 use pyo3::{Py, PyAny, Python, pyclass, pymethods};
 use pyo3_async_runtimes::tokio as tokio_runtime;
 use pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pymethods};
@@ -46,20 +47,14 @@ impl PyCameraService {
             .map_err(map_transport_error)
     }
 
-    /// Create a camera service client.
     #[new]
-    #[pyo3(signature = (endpoint=None))]
-    #[pyo3(text_signature = "(endpoint=None)")]
-    #[gen_stub(override_return_type(type_repr = "'CameraService'"))]
-    fn new(py: pyo3::Python<'_>, endpoint: Option<String>) -> PyResult<Self> {
-        let inner = py
-            .detach(|| {
-                tokio_runtime::get_runtime()
-                    .block_on(camera_service::CameraService::connect(endpoint))
-            })
-            .map_err(map_transport_error)?;
-
-        Ok(Self { inner })
+    #[gen_stub(skip)]
+    #[pyo3(signature = (*_args, **_kwargs))]
+    fn new(_args: &Bound<'_, PyTuple>, _kwargs: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
+        Err(PyTypeError::new_err(
+            "CameraService cannot be constructed directly. \
+             Use 'await CameraService.connect(endpoint)' inside an async function.",
+        ))
     }
 
     /// Connect to the camera service without blocking the Python event loop.

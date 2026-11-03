@@ -37,10 +37,6 @@ class NotificationService:
     r"""
     Client for subscribing to notifications from the Cairn messaging service.
     """
-    def __new__(cls, endpoint: typing.Optional[builtins.str] = None) -> 'NotificationService':
-        r"""
-        Create a notification service client.
-        """
     @staticmethod
     def connect(endpoint: typing.Optional[builtins.str] = None) -> collections.abc.Awaitable[NotificationService]:
         r"""

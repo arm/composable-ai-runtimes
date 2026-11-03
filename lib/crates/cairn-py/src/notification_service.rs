@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use cairn::notification_service::{Notification, NotificationService, NotificationSubscription};
 use pyo3::exceptions::{PyRuntimeError, PyTypeError};
-use pyo3::types::{PyAnyMethods, PyBytes, PyModule, PyModuleMethods};
+use pyo3::types::{PyAnyMethods, PyBytes, PyDict, PyModule, PyModuleMethods, PyTuple};
 use pyo3::{Bound, Py, PyAny, PyRef, PyResult, Python, pyclass, pymethods};
 use pyo3_async_runtimes::{TaskLocals, tokio as tokio_runtime};
 use pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pymethods};
@@ -62,21 +62,14 @@ pub struct PyNotificationSubscription {
 #[gen_stub_pymethods]
 #[pymethods]
 impl PyNotificationService {
-    /// Create a notification service client.
     #[new]
-    #[pyo3(signature = (endpoint=None))]
-    #[pyo3(text_signature = "(endpoint=None)")]
-    #[gen_stub(override_return_type(type_repr = "'NotificationService'"))]
-    fn new(py: Python<'_>, endpoint: Option<String>) -> PyResult<Self> {
-        let inner = py
-            .detach(|| {
-                tokio_runtime::get_runtime().block_on(NotificationService::connect(endpoint))
-            })
-            .map_err(|error| PyRuntimeError::new_err(error.to_string()))?;
-
-        Ok(Self {
-            inner: Arc::new(Mutex::new(inner)),
-        })
+    #[gen_stub(skip)]
+    #[pyo3(signature = (*_args, **_kwargs))]
+    fn new(_args: &Bound<'_, PyTuple>, _kwargs: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
+        Err(PyTypeError::new_err(
+            "NotificationService cannot be constructed directly. \
+             Use 'await NotificationService.connect(endpoint)' inside an async function.",
+        ))
     }
 
     /// Connect to the messaging service without blocking the Python event loop.

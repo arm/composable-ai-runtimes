@@ -142,13 +142,18 @@ def camera_service(
             process.join()
 
 
-def camera_from_service(endpoint: str) -> Camera:
-    service = CameraService(endpoint)
+async def camera_from_service(endpoint: str) -> Camera:
+    service = await CameraService.connect(endpoint)
     cameras = service.list_cameras()
 
     assert len(cameras) == 1
     assert not hasattr(cameras[0], "supported_formats")
     return cameras[0]
+
+
+def test_direct_construction_is_not_supported() -> None:
+    with pytest.raises(TypeError):
+        CameraService()
 
 
 def test_connect_rejects_invalid_endpoint() -> None:
@@ -254,9 +259,10 @@ def test_get_stream_configurations_forwards_filters_and_converts_response(
     camera_service: tuple[str, Any], entry_point: str,
 ) -> None:
     endpoint, requests = camera_service
-    if entry_point == "camera":
-        camera = camera_from_service(endpoint)
-        async def discover() -> list[StreamConfiguration]:
+
+    async def discover() -> list[StreamConfiguration]:
+        if entry_point == "camera":
+            camera = await camera_from_service(endpoint)
             result = camera.get_stream_configurations(
                 resolution=(1920, 1080),
                 pixel_format="RGB",
@@ -265,10 +271,8 @@ def test_get_stream_configurations_forwards_filters_and_converts_response(
             assert inspect.isawaitable(result)
             return await asyncio.wait_for(result, timeout=5)
 
-        configurations = asyncio.run(discover())
-    else:
-        service = CameraService(endpoint)
-        configurations = service.get_stream_configurations(
+        service = await CameraService.connect(endpoint)
+        return service.get_stream_configurations(
             7,
             StreamFormatFilter(
                 resolution=Resolution(1920, 1080),
@@ -276,6 +280,8 @@ def test_get_stream_configurations_forwards_filters_and_converts_response(
                 frame_rate=FrameRate(30, 1),
             ),
         )
+
+    configurations = asyncio.run(discover())
     request = camera_proto.StreamConfigurationRequest.FromString(
         requests.get(timeout=1)
     )
@@ -308,14 +314,14 @@ def test_get_stream_configurations_returns_empty_list(
     camera_service: tuple[str, Any],
 ) -> None:
     endpoint, _requests = camera_service
-    camera = camera_from_service(endpoint)
-    service = CameraService(endpoint)
 
-    async def discover() -> list[StreamConfiguration]:
-        return await asyncio.wait_for(camera.get_stream_configurations(), timeout=5)
+    async def discover() -> None:
+        camera = await camera_from_service(endpoint)
+        service = await CameraService.connect(endpoint)
+        assert await asyncio.wait_for(camera.get_stream_configurations(), timeout=5) == []
+        assert service.get_stream_configurations(7) == []
 
-    assert asyncio.run(discover()) == []
-    assert service.get_stream_configurations(7) == []
+    asyncio.run(discover())
 
 
 @pytest.mark.parametrize("camera_service", ["missing-format"], indirect=True)
@@ -323,13 +329,13 @@ def test_get_stream_configurations_rejects_missing_format(
     camera_service: tuple[str, Any],
 ) -> None:
     endpoint, _requests = camera_service
-    camera = camera_from_service(endpoint)
 
-    async def discover() -> list[StreamConfiguration]:
-        return await asyncio.wait_for(camera.get_stream_configurations(), timeout=5)
+    async def discover() -> None:
+        camera = await camera_from_service(endpoint)
+        with pytest.raises(RuntimeError, match="missing its format"):
+            await asyncio.wait_for(camera.get_stream_configurations(), timeout=5)
+        service = await CameraService.connect(endpoint)
+        with pytest.raises(RuntimeError, match="missing its format"):
+            service.get_stream_configurations(7)
 
-    with pytest.raises(RuntimeError, match="missing its format"):
-        asyncio.run(discover())
-    service = CameraService(endpoint)
-    with pytest.raises(RuntimeError, match="missing its format"):
-        service.get_stream_configurations(7)
+    asyncio.run(discover())

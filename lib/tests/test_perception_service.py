@@ -61,6 +61,11 @@ def test_workflow_builds_inference_stages() -> None:
     assert (second_stage.id, second_stage.name) == ("inference-2", "faces")
 
 
+def test_direct_construction_is_not_supported() -> None:
+    with pytest.raises(TypeError):
+        PerceptionService()
+
+
 def test_connect_rejects_invalid_endpoint() -> None:
     async def connect() -> None:
         with pytest.raises(
