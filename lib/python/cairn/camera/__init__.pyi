@@ -60,6 +60,15 @@ class CameraService:
         ``None`` uses ``http://127.0.0.1:50051``. Initialization failures
         raise ``RuntimeError``; no client is returned until the service is ready.
         """
+    def get_camera(self, camera_id: typing.Optional[builtins.int] = None) -> collections.abc.Awaitable[Camera | None]:
+        r"""
+        Return an awaitable resolving to the requested camera, or the first listed camera.
+        
+        Omit ``camera_id`` or pass ``None`` to select the first listed camera,
+        returning ``None`` if no cameras are available.
+        Raises ``LookupError`` if an explicitly requested camera is absent, or
+        ``RuntimeError`` if discovery fails. IDs may change after a reconnect or restart.
+        """
     def list_cameras(self) -> builtins.list[Camera]:
         r"""
         List the cameras currently reported by the camera service.

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use cairn::camera_service;
-use pyo3::exceptions::PyRuntimeError;
+use pyo3::exceptions::{PyLookupError, PyRuntimeError};
 use pyo3::prelude::{Bound, PyErr, PyResult};
 use pyo3::types::{PyModule, PyModuleMethods};
 use pyo3::{PyAny, Python, pyclass, pymethods};
@@ -12,8 +12,11 @@ use std::sync::Arc;
 
 use crate::camera_types::PyStreamConfiguration;
 
-pub(crate) fn map_transport_error(error: camera_service::CameraServiceError) -> PyErr {
+pub(crate) fn map_camera_error(error: camera_service::CameraServiceError) -> PyErr {
     match error {
+        camera_service::CameraServiceError::NotFound(_) => {
+            PyLookupError::new_err(error.to_string())
+        }
         camera_service::CameraServiceError::Transport(message) => PyRuntimeError::new_err(message),
         camera_service::CameraServiceError::InvalidResponse(message) => {
             PyRuntimeError::new_err(message)
@@ -79,7 +82,7 @@ impl PyCamera {
             let configurations = camera
                 .get_stream_configurations(filter)
                 .await
-                .map_err(map_transport_error)?;
+                .map_err(map_camera_error)?;
             Ok(configurations
                 .into_iter()
                 .map(PyStreamConfiguration::from)

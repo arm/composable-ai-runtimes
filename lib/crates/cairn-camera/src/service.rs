@@ -45,6 +45,8 @@ pub(super) async fn wait_for_serving(endpoint: &str) -> Result<Channel, String> 
 /// An error returned by the camera service client.
 #[derive(Debug)]
 pub enum CameraServiceError {
+    /// No camera with the requested ID is currently present.
+    NotFound(u64),
     /// The client could not connect to the service or complete a request.
     Transport(String),
     /// The camera service returned an incomplete response.
@@ -54,6 +56,7 @@ pub enum CameraServiceError {
 impl std::fmt::Display for CameraServiceError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::NotFound(camera_id) => write!(f, "camera {camera_id} was not found"),
             Self::Transport(message) => f.write_str(message),
             Self::InvalidResponse(message) => f.write_str(message),
         }
@@ -269,6 +272,29 @@ impl CameraService {
         Ok(Self {
             client: Arc::new(CameraServiceClient::new(channel)),
         })
+    }
+
+    /// Returns the camera with the given ID, or the first listed camera when `None`.
+    ///
+    /// Returns `Ok(None)` if no ID is supplied and no cameras are available.
+    /// IDs identify PipeWire objects and may change after a reconnect or restart.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CameraServiceError::NotFound`] if the requested ID is not present,
+    /// or [`CameraServiceError::Transport`] when discovery fails.
+    pub async fn get_camera(
+        &mut self,
+        camera_id: Option<&u64>,
+    ) -> Result<Option<Camera>, CameraServiceError> {
+        let mut cameras = self.list_cameras().await?.into_iter();
+        match camera_id {
+            Some(&id) => cameras
+                .find(|camera| camera.id == id)
+                .map(Some)
+                .ok_or(CameraServiceError::NotFound(id)),
+            None => Ok(cameras.next()),
+        }
     }
 
     /// Returns metadata for the cameras currently reported by the service.

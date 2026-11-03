@@ -46,7 +46,9 @@ fn absent_pixel_format_uses_the_protobuf_default() {
     assert_eq!(format.pixel_format, "");
 }
 
-struct MockCameraService;
+struct MockCameraService {
+    cameras: Vec<ProtoCamera>,
+}
 
 #[tonic::async_trait]
 impl ProtoCameraService for MockCameraService {
@@ -128,16 +130,7 @@ impl ProtoCameraService for MockCameraService {
         _request: Request<ListRequest>,
     ) -> Result<Response<ListCamerasResponse>, Status> {
         Ok(Response::new(ListCamerasResponse {
-            cameras: vec![
-                ProtoCamera {
-                    id: 7,
-                    name: "front".to_string(),
-                },
-                ProtoCamera {
-                    id: 99,
-                    name: "rear".to_string(),
-                },
-            ],
+            cameras: self.cameras.clone(),
         }))
     }
 }
@@ -162,6 +155,20 @@ impl MockServerHandle {
 }
 
 async fn start_mock_server() -> MockServerHandle {
+    start_mock_server_with_cameras(vec![
+        ProtoCamera {
+            id: 7,
+            name: "front".to_string(),
+        },
+        ProtoCamera {
+            id: 99,
+            name: "rear".to_string(),
+        },
+    ])
+    .await
+}
+
+async fn start_mock_server_with_cameras(cameras: Vec<ProtoCamera>) -> MockServerHandle {
     let addr = "127.0.0.1:0"
         .parse()
         .expect("invalid test listener address");
@@ -175,7 +182,7 @@ async fn start_mock_server() -> MockServerHandle {
     let task = tokio::spawn(async move {
         Server::builder()
             .add_service(health_service)
-            .add_service(CameraServiceServer::new(MockCameraService))
+            .add_service(CameraServiceServer::new(MockCameraService { cameras }))
             .serve_with_incoming_shutdown(incoming, async move {
                 let _ = shutdown_receiver.await;
             })
@@ -205,6 +212,82 @@ async fn list_cameras_maps_proto_to_library_type() {
     assert_eq!(cameras[1].name, "rear");
 
     server.stop_server().await;
+}
+
+#[tokio::test]
+async fn get_camera_selects_first_when_id_is_omitted() {
+    let server = start_mock_server().await;
+    let mut service = CameraService::connect(Some(server.endpoint().to_owned()))
+        .await
+        .unwrap();
+
+    let camera = service.get_camera(None).await.unwrap().unwrap();
+    assert_eq!((camera.id, camera.name.as_str()), (7, "front"));
+
+    server.stop_server().await;
+}
+
+#[tokio::test]
+async fn get_camera_returns_none_when_no_cameras_are_available() {
+    let server = start_mock_server_with_cameras(vec![]).await;
+    let mut service = CameraService::connect(Some(server.endpoint().to_owned()))
+        .await
+        .unwrap();
+
+    assert!(matches!(service.get_camera(None).await, Ok(None)));
+
+    server.stop_server().await;
+}
+
+#[tokio::test]
+async fn get_camera_selects_by_id() {
+    let server = start_mock_server().await;
+    let mut service = CameraService::connect(Some(server.endpoint().to_owned()))
+        .await
+        .unwrap();
+
+    for (id, name) in [(99, "rear"), (7, "front")] {
+        let camera = service.get_camera(Some(&id)).await.unwrap().unwrap();
+        assert_eq!((camera.id, camera.name.as_str()), (id, name));
+    }
+
+    server.stop_server().await;
+}
+
+#[tokio::test]
+async fn get_camera_errors_when_id_is_missing() {
+    let server = start_mock_server().await;
+    let mut service = CameraService::connect(Some(server.endpoint().to_owned()))
+        .await
+        .unwrap();
+
+    assert!(matches!(
+        service.get_camera(Some(&123)).await,
+        Err(CameraServiceError::NotFound(123))
+    ));
+
+    server.stop_server().await;
+}
+
+#[tokio::test]
+async fn get_camera_propagates_transport_failure() {
+    let server = start_mock_server().await;
+    let mut service = CameraService::connect(Some(server.endpoint().to_owned()))
+        .await
+        .unwrap();
+    server.stop_server().await;
+
+    for camera_id in [None, Some(7)] {
+        assert!(matches!(
+            timeout(
+                Duration::from_secs(2),
+                service.get_camera(camera_id.as_ref())
+            )
+            .await
+            .unwrap(),
+            Err(CameraServiceError::Transport(_))
+        ));
+    }
 }
 
 #[tokio::test]

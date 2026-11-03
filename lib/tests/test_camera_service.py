@@ -8,6 +8,7 @@ import inspect
 import multiprocessing
 from collections.abc import Generator
 from concurrent.futures import ThreadPoolExecutor
+from multiprocessing.queues import Queue
 from typing import Any
 
 import cairn
@@ -32,11 +33,14 @@ class MockCameraService:
         self.requests = requests
 
     def list_cameras(
-        self, _request: camera_proto.ListRequest, _context: grpc.ServicerContext
+        self, _request: camera_proto.ListRequest, context: grpc.ServicerContext
     ) -> camera_proto.ListCamerasResponse:
-        return camera_proto.ListCamerasResponse(
-            cameras=[camera_proto.Camera(id=7, name="front")]
-        )
+        cameras = [camera_proto.Camera(id=7, name="front")]
+        if self.response_kind == "unavailable-cameras":
+            context.abort(grpc.StatusCode.UNAVAILABLE, "PipeWire unavailable")
+        elif self.response_kind == "no-cameras":
+            cameras = []
+        return camera_proto.ListCamerasResponse(cameras=cameras)
 
     def get_stream_configurations(
         self,
@@ -149,6 +153,64 @@ async def camera_from_service(endpoint: str) -> Camera:
     assert len(cameras) == 1
     assert not hasattr(cameras[0], "supported_formats")
     return cameras[0]
+
+
+@pytest.mark.parametrize("use_id", [False, True])
+def test_get_camera_returns_camera_with_configuration_discovery(
+    camera_service: tuple[str, "Queue[bytes]"],
+    use_id: bool,
+) -> None:
+    endpoint, requests = camera_service
+
+    async def discover() -> None:
+        service = await CameraService.connect(endpoint)
+        camera = await (
+            service.get_camera(camera_id=7) if use_id else service.get_camera()
+        )
+        assert isinstance(camera, Camera)
+        assert (camera.id, camera.name) == (7, "front")
+        configurations = await camera.get_stream_configurations()
+        assert configurations[0].camera_id == 7
+
+    asyncio.run(asyncio.wait_for(discover(), timeout=5))
+    request = camera_proto.StreamConfigurationRequest.FromString(requests.get(timeout=1))
+    assert request.camera_id == 7
+
+
+@pytest.mark.parametrize("camera_service", ["no-cameras"], indirect=True)
+def test_get_camera_returns_none_when_no_cameras_are_available(
+    camera_service: tuple[str, "Queue[bytes]"],
+) -> None:
+    async def discover() -> None:
+        service = await CameraService.connect(camera_service[0])
+        assert await service.get_camera() is None
+        assert await service.get_camera(camera_id=None) is None
+
+    asyncio.run(asyncio.wait_for(discover(), timeout=5))
+
+
+@pytest.mark.parametrize(
+    "camera_service, camera_id, error_type, message",
+    [
+        ("valid", 123, LookupError, "camera 123 was not found"),
+        ("no-cameras", 123, LookupError, "camera 123 was not found"),
+        ("unavailable-cameras", 123, RuntimeError, "PipeWire unavailable"),
+        ("unavailable-cameras", None, RuntimeError, "PipeWire unavailable"),
+    ],
+    indirect=["camera_service"],
+)
+def test_get_camera_reports_lookup_and_service_errors(
+    camera_service: tuple[str, "Queue[bytes]"],
+    camera_id: int | None,
+    error_type: type[Exception],
+    message: str,
+) -> None:
+    async def discover() -> None:
+        service = await CameraService.connect(camera_service[0])
+        with pytest.raises(error_type, match=message):
+            await service.get_camera(camera_id=camera_id)
+
+    asyncio.run(asyncio.wait_for(discover(), timeout=5))
 
 
 def test_direct_construction_is_not_supported() -> None:

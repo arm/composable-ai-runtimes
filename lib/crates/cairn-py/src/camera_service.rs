@@ -9,7 +9,7 @@ use pyo3::{Py, PyAny, Python, pyclass, pymethods};
 use pyo3_async_runtimes::tokio as tokio_runtime;
 use pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pymethods};
 
-use crate::camera::{PyCamera, add_camera_bindings, map_transport_error};
+use crate::camera::{PyCamera, add_camera_bindings, map_camera_error};
 use crate::camera_types::{
     PyStreamConfiguration, PyStreamFormatFilter, add_stream_configuration_bindings,
 };
@@ -44,7 +44,7 @@ impl PyCameraService {
                     .map(PyStreamConfiguration::from)
                     .collect()
             })
-            .map_err(map_transport_error)
+            .map_err(map_camera_error)
     }
 
     #[new]
@@ -72,8 +72,34 @@ impl PyCameraService {
         tokio_runtime::future_into_py(py, async move {
             let inner = camera_service::CameraService::connect(endpoint)
                 .await
-                .map_err(map_transport_error)?;
+                .map_err(map_camera_error)?;
             Python::attach(|py| Py::new(py, Self { inner }))
+        })
+    }
+
+    /// Return an awaitable resolving to the requested camera, or the first listed camera.
+    ///
+    /// Omit ``camera_id`` or pass ``None`` to select the first listed camera,
+    /// returning ``None`` if no cameras are available.
+    /// Raises ``LookupError`` if an explicitly requested camera is absent, or
+    /// ``RuntimeError`` if discovery fails. IDs may change after a reconnect or restart.
+    #[pyo3(signature = (camera_id=None))]
+    #[gen_stub(override_return_type(
+        type_repr = "collections.abc.Awaitable[Camera | None]",
+        imports = ("collections.abc",)
+    ))]
+    fn get_camera<'py>(
+        &self,
+        py: Python<'py>,
+        camera_id: Option<u64>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let mut service = self.inner.clone();
+        tokio_runtime::future_into_py(py, async move {
+            let camera = service
+                .get_camera(camera_id.as_ref())
+                .await
+                .map_err(map_camera_error)?;
+            Ok(camera.map(PyCamera::new))
         })
     }
 
@@ -82,7 +108,7 @@ impl PyCameraService {
     fn list_cameras(&mut self) -> PyResult<Vec<PyCamera>> {
         let cameras = tokio_runtime::get_runtime()
             .block_on(self.inner.list_cameras())
-            .map_err(map_transport_error)?;
+            .map_err(map_camera_error)?;
 
         Ok(cameras.into_iter().map(PyCamera::new).collect())
     }
