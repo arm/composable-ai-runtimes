@@ -155,18 +155,16 @@ async def camera_from_service(endpoint: str) -> Camera:
     return cameras[0]
 
 
-@pytest.mark.parametrize("use_id", [False, True])
+@pytest.mark.parametrize("camera_id", [None, 7])
 def test_get_camera_returns_camera_with_configuration_discovery(
     camera_service: tuple[str, "Queue[bytes]"],
-    use_id: bool,
+    camera_id: int | None,
 ) -> None:
     endpoint, requests = camera_service
 
     async def discover() -> None:
         service = await CameraService.connect(endpoint)
-        camera = await (
-            service.get_camera(camera_id=7) if use_id else service.get_camera()
-        )
+        camera = await service.get_camera(camera_id=camera_id)
         assert isinstance(camera, Camera)
         assert (camera.id, camera.name) == (7, "front")
         configurations = await camera.get_stream_configurations()
