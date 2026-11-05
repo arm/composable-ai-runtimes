@@ -25,5 +25,4 @@ package = false
 required-version = "==0.13.5"
 
 [tool.ruff]
-# Preserve the existing lint target when adding root project metadata.
-target-version = "py310"
+target-version = "py313"

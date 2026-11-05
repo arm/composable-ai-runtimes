@@ -7,9 +7,9 @@ import argparse
 import hashlib
 import json
 import shlex
+import tomllib
 from pathlib import Path
 
-import tomllib
 from common import (
     NOTICE_INPUTS,
     ROOT,

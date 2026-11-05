@@ -6,9 +6,9 @@
 import builtins
 import inspect
 import sys
+import tomllib
 from pathlib import Path
 
-import tomllib
 from jinja2 import ChoiceLoader, Environment, PackageLoader, PrefixLoader
 from sphinx import addnodes
 
