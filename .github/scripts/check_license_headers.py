@@ -25,7 +25,6 @@ COPYRIGHT_RE = re.compile(
 
 EXCLUDED_PATHS = frozenset(
     {
-        PurePosixPath(".python-version"),
         PurePosixPath("LICENSE"),
         PurePosixPath("lib/crates/cairn/SBOM-DISCLAIMER.txt"),
         PurePosixPath("lib/crates/cairn-camera/SBOM-DISCLAIMER.txt"),

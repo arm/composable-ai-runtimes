@@ -28,7 +28,6 @@ jobs:
       contents: read
     with:
       paths: |
-        .python-version
         compose.yaml
         .github/scripts/camera-boardfarm-list-cameras-smoke.py
         .github/scripts/camera-boardfarm-notifications-hotplug.py

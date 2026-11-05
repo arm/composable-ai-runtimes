@@ -22,7 +22,6 @@ jobs:
       contents: read
     with:
       paths: |
-        .python-version
         .github/scripts/camera-boardfarm-list-cameras-smoke.py
         .github/scripts/camera_smoke/**
         .github/workflows/camera-podman-smoke.yml

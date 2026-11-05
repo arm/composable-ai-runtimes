@@ -9,7 +9,6 @@ on:
     branches:
       - main
     paths:
-      - .python-version
       - .github/workflows/publish-python-api-reference.yml
       - pyproject.toml
       - uv.lock
@@ -29,7 +28,6 @@ jobs:
       contents: read
     with:
       paths: |
-        .python-version
         .github/workflows/publish-python-api-reference.yml
         pyproject.toml
         uv.lock

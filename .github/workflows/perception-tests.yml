@@ -25,7 +25,6 @@ jobs:
     with:
       paths: |
         pyproject.toml
-        .python-version
         .github/workflows/perception-tests.yml
         services/messaging/**
         services/perception/**

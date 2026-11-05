@@ -24,7 +24,6 @@ jobs:
       contents: read
     with:
       paths: |
-        .python-version
         .github/scripts/cairn-contract/validate-manifests.py
         services/compose.yaml
         services/*/compose.yaml

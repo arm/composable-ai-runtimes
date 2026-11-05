@@ -4,7 +4,7 @@
 [project]
 name = "cairn-dev-tools"
 version = "0.0.0"
-requires-python = ">=3.13"
+requires-python = "==3.13.17"
 
 [dependency-groups]
 camera-smoke = ["pytest==9.1.1"]

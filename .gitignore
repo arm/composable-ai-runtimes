@@ -9,7 +9,6 @@ Icon
 *.log
 .env
 .python-version
-!/.python-version
 .codex
 
 # IDEs

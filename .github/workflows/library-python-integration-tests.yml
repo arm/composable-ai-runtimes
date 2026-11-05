@@ -24,7 +24,6 @@ jobs:
     with:
       paths: |
         pyproject.toml
-        .python-version
         .github/workflows/library-python-integration-tests.yml
         services/perception/**
         lib/**

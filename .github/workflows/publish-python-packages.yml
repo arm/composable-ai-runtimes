@@ -111,7 +111,6 @@ jobs:
         with:
           persist-credentials: false
           sparse-checkout: |
-            .python-version
             pyproject.toml
           sparse-checkout-cone-mode: false
 

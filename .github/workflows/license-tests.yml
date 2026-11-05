@@ -21,7 +21,6 @@ jobs:
     with:
       paths: |
         pyproject.toml
-        .python-version
         .github/workflows/license-tests.yml
         .github/workflows/publish-python-packages.yml
         .github/workflows/publish-rust-crate.yml
