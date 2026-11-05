@@ -14,7 +14,7 @@ camera-container-smoke = [
 ]
 camera-notifications-smoke = [
     {include-group = "camera-smoke"},
-    "protobuf==5.29.6",
+    "protobuf==7.35.1",
     "redis==8.1.0",
 ]
 compose-validation = ["PyYAML==6.0.2", "jsonschema==4.26.0"]
