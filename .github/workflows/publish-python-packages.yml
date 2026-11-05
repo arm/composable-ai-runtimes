@@ -55,7 +55,7 @@ jobs:
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
           activate-environment: true
-          version-file: ${{ github.workspace }}/.github/pyproject.toml
+          version-file: ${{ github.workspace }}/pyproject.toml
           checksum: "4bb69cf95ed13f23713bb7bc09f241896ea0c75b7c557e615a20604b82f9c403"
 
       - name: Generate Rust notices
@@ -112,7 +112,7 @@ jobs:
           persist-credentials: false
           sparse-checkout: |
             .python-version
-            .github/pyproject.toml
+            pyproject.toml
           sparse-checkout-cone-mode: false
 
       - name: Download validated wheel
@@ -125,7 +125,7 @@ jobs:
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
           activate-environment: true
-          version-file: ${{ github.workspace }}/.github/pyproject.toml
+          version-file: ${{ github.workspace }}/pyproject.toml
           checksum: "f68d291c75783122dad58ab77def0e13f3233f358731db5d6d7e8715603b928f"
           enable-cache: false
 
@@ -174,16 +174,12 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
-          activate-environment: true
-          version-file: ${{ github.workspace }}/.github/pyproject.toml
+          version-file: ${{ github.workspace }}/pyproject.toml
           checksum: "f68d291c75783122dad58ab77def0e13f3233f358731db5d6d7e8715603b928f"
-
-      - name: Install documentation dependencies
-        run: uv pip install --group .github/pyproject.toml:python-api
 
       - name: Build API reference
         run: >-
-          python -m sphinx -W --keep-going -b html
+          uv run --locked --only-group python-api python -m sphinx -W --keep-going -b html
           docs/python-api
           docs/python-api/_build/html
 

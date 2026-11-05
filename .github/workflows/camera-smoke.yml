@@ -43,7 +43,8 @@ jobs:
         .github/scripts/camera-service-startup-smoke.py
         .github/scripts/camera_smoke/**
         .github/workflows/camera-smoke.yml
-        .github/pyproject.toml
+        pyproject.toml
+        uv.lock
         services/camera/**
         services/messaging/**
         services/compose.yaml
@@ -77,19 +78,15 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
-          activate-environment: true
-          version-file: ${{ github.workspace }}/.github/pyproject.toml
+          version-file: ${{ github.workspace }}/pyproject.toml
           checksum: "4bb69cf95ed13f23713bb7bc09f241896ea0c75b7c557e615a20604b82f9c403"
-
-      - name: Install smoke test dependencies
-        run: uv pip install --group .github/pyproject.toml:camera-container-smoke
 
       - name: Run camera startup smoke check
         env:
           CAMERA_STARTUP_SMOKE_BUILD_IMAGE: "0"
         run: |
           mkdir -p test-results/camera-startup-smoke
-          python3 -m pytest .github/scripts/camera-service-startup-smoke.py \
+          uv run --locked --only-group camera-container-smoke python -m pytest .github/scripts/camera-service-startup-smoke.py \
             --junitxml=test-results/camera-startup-smoke/junit.xml
 
       - name: Run camera lifecycle supervision check
@@ -97,7 +94,7 @@ jobs:
           CAMERA_LIFECYCLE_BUILD_IMAGE: "0"
         run: |
           mkdir -p test-results/camera-lifecycle
-          python3 -m pytest .github/scripts/camera-service-lifecycle-smoke.py \
+          uv run --locked --only-group camera-container-smoke python -m pytest .github/scripts/camera-service-lifecycle-smoke.py \
             --junitxml=test-results/camera-lifecycle/junit.xml
 
       - name: Upload camera startup smoke results
@@ -137,20 +134,16 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
-          activate-environment: true
-          version-file: ${{ github.workspace }}/.github/pyproject.toml
+          version-file: ${{ github.workspace }}/pyproject.toml
           checksum: "4bb69cf95ed13f23713bb7bc09f241896ea0c75b7c557e615a20604b82f9c403"
 
       - name: Prepare camera board-farm runner
-        run: python3 .github/scripts/camera_smoke/runner_maintenance.py
-
-      - name: Install smoke test dependencies
-        run: uv pip install --group .github/pyproject.toml:camera-smoke
+        run: uv run --locked --only-group camera-smoke python .github/scripts/camera_smoke/runner_maintenance.py
 
       - name: Run camera board-farm startup smoke check
         run: |
           mkdir -p test-results/camera-boardfarm-smoke
-          python -m pytest .github/scripts/camera-boardfarm-startup-smoke.py \
+          uv run --locked --only-group camera-smoke python -m pytest .github/scripts/camera-boardfarm-startup-smoke.py \
             --junitxml=test-results/camera-boardfarm-smoke/junit.xml
 
       - name: Clean up camera board-farm Compose resources
@@ -187,15 +180,11 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
-          activate-environment: true
-          version-file: ${{ github.workspace }}/.github/pyproject.toml
+          version-file: ${{ github.workspace }}/pyproject.toml
           checksum: "4bb69cf95ed13f23713bb7bc09f241896ea0c75b7c557e615a20604b82f9c403"
 
       - name: Prepare camera board-farm runner
-        run: python3 .github/scripts/camera_smoke/runner_maintenance.py
-
-      - name: Install smoke test dependencies
-        run: uv pip install --group .github/pyproject.toml:camera-smoke
+        run: uv run --locked --only-group camera-smoke python .github/scripts/camera_smoke/runner_maintenance.py
 
       - name: Install grpcurl
         run: |
@@ -221,7 +210,7 @@ jobs:
           GRPCURL_BIN: test-results/camera-boardfarm-list-cameras-smoke/bin/grpcurl
         run: |
           mkdir -p test-results/camera-boardfarm-list-cameras-smoke
-          python -m pytest .github/scripts/camera-boardfarm-list-cameras-smoke.py \
+          uv run --locked --only-group camera-smoke python -m pytest .github/scripts/camera-boardfarm-list-cameras-smoke.py \
             --junitxml=test-results/camera-boardfarm-list-cameras-smoke/junit.xml
 
       - name: Clean up camera board-farm list-cameras Compose resources
@@ -258,15 +247,11 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
-          activate-environment: true
-          version-file: ${{ github.workspace }}/.github/pyproject.toml
+          version-file: ${{ github.workspace }}/pyproject.toml
           checksum: "4bb69cf95ed13f23713bb7bc09f241896ea0c75b7c557e615a20604b82f9c403"
 
       - name: Prepare camera board-farm runner
-        run: python3 .github/scripts/camera_smoke/runner_maintenance.py
-
-      - name: Install smoke test dependencies
-        run: uv pip install --group .github/pyproject.toml:camera-smoke
+        run: uv run --locked --only-group camera-smoke python .github/scripts/camera_smoke/runner_maintenance.py
 
       - name: Install grpcurl
         run: |
@@ -292,7 +277,7 @@ jobs:
           GRPCURL_BIN: test-results/camera-boardfarm-pipewire-failure/bin/grpcurl
         run: |
           mkdir -p test-results/camera-boardfarm-pipewire-failure
-          python -m pytest .github/scripts/camera-boardfarm-pipewire-failure-smoke.py \
+          uv run --locked --only-group camera-smoke python -m pytest .github/scripts/camera-boardfarm-pipewire-failure-smoke.py \
             --junitxml=test-results/camera-boardfarm-pipewire-failure/junit.xml
 
       - name: Run camera board-farm format collection failure smoke check
@@ -300,7 +285,7 @@ jobs:
           GRPCURL_BIN: test-results/camera-boardfarm-pipewire-failure/bin/grpcurl
         run: |
           mkdir -p test-results/camera-boardfarm-format-collection-failure
-          python -m pytest .github/scripts/camera-boardfarm-format-collection-failure-smoke.py \
+          uv run --locked --only-group camera-smoke python -m pytest .github/scripts/camera-boardfarm-format-collection-failure-smoke.py \
             --junitxml=test-results/camera-boardfarm-format-collection-failure/junit.xml
 
       - name: Clean up camera board-farm failure Compose resources
@@ -339,15 +324,11 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
-          activate-environment: true
-          version-file: ${{ github.workspace }}/.github/pyproject.toml
+          version-file: ${{ github.workspace }}/pyproject.toml
           checksum: "4bb69cf95ed13f23713bb7bc09f241896ea0c75b7c557e615a20604b82f9c403"
 
       - name: Prepare camera board-farm runner
-        run: python3 .github/scripts/camera_smoke/runner_maintenance.py
-
-      - name: Install smoke test dependencies
-        run: uv pip install --group .github/pyproject.toml:camera-smoke protobuf==5.29.6 redis==8.1.0
+        run: uv run --locked --only-group camera-notifications-smoke python .github/scripts/camera_smoke/runner_maintenance.py
 
       - name: Run camera board-farm notification smoke checks
         env:
@@ -355,7 +336,7 @@ jobs:
           PYTHONDONTWRITEBYTECODE: "1"
         run: |
           mkdir -p test-results/camera-boardfarm-notifications
-          python -m pytest -p no:cacheprovider \
+          uv run --locked --only-group camera-notifications-smoke python -m pytest -p no:cacheprovider \
             .github/scripts/camera-boardfarm-notifications-hotplug.py \
             .github/scripts/camera-boardfarm-notifications-reconnect.py \
             --junitxml=test-results/camera-boardfarm-notifications/junit.xml
@@ -396,20 +377,16 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
-          activate-environment: true
-          version-file: ${{ github.workspace }}/.github/pyproject.toml
+          version-file: ${{ github.workspace }}/pyproject.toml
           checksum: "4bb69cf95ed13f23713bb7bc09f241896ea0c75b7c557e615a20604b82f9c403"
 
       - name: Prepare camera board-farm runner
-        run: python3 .github/scripts/camera_smoke/runner_maintenance.py
-
-      - name: Install smoke test dependencies
-        run: uv pip install --group .github/pyproject.toml:camera-container-smoke
+        run: uv run --locked --only-group camera-container-smoke python .github/scripts/camera_smoke/runner_maintenance.py
 
       - name: Run camera board-farm PipeWire capture smoke check
         run: |
           mkdir -p test-results/camera-boardfarm-pipewire-capture-smoke
-          python -m pytest .github/scripts/camera-boardfarm-pipewire-capture-smoke.py \
+          uv run --locked --only-group camera-container-smoke python -m pytest .github/scripts/camera-boardfarm-pipewire-capture-smoke.py \
             --junitxml=test-results/camera-boardfarm-pipewire-capture-smoke/junit.xml
 
       - name: Clean up camera board-farm PipeWire capture Compose resources
@@ -441,12 +418,8 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
-          activate-environment: true
-          version-file: ${{ github.workspace }}/.github/pyproject.toml
+          version-file: ${{ github.workspace }}/pyproject.toml
           checksum: "4bb69cf95ed13f23713bb7bc09f241896ea0c75b7c557e615a20604b82f9c403"
-
-      - name: Install smoke test dependencies
-        run: uv pip install --group .github/pyproject.toml:camera-smoke
 
       - name: Set up rootful Podman
         if: matrix.engine == 'podman'
@@ -476,7 +449,7 @@ jobs:
           PYTHONDONTWRITEBYTECODE: "1"
         run: |
           mkdir -p test-results/services-topo-${{ matrix.engine }}-smoke
-          python -m pytest -p no:cacheprovider .github/scripts/services-topo-smoke.py \
+          uv run --locked --only-group camera-smoke python -m pytest -p no:cacheprovider .github/scripts/services-topo-smoke.py \
             --junitxml=test-results/services-topo-${{ matrix.engine }}-smoke/junit.xml
 
       - name: Upload local services Topo ${{ matrix.engine }} smoke results

@@ -19,7 +19,7 @@ rm -rf /var/lib/apt/lists/*
 /usr/local/bin/python3 -m venv /opt/cairn-sdk-venv
 uv_requirement=$(/opt/cairn-sdk-venv/bin/python -c '
 import tomllib
-with open("/workspaces/cairn-sdk/.github/pyproject.toml", "rb") as manifest:
+with open("/workspaces/cairn-sdk/pyproject.toml", "rb") as manifest:
     print("uv" + tomllib.load(manifest)["tool"]["uv"]["required-version"])
 ')
 /opt/cairn-sdk-venv/bin/python -m pip install --no-cache-dir \

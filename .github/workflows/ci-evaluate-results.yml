@@ -34,13 +34,13 @@ jobs:
           persist-credentials: false
           sparse-checkout: |
             .python-version
-            .github/pyproject.toml
+            pyproject.toml
           sparse-checkout-cone-mode: false
 
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
           activate-environment: true
-          version-file: ${{ github.workspace }}/.github/pyproject.toml
+          version-file: ${{ github.workspace }}/pyproject.toml
           checksum: "f68d291c75783122dad58ab77def0e13f3233f358731db5d6d7e8715603b928f"
 
       - name: Check applicable jobs

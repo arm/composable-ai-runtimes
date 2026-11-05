@@ -30,7 +30,8 @@ jobs:
         services/*/compose.yaml
         docs/spec/schema/compose.cairn.schema.yaml
         .github/workflows/services-compose-config-check.yml
-        .github/pyproject.toml
+        pyproject.toml
+        uv.lock
         .github/workflows/ci-detect-changes.yml
         .github/workflows/ci-evaluate-results.yml
 
@@ -45,8 +46,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
-          activate-environment: true
-          version-file: ${{ github.workspace }}/.github/pyproject.toml
+          version-file: ${{ github.workspace }}/pyproject.toml
           checksum: "4bb69cf95ed13f23713bb7bc09f241896ea0c75b7c557e615a20604b82f9c403"
 
       - name: Validate services Compose config
@@ -54,8 +54,7 @@ jobs:
 
       - name: Validate Cairn service metadata
         run: |
-          uv pip install --group .github/pyproject.toml:compose-validation
-          python .github/scripts/cairn-contract/validate-manifests.py
+          uv run --locked --only-group compose-validation python .github/scripts/cairn-contract/validate-manifests.py
 
   required:
     name: CI / Services Compose Config Check
