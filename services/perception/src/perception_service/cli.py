@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import argparse
+import os
 from collections.abc import Sequence
 from math import isfinite
 from pathlib import Path
@@ -11,6 +12,10 @@ from perception_service.opk.config import (
     DEFAULT_OPK_COMM_PORT,
     OpkCommEndpoint,
 )
+
+
+DEFAULT_BIND_HOST = "0.0.0.0"
+DEFAULT_REDIS_URL = "redis://messaging-service:6379/0"
 
 
 def optional_path(value: str) -> Path | None:
@@ -53,7 +58,11 @@ def positive_float(value: str) -> float:
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Perception gRPC service")
-    parser.add_argument("--host", default="0.0.0.0", help="host interface to bind")
+    parser.add_argument(
+        "--host",
+        default=os.environ.get("CAIRN_BIND_HOST", DEFAULT_BIND_HOST),
+        help=f"host interface to bind (default: CAIRN_BIND_HOST or {DEFAULT_BIND_HOST})",
+    )
     parser.add_argument("--port", type=int, default=50053, help="port to bind")
     parser.add_argument(
         "--model-path",
@@ -83,8 +92,11 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--redis-url",
-        default="redis://messaging-service:6379/0",
-        help="Redis endpoint for event publication",
+        default=os.environ.get("CAIRN_REDIS_URL", DEFAULT_REDIS_URL),
+        help=(
+            "Redis endpoint for event publication "
+            f"(default: CAIRN_REDIS_URL or {DEFAULT_REDIS_URL})"
+        ),
     )
     parser.add_argument(
         "--redis-queue-size",
