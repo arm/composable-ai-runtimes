@@ -129,7 +129,7 @@ fn stream_format_converts_to_grpc_stream_format() {
 }
 
 #[test]
-fn camera_converts_to_grpc_camera() {
+fn snapshot_camera_converts_to_grpc_camera() {
     let snapshot = SnapshotCamera {
         object_serial: 7,
         name: "front".to_string(),
