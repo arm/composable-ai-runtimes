@@ -3,12 +3,14 @@
 
 use std::error::Error;
 use std::net::SocketAddr;
+use std::sync::{Arc, Mutex};
 
 use tonic::transport::Server;
 use tonic_health::ServingStatus;
 use tonic_health::pb::health_server::{Health, HealthServer};
 use tonic_health::server::HealthReporter;
 
+use super::camera_cache::CameraCache;
 use super::config;
 use super::service;
 
@@ -27,11 +29,15 @@ pub(crate) async fn serving_health_service() -> (HealthReporter, HealthServer<im
 
 pub async fn serve(addr: SocketAddr) -> Result<(), tonic::transport::Error> {
     let (_health_reporter, health_service) = serving_health_service().await;
+    let cache = Arc::new(Mutex::new(CameraCache::default()));
 
     Server::builder()
         .add_service(
             service::pipewire::camera_service_server::CameraServiceServer::new(
-                service::CameraApiService::default(),
+                service::CameraApiService {
+                    cache,
+                    provider: service::CameraServiceProvider::default(),
+                },
             ),
         )
         .add_service(health_service)

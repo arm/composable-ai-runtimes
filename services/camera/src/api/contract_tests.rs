@@ -1,8 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
 // SPDX-License-Identifier: Apache-2.0
 
+use super::camera_cache::CameraCache;
 use super::parameters::{FrameRate, Resolution, StreamFormat, StreamFormatFilter};
-use super::snapshot::{SnapshotCamera, SnapshotError};
+use super::snapshot::SnapshotError;
 use super::{
     server::serving_health_service,
     service::{
@@ -11,6 +12,7 @@ use super::{
         pipewire::camera_service_server::CameraServiceServer,
     },
 };
+use crate::camera::Camera;
 use tokio::{net::TcpListener, sync::oneshot, task::JoinHandle};
 use tokio_stream::wrappers::TcpListenerStream;
 use tonic::{Code, transport::Channel, transport::Server};
@@ -39,17 +41,22 @@ impl RunningServer {
     }
 }
 
-fn listed_cameras() -> Result<Vec<SnapshotCamera>, SnapshotError> {
-    Ok(vec![
-        SnapshotCamera {
+fn listed_cameras(cache: &mut CameraCache) -> Result<(), SnapshotError> {
+    for camera in [
+        Camera {
+            node_id: 1,
             object_serial: TEST_CAMERA_ID,
             name: "front-door".to_string(),
         },
-        SnapshotCamera {
+        Camera {
+            node_id: 2,
             object_serial: 202,
             name: "loading-bay".to_string(),
         },
-    ])
+    ] {
+        cache.insert(camera.node_id, camera.into());
+    }
+    Ok(())
 }
 
 fn camera_formats(
@@ -122,7 +129,7 @@ fn unavailable_camera_formats(
     ))
 }
 
-fn unavailable_cameras() -> Result<Vec<SnapshotCamera>, SnapshotError> {
+fn unavailable_cameras(_cache: &mut CameraCache) -> Result<(), SnapshotError> {
     Err(SnapshotError::Unavailable(
         "fake provider unavailable".to_string(),
     ))
@@ -138,7 +145,10 @@ async fn start_server(provider: CameraServiceProvider) -> RunningServer {
     let (shutdown, shutdown_rx) = oneshot::channel();
 
     let (_health_reporter, health_service) = serving_health_service().await;
-    let service = CameraServiceServer::new(CameraApiService { provider });
+    let service = CameraServiceServer::new(CameraApiService {
+        cache: Default::default(),
+        provider,
+    });
     let task = tokio::spawn(async move {
         Server::builder()
             .add_service(service)
@@ -170,7 +180,7 @@ async fn start_server(provider: CameraServiceProvider) -> RunningServer {
 #[tokio::test]
 async fn list_cameras_returns_provider_camera_identities() {
     let mut server = start_server(CameraServiceProvider {
-        list_cameras: listed_cameras,
+        refresh_camera_cache: listed_cameras,
         ..Default::default()
     })
     .await;
@@ -200,7 +210,7 @@ async fn list_cameras_returns_provider_camera_identities() {
 #[tokio::test]
 async fn list_cameras_maps_provider_failure_to_unavailable() {
     let mut server = start_server(CameraServiceProvider {
-        list_cameras: unavailable_cameras,
+        refresh_camera_cache: unavailable_cameras,
         ..Default::default()
     })
     .await;
@@ -218,7 +228,7 @@ async fn list_cameras_maps_provider_failure_to_unavailable() {
 #[tokio::test]
 async fn health_check_reports_serving() {
     let mut server = start_server(CameraServiceProvider {
-        list_cameras: unavailable_cameras,
+        refresh_camera_cache: unavailable_cameras,
         ..Default::default()
     })
     .await;

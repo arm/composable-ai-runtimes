@@ -1,8 +1,10 @@
 // SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
 // SPDX-License-Identifier: Apache-2.0
 
+use super::camera_cache::CameraCache;
 use super::parameters::{FrameRate, Resolution, StreamFormat, StreamFormatFilter};
-use super::snapshot::{SnapshotCamera, SnapshotError, list_camera_formats, list_cameras};
+use super::snapshot::{SnapshotCamera, SnapshotError, list_camera_formats, refresh_camera_cache};
+use std::sync::{Arc, Mutex};
 use tokio::task;
 use tonic::{Request, Response, Status};
 
@@ -18,7 +20,7 @@ use tracing::{debug, warn};
 
 #[derive(Clone, Copy)]
 pub(crate) struct CameraServiceProvider {
-    pub(crate) list_cameras: fn() -> Result<Vec<SnapshotCamera>, SnapshotError>,
+    pub(crate) refresh_camera_cache: fn(&mut CameraCache) -> Result<(), SnapshotError>,
     pub(crate) list_camera_formats:
         fn(u64, Option<StreamFormatFilter>) -> Result<(u64, Vec<StreamFormat>), SnapshotError>,
 }
@@ -26,7 +28,7 @@ pub(crate) struct CameraServiceProvider {
 impl Default for CameraServiceProvider {
     fn default() -> Self {
         Self {
-            list_cameras,
+            refresh_camera_cache,
             list_camera_formats,
         }
     }
@@ -34,6 +36,7 @@ impl Default for CameraServiceProvider {
 
 #[derive(Clone, Default)]
 pub struct CameraApiService {
+    pub(crate) cache: Arc<Mutex<CameraCache>>,
     pub(crate) provider: CameraServiceProvider,
 }
 
@@ -141,7 +144,16 @@ impl CameraService for CameraApiService {
         let remote_addr = request.remote_addr();
         debug!(?remote_addr, "listing cameras");
 
-        let cameras = task::spawn_blocking(self.provider.list_cameras)
+        let refresh_camera_cache = self.provider.refresh_camera_cache;
+        let cache = Arc::clone(&self.cache);
+        let snapshot_task = task::spawn_blocking(move || {
+            let mut cache = cache.lock().map_err(|err| {
+                SnapshotError::Unavailable(format!("camera cache lock poisoned: {err}"))
+            })?;
+            refresh_camera_cache(&mut cache)?;
+            Ok(cache.to_vec())
+        });
+        let cameras = snapshot_task
             .await
             .map_err(|err| {
                 warn!(?remote_addr, error = %err, "camera listing task failed");

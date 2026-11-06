@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
 // SPDX-License-Identifier: Apache-2.0
 
+use crate::api::camera_cache::CameraCache;
 use crate::api::parameters::{StreamFormat, StreamFormatFilter};
 use crate::api::stream_format_collector::StreamFormatCollector;
 use crate::camera::Camera;
 use crate::helpers::is_camera_node;
 use pipewire as pw;
 use std::cell::{Cell, RefCell};
-use std::collections::HashMap;
 use std::fmt;
 use std::rc::Rc;
 use std::time::Duration;
@@ -52,26 +52,26 @@ impl From<Camera> for SnapshotCamera {
     }
 }
 
-pub(crate) fn list_cameras() -> Result<Vec<SnapshotCamera>, SnapshotError> {
+pub(crate) fn refresh_camera_cache(cache: &mut CameraCache) -> Result<(), SnapshotError> {
     let PipeWireClient {
         mainloop,
         core,
         registry,
     } = create_pipewire_client()?;
 
-    let state = Rc::new(RefCell::new(SnapshotState::default()));
-    let registry_state = Rc::clone(&state);
-    let remove_state = Rc::clone(&state);
+    let snapshot_cache = Rc::new(RefCell::new(CameraCache::default()));
+    let registry_cache = Rc::clone(&snapshot_cache);
+    let remove_cache = Rc::clone(&snapshot_cache);
     let _registry_listener = registry
         .add_listener_local()
         .global(move |global| {
             if !is_camera_node(global) {
                 return;
             }
-            append_camera(&mut registry_state.borrow_mut().cameras, global);
+            append_camera(&mut registry_cache.borrow_mut(), global);
         })
         .global_remove(move |node_id| {
-            remove_state.borrow_mut().cameras.remove(&node_id);
+            remove_cache.borrow_mut().remove(node_id);
         })
         .register();
 
@@ -81,7 +81,8 @@ pub(crate) fn list_cameras() -> Result<Vec<SnapshotCamera>, SnapshotError> {
         "PipeWire snapshot timed out",
         SNAPSHOT_TIMEOUT,
     )?;
-    Ok(state.borrow_mut().take_cameras())
+    *cache = std::mem::take(&mut *snapshot_cache.borrow_mut());
+    Ok(())
 }
 
 pub(crate) fn list_camera_formats(
@@ -154,20 +155,6 @@ pub(crate) fn list_camera_formats(
     let formats = collector.take_collected_formats();
 
     Ok((camera_id, formats))
-}
-
-#[derive(Default)]
-pub(super) struct SnapshotState {
-    pub(super) cameras: HashMap<u32, SnapshotCamera>,
-}
-
-impl SnapshotState {
-    pub(super) fn take_cameras(&mut self) -> Vec<SnapshotCamera> {
-        let cameras = std::mem::take(&mut self.cameras);
-        let mut cameras = cameras.into_values().collect::<Vec<_>>();
-        cameras.sort_by_key(|camera| camera.object_serial);
-        cameras
-    }
 }
 
 struct PipeWireClient {
@@ -264,10 +251,8 @@ fn run_until_synced(
     }
 }
 
-pub(crate) fn append_camera<P>(
-    cameras: &mut HashMap<u32, SnapshotCamera>,
-    global: &pw::registry::GlobalObject<P>,
-) where
+pub(crate) fn append_camera<P>(cache: &mut CameraCache, global: &pw::registry::GlobalObject<P>)
+where
     P: AsRef<pw::spa::utils::dict::DictRef>,
 {
     let camera = match Camera::try_from_global_object(global) {
@@ -281,7 +266,7 @@ pub(crate) fn append_camera<P>(
             return;
         }
     };
-    cameras.insert(camera.node_id, SnapshotCamera::from(camera));
+    cache.insert(camera.node_id, SnapshotCamera::from(camera));
 }
 
 pub(crate) fn is_pending_sync_complete(
