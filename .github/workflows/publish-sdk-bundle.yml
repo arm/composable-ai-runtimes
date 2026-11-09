@@ -39,11 +39,8 @@ jobs:
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
           activate-environment: true
-          working-directory: lib
           version-file: ${{ github.workspace }}/pyproject.toml
           checksum: "4bb69cf95ed13f23713bb7bc09f241896ea0c75b7c557e615a20604b82f9c403"
-      - name: Install CI dependencies
-        run: uv sync --project lib --only-group ci --locked
       - name: Install ORAS
         run: |
           curl -fsSLo oras.tar.gz https://github.com/oras-project/oras/releases/download/v1.3.5/oras_1.3.5_linux_arm64.tar.gz
@@ -52,7 +49,7 @@ jobs:
           oras version
       - name: Validate published component versions
         run: >-
-          uv run --project lib --no-sync .github/scripts/bundle-registry-check.py
+          uv run --locked --only-group release --exact .github/scripts/bundle-registry-check.py
           .github/workflows/release-config/bundle-config.yaml
           --tag "$GITHUB_REF_NAME"
           --registry-namespace "$REGISTRY_NAMESPACE"
@@ -75,16 +72,13 @@ jobs:
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
           activate-environment: true
-          working-directory: lib
           version-file: ${{ github.workspace }}/pyproject.toml
           checksum: "4bb69cf95ed13f23713bb7bc09f241896ea0c75b7c557e615a20604b82f9c403"
-      - name: Install CI dependencies
-        run: uv sync --project lib --only-group ci --locked
       - name: Generate release notes
         env:
           SERVICE_IMAGES: ${{ needs.validate-bundle-config.outputs.service-images }}
         run: >-
-          uv run --project lib --no-sync .github/scripts/bundle-release-notes.py
+          uv run --locked --only-group release --exact .github/scripts/bundle-release-notes.py
           .github/workflows/release-config/bundle-config.yaml
           --output "$RUNNER_TEMP/bundle-notes.md"
           --cargo-package-url "$CARGO_PACKAGE_URL"

@@ -34,10 +34,7 @@ build-backend = "uv_build"
 dev = [
     { include-group = "sbom" },
     { include-group = "test" },
-    "grpcio-tools==1.83.0",
-    "prek==0.5.7",
     "pygobject-stubs==2.17.0 ; sys_platform != 'win32'",
-    "ruff==0.16.0",
     "ty==0.0.64",
 ]
 e2e = [
@@ -74,6 +71,7 @@ skip_covered = true
 output = "coverage/coverage.xml"
 
 [tool.ruff]
+extend = "../../pyproject.toml"
 extend-exclude = ["src/cairn/"]
 lint.select = ["E4", "E7", "E9", "F"]
 

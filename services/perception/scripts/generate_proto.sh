@@ -57,17 +57,15 @@ fi
 
 (
   cd "${service_dir}"
-  uv sync --locked \
-    --no-install-package pycairo \
-    --no-install-package pygobject
-  uv run --no-sync python -m grpc_tools.protoc \
+  uv sync --project "${repo_root}" --locked --only-group proto
+  uv run --project "${repo_root}" --no-sync python -m grpc_tools.protoc \
     --proto_path="${perception_proto_dir}" \
     --proto_path="${messaging_proto_dir}" \
     --python_out="${output_dir}" \
     --pyi_out="${output_dir}" \
     "${perception_proto}" \
     "${messaging_proto}"
-  uv run --no-sync python -m grpc_tools.protoc \
+  uv run --project "${repo_root}" --no-sync python -m grpc_tools.protoc \
     --proto_path="${perception_proto_dir}" \
     --grpc_python_out="${output_dir}" \
     "${perception_proto}"

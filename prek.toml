@@ -85,9 +85,9 @@ pass_filenames = false
 always_run = true
 stages = ["pre-push"]
 
-[[repos]]
-repo = "https://github.com/astral-sh/ruff-pre-commit"
-rev = "v0.16.0"
-hooks = [
-  { id = "ruff-check", args = [".", "--extend-exclude", "services/perception,.github/scripts/camera_smoke/generated/messaging_pb2.py,lib/tests/generated/messaging_pb2.py"], exclude = "^services/perception/", pass_filenames = false },
-]
+[[repos.hooks]]
+id = "ruff-check"
+name = "ruff check"
+language = "system"
+entry = "uv run --locked --only-group lint ruff check . --extend-exclude .github/scripts/camera_smoke/generated/messaging_pb2.py,lib/tests/generated/messaging_pb2.py"
+pass_filenames = false

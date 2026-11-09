@@ -16,14 +16,6 @@ pass_filenames = false
 files = { glob = ["**/*.py", "**/*.pyi", "pyproject.toml"] }
 
 [[repos.hooks]]
-id = "ruff"
-name = "ruff check"
-language = "system"
-entry = "uv run --locked ruff check"
-pass_filenames = false
-files = { glob = ["**/*.py", "**/*.pyi"] }
-
-[[repos.hooks]]
 id = "perception-proto-generated"
 name = "perception protobuf bindings are current"
 language = "system"

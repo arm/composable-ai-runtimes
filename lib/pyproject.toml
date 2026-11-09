@@ -33,6 +33,7 @@ ci = [
 ]
 
 [tool.ruff]
+extend = "../pyproject.toml"
 extend-exclude = ["python/cairn/**/*.pyi"]
 
 [tool.pytest.ini_options]
