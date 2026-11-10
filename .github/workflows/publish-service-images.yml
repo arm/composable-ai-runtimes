@@ -269,8 +269,14 @@ jobs:
             rust_build_args+=(--set "${target}.args.EXPECTED_RUST_VERSION=${RUSTUP_TOOLCHAIN}")
           fi
 
+          context_read_args=()
+          if [[ "$SERVICE" == perception ]]; then
+            context_read_args+=(--allow "fs.read=${GITHUB_WORKSPACE}")
+          fi
+
           mkdir -p "$image_layout"
           docker buildx bake \
+            "${context_read_args[@]}" \
             --allow "fs.write=${image_layout}" \
             "${rust_build_args[@]}" \
             --file compose.yaml \

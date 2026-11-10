@@ -4,6 +4,8 @@
 services:
   perception-dev:
     build:
+      additional_contexts:
+        workspace: ../..
       context: ../perception
       dockerfile: Dockerfile
       target: runtime

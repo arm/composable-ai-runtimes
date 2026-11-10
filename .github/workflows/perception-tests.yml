@@ -25,6 +25,8 @@ jobs:
     with:
       paths: |
         pyproject.toml
+        uv.lock
+        lib/pyproject.toml
         .github/workflows/perception-tests.yml
         services/messaging/**
         services/perception/**
@@ -47,7 +49,6 @@ jobs:
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
           activate-environment: true
-          working-directory: services/perception
           version-file: ${{ github.workspace }}/pyproject.toml
           checksum: "f68d291c75783122dad58ab77def0e13f3233f358731db5d6d7e8715603b928f"
           enable-cache: true
@@ -64,7 +65,7 @@ jobs:
             pkg-config
 
       - name: Run unit tests
-        run: uv run --locked pytest -m unit
+        run: uv run --package perception-service --locked pytest -m unit
 
   integration-tests:
     needs: changes
@@ -128,17 +129,16 @@ jobs:
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
           activate-environment: true
-          working-directory: services/perception
           version-file: ${{ github.workspace }}/pyproject.toml
           checksum: "4bb69cf95ed13f23713bb7bc09f241896ea0c75b7c557e615a20604b82f9c403"
           enable-cache: true
 
       - name: Run End-to-End tests
         run: |
-          uv sync --locked --no-dev --group e2e \
+          uv sync --package perception-service --locked --no-dev --group e2e \
             --no-install-package pycairo \
             --no-install-package pygobject
-          uv run --no-sync python -m pytest -m e2e tests/e2e
+          uv run --package perception-service --no-sync python -m pytest -m e2e tests/e2e
 
   required:
     name: CI / Perception tests

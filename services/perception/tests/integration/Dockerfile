@@ -17,12 +17,20 @@ ENV UV_LINK_MODE=copy \
 HEALTHCHECK NONE
 
 COPY --from=uv /uv /usr/local/bin/uv
-COPY --chown=perception-service:perception-service pyproject.toml uv.lock ./
+# workspace is a named build context supplied by Compose additional_contexts,
+# not a Dockerfile stage; DL3022 does not recognize this external context.
+# hadolint ignore=DL3022
+COPY --from=workspace --chown=perception-service:perception-service pyproject.toml uv.lock /workspace/
+# hadolint ignore=DL3022
+COPY --from=workspace --chown=perception-service:perception-service lib/pyproject.toml /workspace/lib/
+COPY --chown=perception-service:perception-service pyproject.toml /workspace/services/perception/
+ENV UV_PROJECT_ENVIRONMENT=/app/.venv
 
 RUN --mount=type=cache,target=/home/perception-service/.cache/uv,uid=10002,gid=10002 \
-  uv sync --locked --no-dev --group test --no-install-project
+  uv sync --project /workspace/services/perception --package perception-service --locked --no-dev --group test --no-install-workspace
 
+COPY --chown=perception-service:perception-service pyproject.toml ./
 COPY --chown=perception-service:perception-service tests ./tests
 
-ENTRYPOINT ["uv", "run", "--no-sync", "pytest"]
+ENTRYPOINT ["uv", "run", "--project", "/workspace/services/perception", "--package", "perception-service", "--no-sync", "pytest"]
 CMD ["-m", "integration"]

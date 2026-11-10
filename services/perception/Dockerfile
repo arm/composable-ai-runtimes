@@ -140,10 +140,17 @@ ENV UV_LINK_MODE=copy \
 WORKDIR /app
 
 COPY --from=uv /uv /usr/local/bin/uv
-COPY pyproject.toml uv.lock ./
+# workspace is a named build context supplied by Compose additional_contexts,
+# not a Dockerfile stage; DL3022 does not recognize this external context.
+# hadolint ignore=DL3022
+COPY --from=workspace pyproject.toml uv.lock /workspace/
+# hadolint ignore=DL3022
+COPY --from=workspace lib/pyproject.toml /workspace/lib/
+COPY pyproject.toml /workspace/services/perception/
+ENV UV_PROJECT_ENVIRONMENT=/app/.venv
 
 RUN --mount=type=cache,target=/root/.cache/uv \
-  uv sync --locked --no-dev --no-install-project
+  uv sync --project /workspace/services/perception --package perception-service --locked --no-dev --no-install-workspace
 
 COPY scripts/docker/install_loguru_license.py /tmp/
 RUN --mount=type=bind,source=notices/python/loguru-0.7.3/LICENSE,target=/tmp/loguru-LICENSE \
@@ -151,7 +158,7 @@ RUN --mount=type=bind,source=notices/python/loguru-0.7.3/LICENSE,target=/tmp/log
 
 COPY scripts/docker/wheel_sbom.py scripts/docker/wheel_sbom.toml /tmp/wheel-sbom/
 RUN --mount=type=cache,target=/root/.cache/uv \
-    UV_PROJECT_ENVIRONMENT=/tmp/sbom-venv uv sync --locked --only-group sbom --no-install-project \
+    UV_PROJECT_ENVIRONMENT=/tmp/sbom-venv uv sync --project /workspace/services/perception --package perception-service --locked --only-group sbom --no-install-workspace \
     && /tmp/sbom-venv/bin/python /tmp/wheel-sbom/wheel_sbom.py \
     /app/.venv/lib/python3.13/site-packages /app/wheel-sbom.spdx.json
 

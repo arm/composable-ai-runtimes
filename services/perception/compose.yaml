@@ -5,6 +5,8 @@ services:
   perception-service:
     image: ${PERCEPTION_SERVICE_IMAGE:-perception-service:local}
     build:
+      additional_contexts:
+        workspace: ../..
       context: .
     stop_grace_period: 15s
     environment:

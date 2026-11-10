@@ -9,4 +9,5 @@ services:
       context: .
       dockerfile: tests/integration/Dockerfile
       additional_contexts:
+        workspace: ../..
         production: service:perception-service
