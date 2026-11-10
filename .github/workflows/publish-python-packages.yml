@@ -69,7 +69,7 @@ jobs:
       - name: Build PyPI-compatible wheel with embedded CycloneDX SBOM
         working-directory: lib
         run: >-
-          uv build --wheel --out-dir ../dist
+          uv build --package arm-cairn --wheel --out-dir ../dist
           --config-setting="maturin.build-args=--compatibility pypi --auditwheel check"
 
       - name: Validate Python wheel metadata, license, and SBOM disclaimer
