@@ -17,7 +17,7 @@ properties:
     type: object
     minProperties: 1
     propertyNames:
-      enum: [rust, python, camera, messaging, perception]
+      enum: [rust, python, media, messaging, perception]
     additionalProperties:
       $ref: '#/$defs/version'
 

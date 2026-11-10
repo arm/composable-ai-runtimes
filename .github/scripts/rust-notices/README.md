@@ -17,7 +17,7 @@ uv run --no-project python .github/scripts/rust-notices/review.py lib/pyproject.
 ```
 
 For a service image, replace `lib/pyproject.toml` with
-`services/camera/Cargo.toml` or `services/messaging/Cargo.toml` in each command.
+`services/media/Cargo.toml` or `services/messaging/Cargo.toml` in each command.
 
 If review is required:
 

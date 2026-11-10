@@ -8,8 +8,8 @@
 //! types provided by its corresponding service crate.
 
 /// Camera discovery client and metadata types.
-pub mod camera_service {
-    pub use cairn_camera::*;
+pub mod media_service {
+    pub use cairn_media::*;
 }
 /// Asynchronous notification client and subscription types.
 pub mod notification_service {

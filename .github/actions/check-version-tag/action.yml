@@ -8,7 +8,7 @@ description: >-
 
 inputs:
   tag-prefix:
-    description: 'Prefix before X.Y.Z: camera/v, messaging/v, perception/v, rust/v, python/v, or cairn/v'
+    description: 'Prefix before X.Y.Z: media/v, messaging/v, perception/v, rust/v, python/v, or cairn/v'
     required: true
   tag:
     description: 'Tag to check; defaults to the triggering ref name'

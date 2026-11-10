@@ -1,0 +1,70 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+name: Media Contract Tests
+
+on:
+  merge_group:
+    types: [checks_requested]
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    if: vars.INTERNAL_REPO == 'true'
+    uses: ./.github/workflows/ci-detect-changes.yml
+    permissions:
+      contents: read
+    with:
+      paths: |
+        services/media/src/api/**
+        services/media/src/notifications/**
+        services/media/src/camera.rs
+        services/media/src/helpers.rs
+        services/media/src/lib.rs
+        services/media/src/logging.rs
+        services/media/proto/**
+        services/media/Cargo.toml
+        services/media/Cargo.lock
+        services/media/build.rs
+        .github/workflows/media-contract-test.yml
+        .github/workflows/ci-detect-changes.yml
+        .github/workflows/ci-evaluate-results.yml
+
+  media-contract:
+    needs: changes
+    if: vars.INTERNAL_REPO == 'true' && needs.changes.outputs.changed == 'true'
+    name: Run media contract tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install native test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler libpipewire-0.3-dev pkg-config
+
+      - name: Install stable Rust toolchain
+        run: rustup toolchain install stable --profile minimal --no-self-update
+
+      - name: Run media API contract test
+        run: cargo test --lib api::contract_tests
+        working-directory: services/media
+
+      - name: Run media notification contract test
+        run: cargo test --bin notifications redis_contract_test
+        working-directory: services/media
+
+  required:
+    name: CI / Media Contract Tests
+    if: always() && vars.INTERNAL_REPO == 'true' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')
+    needs: [changes, media-contract]
+    uses: ./.github/workflows/ci-evaluate-results.yml
+    with:
+      results: ${{ toJSON(needs) }}

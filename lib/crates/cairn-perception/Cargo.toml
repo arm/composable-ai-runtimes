@@ -20,7 +20,7 @@ path = "bin/generate_perception_proto.rs"
 [dependencies]
 tonic-health = { workspace = true }
 tokio = { workspace = true, features = ["time"] }
-cairn-camera = { workspace = true }
+cairn-media = { workspace = true }
 open_perception_kit = { workspace = true }
 prost = { workspace = true }
 tonic = { workspace = true }

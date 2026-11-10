@@ -15,18 +15,18 @@ from pathlib import Path
 from typing import cast
 
 import pytest
-from camera_smoke.artifacts import (
+from media_smoke.artifacts import (
     write_command_transcript,
     write_text_artifact,
 )
-from camera_smoke.commands import run_command
-from camera_smoke.compose import (
+from media_smoke.commands import run_command
+from media_smoke.compose import (
     build_compose_command,
     cleanup_compose,
     get_compose_logs,
     get_compose_ps,
 )
-from camera_smoke.hotplug import (
+from media_smoke.hotplug import (
     CommandTranscriptWriter,
     HotplugError,
     UsbCameraTarget,
@@ -35,7 +35,7 @@ from camera_smoke.hotplug import (
     select_usb_camera_target,
     unbind_usb_camera,
 )
-from camera_smoke.notifications import (
+from media_smoke.notifications import (
     DEFAULT_REDIS_CHANNEL,
     CameraEventPayload,
     get_configured_camera_events_channel,
@@ -44,12 +44,12 @@ from camera_smoke.notifications import (
     wait_for_camera_event,
     wait_for_notification_stack_ready,
 )
-from camera_smoke.time import get_utc_now
+from media_smoke.time import get_utc_now
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 COMPOSE_FILE = REPO_ROOT / "services" / "compose.yaml"
 TEST_RESULTS_DIR = REPO_ROOT / "test-results" / "camera-boardfarm-notifications"
-SERVICE_NAME = "camera-service"
+SERVICE_NAME = "media-service"
 MESSAGING_SERVICE_NAME = "messaging-service"
 write_hotplug_command_transcript: CommandTranscriptWriter = partial(
     write_command_transcript,
@@ -113,7 +113,7 @@ def start_compose_stack(metadata: NotificationMetadata) -> None:
     if config_result.returncode != 0:
         write_command_transcript(TEST_RESULTS_DIR, "compose-config.txt", config_result)
     assert config_result.returncode == 0, (
-        "Camera notification Compose config validation failed. See compose-config.txt."
+        "Media Service notification Compose config validation failed. See compose-config.txt."
     )
 
     up_result = run_command(
@@ -130,7 +130,7 @@ def start_compose_stack(metadata: NotificationMetadata) -> None:
     if up_result.returncode != 0:
         write_command_transcript(TEST_RESULTS_DIR, "compose-up.txt", up_result)
     assert up_result.returncode == 0, (
-        "Camera notification Compose startup command failed. See compose-up.txt."
+        "Media Service notification Compose startup command failed. See compose-up.txt."
     )
 
     ready, reason = wait_for_notification_stack_ready(

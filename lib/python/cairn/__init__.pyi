@@ -6,18 +6,18 @@
 r"""
 Python interface for the Cairn library.
 
-Use this module to access Camera, Notification, and Perception services.
+Use this module to access Media, Notification, and Perception services.
 """
 
-from cairn.camera import Camera, CameraService, FrameRate, Resolution, StreamConfiguration, StreamFormat, StreamFormatFilter
+from cairn.media import Camera, FrameRate, MediaService, Resolution, StreamConfiguration, StreamFormat, StreamFormatFilter
 from cairn.notification import Notification, NotificationService, NotificationSubscription
-from . import camera
+from . import media
 from . import notification
 from . import perception
 __all__ = [
     "Camera",
-    "CameraService",
     "FrameRate",
+    "MediaService",
     "Notification",
     "NotificationService",
     "NotificationSubscription",
@@ -25,7 +25,7 @@ __all__ = [
     "StreamConfiguration",
     "StreamFormat",
     "StreamFormatFilter",
-    "camera",
+    "media",
     "notification",
     "perception",
 ]

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
 // SPDX-License-Identifier: Apache-2.0
 
-use cairn::camera_service;
+use cairn::media_service;
 use pyo3::exceptions::{PyLookupError, PyRuntimeError};
 use pyo3::prelude::{Bound, PyErr, PyResult};
 use pyo3::types::{PyModule, PyModuleMethods};
@@ -12,27 +12,25 @@ use std::sync::Arc;
 
 use crate::camera_types::PyStreamConfiguration;
 
-pub(crate) fn map_camera_error(error: camera_service::CameraServiceError) -> PyErr {
+pub(crate) fn map_media_error(error: media_service::MediaServiceError) -> PyErr {
     match error {
-        camera_service::CameraServiceError::NotFound(_) => {
-            PyLookupError::new_err(error.to_string())
-        }
-        camera_service::CameraServiceError::Transport(message) => PyRuntimeError::new_err(message),
-        camera_service::CameraServiceError::InvalidResponse(message) => {
+        media_service::MediaServiceError::NotFound(_) => PyLookupError::new_err(error.to_string()),
+        media_service::MediaServiceError::Transport(message) => PyRuntimeError::new_err(message),
+        media_service::MediaServiceError::InvalidResponse(message) => {
             PyRuntimeError::new_err(message)
         }
     }
 }
 
-/// Information about a camera returned by `CameraService.list_cameras()`.
-#[gen_stub_pyclass(module = "cairn.camera")]
+/// Information about a camera returned by `MediaService.list_cameras()`.
+#[gen_stub_pyclass(module = "cairn.media")]
 #[pyclass(skip_from_py_object, module = "cairn", name = "Camera")]
 pub struct PyCamera {
-    camera: Arc<camera_service::Camera>,
+    camera: Arc<media_service::Camera>,
 }
 
 impl PyCamera {
-    pub(crate) fn new(camera: camera_service::Camera) -> Self {
+    pub(crate) fn new(camera: media_service::Camera) -> Self {
         Self {
             camera: Arc::new(camera),
         }
@@ -42,7 +40,7 @@ impl PyCamera {
 #[gen_stub_pymethods]
 #[pymethods]
 impl PyCamera {
-    /// Camera identifier reported by the camera service.
+    /// Camera identifier reported by the media service.
     #[getter]
     fn id(&self) -> u64 {
         self.camera.id
@@ -68,11 +66,11 @@ impl PyCamera {
         frame_rate: Option<(u32, u32)>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let has_filter = resolution.is_some() || pixel_format.is_some() || frame_rate.is_some();
-        let filter = has_filter.then(|| camera_service::StreamFormatFilter {
+        let filter = has_filter.then(|| media_service::StreamFormatFilter {
             resolution: resolution
-                .map(|(width, height)| camera_service::Resolution { width, height }),
+                .map(|(width, height)| media_service::Resolution { width, height }),
             pixel_format,
-            frame_rate: frame_rate.map(|(numerator, denominator)| camera_service::FrameRate {
+            frame_rate: frame_rate.map(|(numerator, denominator)| media_service::FrameRate {
                 numerator,
                 denominator,
             }),
@@ -82,7 +80,7 @@ impl PyCamera {
             let configurations = camera
                 .get_stream_configurations(filter)
                 .await
-                .map_err(map_camera_error)?;
+                .map_err(map_media_error)?;
             Ok(configurations
                 .into_iter()
                 .map(PyStreamConfiguration::from)

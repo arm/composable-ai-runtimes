@@ -3,8 +3,8 @@
 
 use crate::perception::{FrameRate, Resolution, StreamConfiguration, StreamFormat};
 
-impl From<&cairn_camera::StreamConfiguration> for StreamConfiguration {
-    fn from(configuration: &cairn_camera::StreamConfiguration) -> Self {
+impl From<&cairn_media::StreamConfiguration> for StreamConfiguration {
+    fn from(configuration: &cairn_media::StreamConfiguration) -> Self {
         let format = configuration.format();
         Self {
             target: configuration.target().to_owned(),

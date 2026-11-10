@@ -35,7 +35,7 @@ normalize_filter='
 # Generation time and document UUID do not describe dependency changes.
 ignore_volatile_filter='del(.serialNumber, .metadata.timestamp)'
 
-for crate in cairn-camera cairn-notification cairn-perception cairn; do
+for crate in cairn-media cairn-notification cairn-perception cairn; do
   sbom_path="crates/$crate/bom.json"
   # Generate separately so a failure cannot overwrite the committed SBOM.
   cargo sbom \

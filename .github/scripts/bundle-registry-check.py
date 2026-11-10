@@ -245,7 +245,7 @@ def check_versions_for_component(
                 case "python":
                     check_python_version(version)
                     print(f"Verified {label}: ARM64 wheel")
-                case "camera" | "messaging" | "perception":
+                case "media" | "messaging" | "perception":
                     image_reference = check_dockerhub_version(
                         component, version, registry_namespace
                     )

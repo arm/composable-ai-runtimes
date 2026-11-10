@@ -15,7 +15,7 @@ types = ["text"]
 exclude = '''(?x)^(
   lib/Cargo\.lock|
   lib/python/cairn/.*\.pyi|
-  services/camera/Cargo\.lock
+  services/media/Cargo\.lock
 )'''
 
 [[repos.hooks]]
@@ -24,7 +24,7 @@ types = ["text"]
 exclude = '''(?x)^(
   lib/Cargo\.lock|
   lib/python/cairn/.*\.pyi|
-  services/camera/Cargo\.lock
+  services/media/Cargo\.lock
 )'''
 
 [[repos.hooks]]
@@ -80,7 +80,7 @@ always_run = true
 id = "python-messaging-proto-current"
 name = "Python Messaging protobuf bindings are current"
 language = "system"
-entry = "bash -c 'protoc --proto_path=services/messaging/proto/cairn/messaging/v1 --python_out=lib/tests/generated services/messaging/proto/cairn/messaging/v1/messaging.proto && protoc --proto_path=services/messaging/proto/cairn/messaging/v1 --python_out=.github/scripts/camera_smoke/generated services/messaging/proto/cairn/messaging/v1/messaging.proto'"
+entry = "bash -c 'protoc --proto_path=services/messaging/proto/cairn/messaging/v1 --python_out=lib/tests/generated services/messaging/proto/cairn/messaging/v1/messaging.proto && protoc --proto_path=services/messaging/proto/cairn/messaging/v1 --python_out=.github/scripts/media_smoke/generated services/messaging/proto/cairn/messaging/v1/messaging.proto'"
 pass_filenames = false
 always_run = true
 stages = ["pre-push"]
@@ -89,5 +89,5 @@ stages = ["pre-push"]
 id = "ruff-check"
 name = "ruff check"
 language = "system"
-entry = "uv run --locked --only-group lint ruff check . --extend-exclude .github/scripts/camera_smoke/generated/messaging_pb2.py,lib/tests/generated/messaging_pb2.py"
+entry = "uv run --locked --only-group lint ruff check . --extend-exclude .github/scripts/media_smoke/generated/messaging_pb2.py,lib/tests/generated/messaging_pb2.py"
 pass_filenames = false

@@ -9,21 +9,21 @@ Test Strategy: [docs/testing/test-strategy.md](test-strategy.md)
 
 ## Purpose
 
-This plan records the camera service compatibility surfaces, support coverage,
-and service-owned validation for `services/camera`.
+This plan records the media service compatibility surfaces, support coverage,
+and service-owned validation for `services/media`.
 
-Use it for camera-service-owned checks and support claims. Repository-wide gate
+Use it for media-service-owned checks and support claims. Repository-wide gate
 policy, release positioning, cross-component integration, and shared
 end-to-end validation rules live in [docs/testing/test-strategy.md](test-strategy.md).
 
 ## Validation Rules
 
-Use these rules to map camera service changes and support claims to required
+Use these rules to map media service changes and support claims to required
 validation. Record camera-specific exceptions in Waivers and Expected Failures.
 
 | Rule | Requirement |
 | --- | --- |
-| Define the service source | `services/camera/**` is the canonical camera service source directory covered by this plan. Route those changes through this plan unless another row delegates them. |
+| Define the service source | `services/media/**` is the canonical media service source directory covered by this plan. Route those changes through this plan unless another row delegates them. |
 | Validate support claims | A board, operating-system release, camera class, camera model, deployment path, API, Redis event, or runtime behavior is supported only when it appears in the coverage matrix and has matching required validation. |
 | Route validation by risk | Camera changes require validation when they affect one of the compatibility surfaces listed in the Compatibility Surfaces table. |
 | Block merge by default | Required checks block merge by default. Moving one to `main`, scheduled, or release validation requires a documented exception and remaining pre-merge protection. |
@@ -34,20 +34,20 @@ validation. Record camera-specific exceptions in Waivers and Expected Failures.
 
 ## Compatibility Surfaces
 
-The camera service must protect the interfaces and runtime behaviors that
+The media service must protect the interfaces and runtime behaviors that
 users, operators, or other `cairn` components can depend on.
 
 | Surface ID | Surface | Scope / key details | Failure modes |
 | --- | --- | --- | --- |
-| `CAM-SRC` | Service implementation | Rust crate under `services/camera`; binaries `api` and `notifications`; library modules, build script, entrypoint scripts, PipeWire/WirePlumber/libcamera config, Dockerfile, Compose, README, and security notes | Build, logic, lifecycle, configuration, logging, dependency, or documentation regressions |
-| `CAM-API` | gRPC API and protobuf contract | Package `camera.pipewire.v1`, service `CameraService`, methods `ListCameras` and `get_stream_configurations`, and messages in `services/camera/proto/camera_service.proto`; Rust protobuf bindings are generated during Cargo builds and are not committed | Contract incompatibility, failed binding generation, stale client expectations, or SDK client breakage |
+| `CAM-SRC` | Service implementation | Rust crate under `services/media`; binaries `api` and `notifications`; library modules, build script, entrypoint scripts, PipeWire/WirePlumber/libcamera config, Dockerfile, Compose, README, and security notes | Build, logic, lifecycle, configuration, logging, dependency, or documentation regressions |
+| `CAM-API` | gRPC API and protobuf contract | Package `media.pipewire.v1`, service `MediaService`, methods `ListCameras` and `get_stream_configurations`, and messages in `services/media/proto/media_service.proto`; Rust protobuf bindings are generated during Cargo builds and are not committed | Contract incompatibility, failed binding generation, stale client expectations, or SDK client breakage |
 | `CAM-EVENT` | Redis event contract | Default channel `camera.events`, configurable with `PWC_REDIS_CHANNEL_EVENTS`; JSON payload containing `event_type`, `id`, and `name`; Redis connect, publish, and reconnect behavior | Consumers break, events mislead, payloads drift, failed reconnects hide future events |
-| `CAM-CONFIG` | Runtime configuration | `CAIRN_CAMERA_API_LISTEN_ADDR`, `PWC_REDIS_HOST`, `PWC_REDIS_PORT`, `PWC_REDIS_PASSWORD`, `PWC_REDIS_CHANNEL_EVENTS`, and logging with `RUST_LOG`; default API listen address `0.0.0.0:50051`; default Redis endpoint `127.0.0.1:6379` | Unsupported defaults, invalid configuration accepted silently, unclear failures, or exposed services not matching docs |
-| `CAM-CONTAINER` | Container and deployment contract | `services/camera/Dockerfile`, `services/camera/compose.yaml`, root-to-`camera-service` entrypoint, host networking, `/dev`, `/run/udev`, shared PipeWire runtime volume, `video` group, `SYS_NICE`, real-time limits, and service extension through `services/compose.yaml` | Deployment fails, privileges drift, PipeWire cannot start, device access breaks, service cannot start |
-| `CAM-CAPTURE` | Direct PipeWire capture path | Shared PipeWire runtime socket and permissions exposed by the camera service container; peer containers use this socket to select a camera node, negotiate a stream, and pull frames | Peer services cannot capture frames, capture format negotiation fails, socket permissions drift, or target capture claims are unproven |
+| `CAM-CONFIG` | Runtime configuration | `CAIRN_MEDIA_API_LISTEN_ADDR`, `PWC_REDIS_HOST`, `PWC_REDIS_PORT`, `PWC_REDIS_PASSWORD`, `PWC_REDIS_CHANNEL_EVENTS`, and logging with `RUST_LOG`; default API listen address `0.0.0.0:50051`; default Redis endpoint `127.0.0.1:6379` | Unsupported defaults, invalid configuration accepted silently, unclear failures, or exposed services not matching docs |
+| `CAM-CONTAINER` | Container and deployment contract | `services/media/Dockerfile`, `services/media/compose.yaml`, root-to-`media-service` entrypoint, host networking, `/dev`, `/run/udev`, shared PipeWire runtime volume, `video` group, `SYS_NICE`, real-time limits, and service extension through `services/compose.yaml` | Deployment fails, privileges drift, PipeWire cannot start, device access breaks, service cannot start |
+| `CAM-CAPTURE` | Direct PipeWire capture path | Shared PipeWire runtime socket and permissions exposed by the media service container; peer containers use this socket to select a camera node, negotiate a stream, and pull frames | Peer services cannot capture frames, capture format negotiation fails, socket permissions drift, or target capture claims are unproven |
 | `CAM-HARDWARE` | Hardware and target runtime dependencies | Raspberry Pi 5 target running the Raspberry Pi OS 64-bit `trixie` board-farm image; PipeWire, WirePlumber, libcamera stack, Redis, and udev-backed hotplug; Raspberry Pi CSI camera and the board-farm Lenovo Performance FHD Webcam USB target listed in the coverage matrix | Supported hardware path fails, host dependency is unavailable, hotplug is missed, target differs from hosted CI |
 | `CAM-OPS` | Operational behavior | API startup, per-request PipeWire snapshot, Redis connection, Redis reconnect after publish failure, child-process lifecycle, clear failure logs, and non-zero exit on broken critical child process | Operators cannot diagnose failures, degraded behavior is unpredictable, failed dependencies appear healthy |
-| `CAM-DOCS` | Documentation surfaces | `services/camera/README.md`, `services/camera/SECURITY.md`, `docs/testing/**`, and release notes or API references that mention camera commands, support, deployment, APIs, Redis events, or validation | Docs overstate support, commands drift, security posture is misrepresented, release scope is unclear |
+| `CAM-DOCS` | Documentation surfaces | `services/media/README.md`, `services/media/SECURITY.md`, `docs/testing/**`, and release notes or API references that mention camera commands, support, deployment, APIs, Redis events, or validation | Docs overstate support, commands drift, security posture is misrepresented, release scope is unclear |
 
 ## Supported Coverage Matrix
 
@@ -56,15 +56,15 @@ possible environment combination. Keep test mechanics in Required Validation.
 
 | Coverage target | Environment / variant | Status | Applies to |
 | --- | --- | --- | --- |
-| Camera service source and hosted checks | `services/camera/**` on hosted CI with Rust, Docker, Compose, and protobuf tooling | Supported | PR and `main` validation |
-| gRPC camera listing API | `CameraService.ListCameras` generated from `services/camera/proto/camera_service.proto` | Supported | PR, Rust/Python SDK client validation when the camera contract changes, release |
+| Media service source and hosted checks | `services/media/**` on hosted CI with Rust, Docker, Compose, and protobuf tooling | Supported | PR and `main` validation |
+| gRPC camera listing API | `MediaService.ListCameras` generated from `services/media/proto/media_service.proto` | Supported | PR, Rust/Python SDK client validation when the camera contract changes, release |
 | Redis camera notifications | Redis endpoint configured by `PWC_REDIS_*`; default `camera.events` channel | Supported | PR for Redis/event changes, board-farm for target hotplug, release |
-| Direct PipeWire camera capture | Camera service shared PipeWire runtime socket used by peer containers; socket availability, permissions, and target PipeWire behavior are service-owned | Supported | Board-farm validation for service-owned socket or runtime changes that can affect capture; release |
+| Direct PipeWire camera capture | Media service shared PipeWire runtime socket used by peer containers; socket availability, permissions, and target PipeWire behavior are service-owned | Supported | Board-farm validation for service-owned socket or runtime changes that can affect capture; release |
 | Raspberry Pi CSI camera target | Raspberry Pi 5, Raspberry Pi OS 64-bit `trixie` board-farm image, CSI camera supported by `libcamera` | Supported | Board-farm validation for camera target changes; release |
 | USB webcam target | Raspberry Pi 5, Raspberry Pi OS 64-bit `trixie` board-farm image, board-farm-installed Lenovo Performance FHD Webcam (`4XC1D66055`); UVC USB camera expected to expose FHD `1920x1080` MJPEG at 30 FPS and YUY2 video coding | Supported | Board-farm validation for USB webcam target changes; see [USB webcam evidence](camera-usb-webcam-evidence.md) |
-| Container runtime | Camera service container with host networking, `/dev`, `/run/udev`, shared PipeWire runtime, `video` group, `SYS_NICE`, and real-time limits from Compose | Supported | PR for container or target runtime changes; board-farm target validation; release |
-| Representative Topo deployment | Target-hardware deployment flow that includes the camera service and Redis | Supported | Board-farm validation for Topo, deployment, container privilege, or device mapping changes |
-| SDK camera client compatibility | Documented public SDK camera client consuming the camera service contract | Supported | PR for camera API, SDK client, packaging, wrapper behavior, or release-scope changes; release |
+| Container runtime | Media service container with host networking, `/dev`, `/run/udev`, shared PipeWire runtime, `video` group, `SYS_NICE`, and real-time limits from Compose | Supported | PR for container or target runtime changes; board-farm target validation; release |
+| Representative Topo deployment | Target-hardware deployment flow that includes the media service and Redis | Supported | Board-farm validation for Topo, deployment, container privilege, or device mapping changes |
+| SDK camera client compatibility | Documented public SDK camera client consuming the media service contract | Supported | PR for camera API, SDK client, packaging, wrapper behavior, or release-scope changes; release |
 
 ## Required Validation
 
@@ -72,9 +72,9 @@ List validation checks this service requires. Each row says what it covers, what
 risk it reduces, when and where it runs, and what it blocks.
 
 The hosted `Camera Smoke` workflow implements the camera-owned Docker and
-startup lane as one ordered check: it validates `services/camera/compose.yaml`,
-validates the `camera-service` config rendered from `services/compose.yaml`,
-builds `camera-service:latest`, and runs the bounded
+startup lane as one ordered check: it validates `services/media/compose.yaml`,
+validates the `media-service` config rendered from `services/compose.yaml`,
+builds `media-service:latest`, and runs the bounded
 startup/dependency-failure smoke probes against that same image. The
 repository-level `Services Compose Config Check` workflow remains responsible
 for non-camera changes to `services/compose.yaml`.
@@ -89,16 +89,16 @@ for each required validation lane.
 
 | Test / check | Surfaces covered | Mitigates | Required when | Blocks | Run on |
 | --- | --- | --- | --- | --- | --- |
-| Rust format check | `CAM-SRC` | Formatting drift that makes review and CI inconsistent | Rust source, build script, or Cargo changes under `services/camera/**` | Merge | Hosted CI |
-| Rust lint check | `CAM-SRC`, `CAM-CONFIG`, `CAM-OPS` | Static-analysis, API, config, error-handling, and lifecycle regressions | Rust source, Cargo, protobuf, build script, or feature changes under `services/camera/**` | Merge | Hosted CI |
-| Rust unit and binary tests | `CAM-SRC`, `CAM-API`, `CAM-EVENT`, `CAM-CONFIG`, `CAM-OPS` | Internal regressions across camera service source, API, event, configuration, and operational behavior | Rust source, Cargo, protobuf, or build-script changes | Merge | Hosted CI |
-| Protobuf generation check | `CAM-API` | Failed protobuf generation or camera service binding compile regressions | Protobuf, Cargo, build script, API, SDK-facing, or public client changes | Merge | Hosted CI |
-| SDK client contract and integration checks | `CAM-API`, `CAM-DOCS` | Camera contract, SDK client, packaging, wrapper, or documented public API regressions | Camera protobuf, `CameraService`, SDK client, packaging, wrapper, documented public API, or camera release-scope changes | Merge | Hosted CI |
-| Camera service Compose model check | `CAM-CONTAINER`, `CAM-CONFIG` | Compose syntax, model rendering, environment interpolation, and declared container configuration drift | Camera service Compose, Dockerfile, entrypoint, config, dependency, deployment, or operational docs changes | Merge | Hosted CI |
-| Repository camera service config check | `CAM-CONTAINER`, `CAM-EVENT`, `CAM-CONFIG` | Repository-level camera and messaging wiring, Redis defaults, service extension, or rendered camera service config regressions | Repository Compose camera service wiring, camera service Compose, messaging wiring, Redis config, or deployment docs changes | Merge | Hosted CI |
+| Rust format check | `CAM-SRC` | Formatting drift that makes review and CI inconsistent | Rust source, build script, or Cargo changes under `services/media/**` | Merge | Hosted CI |
+| Rust lint check | `CAM-SRC`, `CAM-CONFIG`, `CAM-OPS` | Static-analysis, API, config, error-handling, and lifecycle regressions | Rust source, Cargo, protobuf, build script, or feature changes under `services/media/**` | Merge | Hosted CI |
+| Rust unit and binary tests | `CAM-SRC`, `CAM-API`, `CAM-EVENT`, `CAM-CONFIG`, `CAM-OPS` | Internal regressions across media service source, API, event, configuration, and operational behavior | Rust source, Cargo, protobuf, or build-script changes | Merge | Hosted CI |
+| Protobuf generation check | `CAM-API` | Failed protobuf generation or media service binding compile regressions | Protobuf, Cargo, build script, API, SDK-facing, or public client changes | Merge | Hosted CI |
+| SDK client contract and integration checks | `CAM-API`, `CAM-DOCS` | Camera contract, SDK client, packaging, wrapper, or documented public API regressions | Camera protobuf, `MediaService`, SDK client, packaging, wrapper, documented public API, or camera release-scope changes | Merge | Hosted CI |
+| Media service Compose model check | `CAM-CONTAINER`, `CAM-CONFIG` | Compose syntax, model rendering, environment interpolation, and declared container configuration drift | Media service Compose, Dockerfile, entrypoint, config, dependency, deployment, or operational docs changes | Merge | Hosted CI |
+| Repository media service config check | `CAM-CONTAINER`, `CAM-EVENT`, `CAM-CONFIG` | Repository-level camera and messaging wiring, Redis defaults, service extension, or rendered media service config regressions | Repository Compose media service wiring, media service Compose, messaging wiring, Redis config, or deployment docs changes | Merge | Hosted CI |
 | Camera image build | `CAM-SRC`, `CAM-CONTAINER`, `CAM-CONFIG` | Image, package, dependency, build-output, or protobuf-generation failure | Rust sources, Cargo files, protobuf, Dockerfile, entrypoint scripts, configuration files, Compose, or container documentation changes | Merge | Hosted CI |
 | Camera startup smoke | `CAM-CONTAINER`, `CAM-CONFIG`, `CAM-OPS` | Startup, dependency, health-signal, logging, process lifecycle, PipeWire wiring, or Redis wiring regressions | Service changes that could affect build output, startup, dependency handling, runtime configuration, logging, process lifecycle, or PipeWire and Redis wiring | Merge | Hosted CI and board-farm |
-| Documentation review and link check | `CAM-DOCS` | Broken links, stale commands, inaccurate support claims, release-scope mismatches, or validation-policy mismatches | `services/camera/README.md`, `services/camera/SECURITY.md`, `docs/testing/**`, release note, API reference, or validation-policy changes | Merge | Hosted CI |
+| Documentation review and link check | `CAM-DOCS` | Broken links, stale commands, inaccurate support claims, release-scope mismatches, or validation-policy mismatches | `services/media/README.md`, `services/media/SECURITY.md`, `docs/testing/**`, release note, API reference, or validation-policy changes | Merge | Hosted CI |
 | Hardware-independent API integration | `CAM-API`, `CAM-CONFIG`, `CAM-OPS` | Client/server, tonic, stable camera-listing, and API error-mapping regressions without target hardware | API, protobuf, camera snapshot, config, dependency, lifecycle, or SDK-facing changes testable without PipeWire | Merge | Hosted CI |
 | Hardware-independent notification integration | `CAM-EVENT`, `CAM-CONFIG`, `CAM-OPS` | Redis channel, payload, publish, reconnect, and future-event regressions without PipeWire | Event producer, payload schema, Redis config, reconnect, or documented event changes testable without target hardware | Merge | Hosted CI |
 | Camera-attached board-farm smoke | `CAM-CONTAINER`, `CAM-CAPTURE`, `CAM-HARDWARE`, `CAM-OPS` | Camera discovery, PipeWire runtime, camera access, capture path, startup, and logs | PipeWire discovery, snapshot, service startup, container permissions, capture-sensitive, or target behavior changes | Merge | Board-farm |
@@ -123,4 +123,4 @@ while camera validation is being bootstrapped.
 
 | Gap | Impact | Owner | Target closure |
 | --- | --- | --- | --- |
-| Informational | Camera testing is still being bootstrapped; immature lanes and future integration-test improvements are tracked through normal planning or waiver/release processes rather than this component plan. | Camera service owner | Add specific rows only when a gap becomes a release-relevant waiver, a supported-claim blocker, or an owned implementation milestone. |
+| Informational | Camera testing is still being bootstrapped; immature lanes and future integration-test improvements are tracked through normal planning or waiver/release processes rather than this component plan. | Media service owner | Add specific rows only when a gap becomes a release-relevant waiver, a supported-claim blocker, or an owned implementation milestone. |

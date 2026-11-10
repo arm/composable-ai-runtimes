@@ -12,10 +12,10 @@ services:
       file: messaging/compose.yaml
       service: messaging-service
 
-  camera-service:
+  media-service:
     extends:
-      file: camera/compose.yaml
-      service: camera-service
+      file: media/compose.yaml
+      service: media-service
     build:
       args: *pipewire_build_args
     depends_on:
@@ -37,7 +37,7 @@ services:
     build:
       args: *pipewire_build_args
     depends_on:
-      camera-service:
+      media-service:
         condition: service_healthy
       messaging-service:
         condition: service_healthy

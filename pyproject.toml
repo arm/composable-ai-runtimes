@@ -7,13 +7,13 @@ version = "0.0.0"
 requires-python = "==3.13.17"
 
 [dependency-groups]
-camera-smoke = ["pytest==9.1.1"]
-camera-container-smoke = [
-    {include-group = "camera-smoke"},
+media-smoke = ["pytest==9.1.1"]
+media-container-smoke = [
+    {include-group = "media-smoke"},
     "docker==7.1.0",
 ]
-camera-notifications-smoke = [
-    {include-group = "camera-smoke"},
+media-notifications-smoke = [
+    {include-group = "media-smoke"},
     "protobuf==7.35.1",
     "redis==8.1.0",
 ]

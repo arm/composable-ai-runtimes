@@ -6,7 +6,7 @@ name: Publish Service Images
 on:
   push:
     tags:
-      - "camera/v*"
+      - "media/v*"
       - "messaging/v*"
       - "perception/v*"
 

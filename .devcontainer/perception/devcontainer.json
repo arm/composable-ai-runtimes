@@ -1,7 +1,7 @@
 {
 	"name": "Perception Service Development Container",
 	"dockerComposeFile": [
-		"../../services/camera/compose.yaml",
+		"../../services/media/compose.yaml",
 		"docker-compose.yaml"
 	],
 	"service": "perception-dev",
@@ -9,7 +9,7 @@
 	"shutdownAction": "stopCompose",
 	"runServices": [
 		"perception-dev",
-		"camera-service",
+		"media-service",
 		"camera-spoof-source"
 	],
 	"features": {

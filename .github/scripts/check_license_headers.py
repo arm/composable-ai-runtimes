@@ -27,7 +27,7 @@ EXCLUDED_PATHS = frozenset(
     {
         PurePosixPath("LICENSE"),
         PurePosixPath("lib/crates/cairn/SBOM-DISCLAIMER.txt"),
-        PurePosixPath("lib/crates/cairn-camera/SBOM-DISCLAIMER.txt"),
+        PurePosixPath("lib/crates/cairn-media/SBOM-DISCLAIMER.txt"),
         PurePosixPath("lib/crates/cairn-notification/SBOM-DISCLAIMER.txt"),
         PurePosixPath("lib/crates/cairn-perception/SBOM-DISCLAIMER.txt"),
         PurePosixPath("lib/python/cairn/__init__.pyi"),

@@ -10,7 +10,7 @@
 	"runServices": [
 		"lib-dev",
 		"messaging-service",
-		"camera-service",
+		"media-service",
 		"camera-spoof-source"
 	],
 	"features": {

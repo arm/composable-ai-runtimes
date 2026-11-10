@@ -13,7 +13,7 @@ notes: |
   - Updated certificate bundles, dependencies, and tooling in response to the
     [eMudhra CA key compromise](https://bugzilla.mozilla.org/show_bug.cgi?id=2083449).
   - Updated the Python SDK, Perception service, and SDK tooling to Python 3.13.17.
-  - Added built-in health checks to camera and messaging images.
+  - Added built-in health checks to media and messaging images.
 
   ### Upgrade notes
 
@@ -23,6 +23,6 @@ notes: |
 components:
   rust: 0.0.2
   python: 0.0.2
-  camera: 0.0.2
+  media: 0.0.2
   messaging: 0.0.2
   perception: 0.0.2

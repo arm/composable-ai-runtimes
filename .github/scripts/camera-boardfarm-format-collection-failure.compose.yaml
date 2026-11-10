@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 services:
-  camera-service:
+  media-service:
     build:
       args:
-        CAMERA_SERVICE_FEATURES: smoke-test-failure-injection
+        MEDIA_SERVICE_FEATURES: smoke-test-failure-injection
     environment:
       CAIRN_CAMERA_SNAPSHOT_FAILURE: camera-node-params-sync

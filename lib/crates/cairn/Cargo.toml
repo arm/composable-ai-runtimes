@@ -16,6 +16,6 @@ name = "cairn"
 path = "src/lib.rs"
 
 [dependencies]
-cairn-camera = { workspace = true }
+cairn-media = { workspace = true }
 cairn-notification = { workspace = true }
 cairn-perception = { workspace = true }

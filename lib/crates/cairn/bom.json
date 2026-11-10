@@ -79,15 +79,15 @@
     },
     {
       "author": "",
-      "bom-ref": "CycloneDxRef-Component-arm-cairn-camera-0.0.2",
-      "description": "Internal camera service client for Cairn",
+      "bom-ref": "CycloneDxRef-Component-arm-cairn-media-0.0.2",
+      "description": "Internal media service client for Cairn",
       "externalReferences": [],
       "licenses": [
         {
           "expression": "Apache-2.0"
         }
       ],
-      "name": "arm-cairn-camera",
+      "name": "arm-cairn-media",
       "type": "library",
       "version": "0.0.2"
     },
@@ -3200,7 +3200,7 @@
     },
     {
       "dependsOn": [
-        "CycloneDxRef-Component-arm-cairn-camera-0.0.2",
+        "CycloneDxRef-Component-arm-cairn-media-0.0.2",
         "CycloneDxRef-Component-arm-cairn-notification-0.0.2",
         "CycloneDxRef-Component-arm-cairn-perception-0.0.2"
       ],
@@ -3214,7 +3214,7 @@
         "CycloneDxRef-Component-tonic-health-0.14.5",
         "CycloneDxRef-Component-tonic-prost-0.14.5"
       ],
-      "ref": "CycloneDxRef-Component-arm-cairn-camera-0.0.2"
+      "ref": "CycloneDxRef-Component-arm-cairn-media-0.0.2"
     },
     {
       "dependsOn": [
@@ -3233,7 +3233,7 @@
     },
     {
       "dependsOn": [
-        "CycloneDxRef-Component-arm-cairn-camera-0.0.2",
+        "CycloneDxRef-Component-arm-cairn-media-0.0.2",
         "CycloneDxRef-Component-open_perception_kit-0.1.1",
         "CycloneDxRef-Component-prost-0.14.3",
         "CycloneDxRef-Component-tokio-1.53.1",
@@ -4015,7 +4015,7 @@
       "name": "arm-cairn",
       "type": "application"
     },
-    "timestamp": "2026-10-27T09:51:18.606Z",
+    "timestamp": "2026-11-09T15:32:46.795Z",
     "tools": [
       {
         "name": "cargo-sbom",
@@ -4023,7 +4023,7 @@
       }
     ]
   },
-  "serialNumber": "urn:uuid:e31f9854-b0c9-4347-b557-cd21fa63e7f2",
+  "serialNumber": "urn:uuid:35b97a9a-8aa5-44be-8e2b-3d8ac4eed6aa",
   "specVersion": "1.6",
   "version": 1
 }

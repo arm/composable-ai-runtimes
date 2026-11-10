@@ -7,13 +7,13 @@ SPDX-License-Identifier: Apache-2.0
 
 Composable AI Runtimes (Cairn) provides containerized runtime services for edge and
 physical AI applications on Arm Linux devices. It lets you compose AI workflows
-through consistent Rust and Python APIs. Its camera, perception, and messaging
+through consistent Rust and Python APIs. Its media, perception, and messaging
 services reduce the boilerplate needed to discover cameras, run inference
 workflows, and receive detection events.
 
 Cairn includes:
 
-- [Camera Service](./services/camera/README.md): Discovers cameras and makes their streams available.
+- [Media Service](./services/media/README.md): Discovers cameras and makes their streams available.
 - [Messaging Service](./services/messaging/README.md): Lets services and applications publish and subscribe to messaging.
 - [Perception Service](./services/perception/README.md): Deploys and runs inference workflows on camera streams.
 - [Client libraries](./lib/README.md): Rust and Python APIs for interacting with Cairn services.
@@ -68,7 +68,7 @@ with its own release cycle and [Semantic Versioning](https://semver.org/).
 
 ## Network security
 
-Cairn uses [host networking](./services/camera/compose.yaml) to detect camera
+Cairn uses [host networking](./services/media/compose.yaml) to detect camera
 connections. These settings can expose service APIs to other devices on the
 network, so use a firewall to prevent unwanted access.
 

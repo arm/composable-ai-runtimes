@@ -54,7 +54,7 @@ An event is classed as unknown if the consumer does not recognize the `event_typ
 timestamp {
   seconds: 1735689600
 }
-origin: "cairn.camera-service"
+origin: "cairn.media-service"
 event_type: "cairn.camera.connected"
 topic: "camera.events"
 payload: "{\"event_type\":\"connected\",\"id\":42,\"name\":\"front-door\"}"

@@ -4,17 +4,17 @@
 x-topo:
   name: cairn
   description: >-
-    Deploy the Cairn camera and messaging services for edge AI applications
+    Deploy the Cairn media and messaging services for edge AI applications
     on Arm Linux targets.
   deployment_success_message: >-
-    Cairn camera and messaging services deployed. Run `topo ps --target
+    Cairn media and messaging services deployed. Run `topo ps --target
     <target>` from this directory to inspect the deployment.
 
 services:
-  camera-service:
+  media-service:
     extends:
       file: services/compose.yaml
-      service: camera-service
+      service: media-service
     depends_on:
       - messaging-service
     platform: linux/arm64

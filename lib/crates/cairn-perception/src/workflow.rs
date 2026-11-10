@@ -6,7 +6,7 @@ use crate::perception::{
     InferenceStage as ProtoInferenceStage, SourceSpec, WorkflowSpec,
     source_spec::Source as ProtoSource,
 };
-use cairn_camera::StreamConfiguration;
+use cairn_media::StreamConfiguration;
 
 /// Identifies a stage added to a workflow.
 #[derive(Debug, Clone, PartialEq, Eq)]

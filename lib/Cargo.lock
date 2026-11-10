@@ -36,13 +36,13 @@ checksum = "03918c3dbd7701a85c6b9887732e2921175f26c350b4563841d0958c21d57e6d"
 name = "arm-cairn"
 version = "0.0.2"
 dependencies = [
- "arm-cairn-camera",
+ "arm-cairn-media",
  "arm-cairn-notification",
  "arm-cairn-perception",
 ]
 
 [[package]]
-name = "arm-cairn-camera"
+name = "arm-cairn-media"
 version = "0.0.2"
 dependencies = [
  "prost",
@@ -74,7 +74,7 @@ dependencies = [
 name = "arm-cairn-perception"
 version = "0.0.2"
 dependencies = [
- "arm-cairn-camera",
+ "arm-cairn-media",
  "open_perception_kit",
  "prost",
  "tokio",

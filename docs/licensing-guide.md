@@ -34,7 +34,7 @@ list alone does not describe everything shipped.
   [Rust notice review procedure](../.github/scripts/rust-notices/README.md).
 - After Rust version, dependency, or build-selection changes, run
   `.github/scripts/sbom/generate-rust.sh` from the repository root. It generates
-  `bom.json` for `cairn`, `cairn-camera`, `cairn-notification`, and
+  `bom.json` for `cairn`, `cairn-media`, `cairn-notification`, and
   `cairn-perception` under `lib/crates/`; commit each changed inventory.
   Use `--check` to verify all four without rewriting them. Requires `jq`,
   the pinned Rust toolchain, and `cargo-sbom` 0.10.0

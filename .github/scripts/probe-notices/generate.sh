@@ -5,8 +5,8 @@
 set -euo pipefail
 
 case "${1:-}" in
-    camera|messaging|perception) ;;
-    *) printf 'Usage: bash %s camera|messaging|perception\n' "$0" >&2; exit 2 ;;
+    media|messaging|perception) ;;
+    *) printf 'Usage: bash %s media|messaging|perception\n' "$0" >&2; exit 2 ;;
 esac
 
 generated_notices_dir="$(git rev-parse --show-toplevel)/services/$1/notices/grpc-health-probe"

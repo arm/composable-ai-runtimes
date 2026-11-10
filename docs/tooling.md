@@ -28,10 +28,10 @@ Tool: `protoc`
 Tool: `uv`  
 `uv` handles Python dependency resolution and environment synchronization. It is appropriate because it provides fast installs, reproducible dependency sets, and a single workflow for local development and container builds.
 
-### Build and validate the camera service (`services/camera/`)
+### Build and validate the media service (`services/media/`)
 
 Tool: `cargo` and `docker compose`
-`cargo` handles the Rust camera service binaries, tests, clippy, rustfmt, and gRPC code generation from `services/camera/proto/camera_service.proto`. `docker compose` validates and runs the container workflow that includes PipeWire, WirePlumber, host device mounts, Redis notification settings, and the `camera-service` image.
+`cargo` handles the Rust media service binaries, tests, clippy, rustfmt, and gRPC code generation from `services/media/proto/media_service.proto`. `docker compose` validates and runs the container workflow that includes PipeWire, WirePlumber, host device mounts, Redis notification settings, and the `media-service` image.
 
 ### Run services locally in containers (`services/*`)
 

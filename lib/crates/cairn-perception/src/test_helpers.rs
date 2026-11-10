@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
 // SPDX-License-Identifier: Apache-2.0
 
-use cairn_camera::{FrameRate, Resolution, StreamConfiguration, StreamFormat};
+use cairn_media::{FrameRate, Resolution, StreamConfiguration, StreamFormat};
 
 pub(crate) fn stream_configuration() -> StreamConfiguration {
     StreamConfiguration::new(

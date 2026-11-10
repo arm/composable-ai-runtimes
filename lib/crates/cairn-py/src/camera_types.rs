@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
 // SPDX-License-Identifier: Apache-2.0
 
-use cairn::camera_service;
+use cairn::media_service;
 use pyo3::prelude::*;
 use pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pymethods};
 
 /// Frame dimensions in pixels.
-#[gen_stub_pyclass(module = "cairn.camera")]
+#[gen_stub_pyclass(module = "cairn.media")]
 #[pyclass(skip_from_py_object, module = "cairn", name = "Resolution", get_all)]
 #[derive(Clone)]
 pub struct PyResolution {
@@ -27,7 +27,7 @@ impl PyResolution {
 }
 
 /// Frames per second as an exact fraction.
-#[gen_stub_pyclass(module = "cairn.camera")]
+#[gen_stub_pyclass(module = "cairn.media")]
 #[pyclass(skip_from_py_object, module = "cairn", name = "FrameRate", get_all)]
 #[derive(Clone)]
 pub struct PyFrameRate {
@@ -51,7 +51,7 @@ impl PyFrameRate {
 }
 
 /// Optional constraints for camera stream configuration discovery.
-#[gen_stub_pyclass(module = "cairn.camera")]
+#[gen_stub_pyclass(module = "cairn.media")]
 #[pyclass(
     skip_from_py_object,
     module = "cairn",
@@ -87,13 +87,13 @@ impl PyStreamFormatFilter {
     }
 }
 
-impl From<&PyStreamFormatFilter> for camera_service::StreamFormatFilter {
+impl From<&PyStreamFormatFilter> for media_service::StreamFormatFilter {
     fn from(value: &PyStreamFormatFilter) -> Self {
         Self {
             resolution: value
                 .resolution
                 .as_ref()
-                .map(|value| camera_service::Resolution {
+                .map(|value| media_service::Resolution {
                     width: value.width,
                     height: value.height,
                 }),
@@ -101,7 +101,7 @@ impl From<&PyStreamFormatFilter> for camera_service::StreamFormatFilter {
             frame_rate: value
                 .frame_rate
                 .as_ref()
-                .map(|value| camera_service::FrameRate {
+                .map(|value| media_service::FrameRate {
                     numerator: value.numerator,
                     denominator: value.denominator,
                 }),
@@ -110,7 +110,7 @@ impl From<&PyStreamFormatFilter> for camera_service::StreamFormatFilter {
 }
 
 /// A concrete camera stream format.
-#[gen_stub_pyclass(module = "cairn.camera")]
+#[gen_stub_pyclass(module = "cairn.media")]
 #[pyclass(skip_from_py_object, module = "cairn", name = "StreamFormat", get_all)]
 #[derive(Clone)]
 pub struct PyStreamFormat {
@@ -141,28 +141,28 @@ impl PyStreamFormat {
 }
 
 /// An immutable camera stream configuration, discovered or supplied by the caller.
-#[gen_stub_pyclass(module = "cairn.camera")]
+#[gen_stub_pyclass(module = "cairn.media")]
 #[pyclass(skip_from_py_object, module = "cairn", name = "StreamConfiguration")]
 #[derive(Clone)]
-pub struct PyStreamConfiguration(pub(crate) camera_service::StreamConfiguration);
+pub struct PyStreamConfiguration(pub(crate) media_service::StreamConfiguration);
 
 #[gen_stub_pymethods]
 #[pymethods]
 impl PyStreamConfiguration {
     /// Create a camera stream configuration from caller-supplied values.
-    /// Prefer CameraService.get_stream_configurations() to obtain configurations advertised by a camera. This constructor does not query the camera or validate format support.
+    /// Prefer MediaService.get_stream_configurations() to obtain configurations advertised by a camera. This constructor does not query the camera or validate format support.
     #[new]
     fn new(target: String, camera_id: u64, format: PyRef<'_, PyStreamFormat>) -> Self {
-        Self(camera_service::StreamConfiguration::new(
+        Self(media_service::StreamConfiguration::new(
             target,
             camera_id,
-            camera_service::StreamFormat {
-                resolution: camera_service::Resolution {
+            media_service::StreamFormat {
+                resolution: media_service::Resolution {
                     width: format.resolution.width,
                     height: format.resolution.height,
                 },
                 pixel_format: format.pixel_format.clone(),
-                frame_rate: camera_service::FrameRate {
+                frame_rate: media_service::FrameRate {
                     numerator: format.frame_rate.numerator,
                     denominator: format.frame_rate.denominator,
                 },
@@ -200,8 +200,8 @@ impl PyStreamConfiguration {
     }
 }
 
-impl From<camera_service::StreamConfiguration> for PyStreamConfiguration {
-    fn from(value: camera_service::StreamConfiguration) -> Self {
+impl From<media_service::StreamConfiguration> for PyStreamConfiguration {
+    fn from(value: media_service::StreamConfiguration) -> Self {
         Self(value)
     }
 }

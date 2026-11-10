@@ -22,7 +22,7 @@ services:
     image: debian:trixie
     restart: unless-stopped
     depends_on:
-      - camera-service
+      - media-service
     environment:
       XDG_RUNTIME_DIR: /run/pipewire
     volumes:
@@ -35,4 +35,4 @@ services:
       gstreamer1.0-plugins-good
       gstreamer1.0-pipewire
       && rm -rf /var/lib/apt/lists/*
-      && /bin/bash /workspaces/cairn-sdk/services/camera/scripts/dev-spoof-pipewire-camera.sh"
+      && /bin/bash /workspaces/cairn-sdk/services/media/scripts/dev-spoof-pipewire-camera.sh"

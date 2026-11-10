@@ -37,7 +37,7 @@ jobs:
         with:
           workspaces: |
             lib -> target
-            services/camera -> target
+            services/media -> target
             services/messaging -> target
           save-if: ${{ github.event_name == 'push' }}
 
@@ -70,7 +70,7 @@ jobs:
 
       - name: Compare package and service legal files with the root copies
         run: |
-          for directory in lib lib/crates/* services/camera services/messaging services/perception; do
+          for directory in lib lib/crates/* services/media services/messaging services/perception; do
             for name in LICENSE THIRD-PARTY-DISCLAIMER.txt; do
               document="$directory/$name"
               if [ -L "$document" ] || [ ! -f "$document" ] || ! cmp -s "$name" "$document"; then

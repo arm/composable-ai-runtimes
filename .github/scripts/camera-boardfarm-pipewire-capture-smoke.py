@@ -17,13 +17,14 @@ from typing import TypedDict
 
 import docker
 import pytest
-from camera_smoke.artifacts import (
+from docker.errors import APIError, BuildError, DockerException
+from docker.models.containers import Container
+from media_smoke.artifacts import (
     write_command_transcript,
     write_text_artifact,
 )
-from camera_smoke.camera_service import CAMERA_STARTUP_FAILURE_PATTERN
-from camera_smoke.commands import CommandResult, run_command
-from camera_smoke.compose import (
+from media_smoke.commands import CommandResult, run_command
+from media_smoke.compose import (
     build_compose_command,
     cleanup_compose,
     get_compose_logs,
@@ -31,18 +32,17 @@ from camera_smoke.compose import (
     is_compose_service_running,
     write_compose_diagnostics,
 )
-from camera_smoke.docker import remove_container_by_name
-from camera_smoke.network import can_connect_to_tcp
-from camera_smoke.time import get_utc_now
-from docker.errors import APIError, BuildError, DockerException
-from docker.models.containers import Container
+from media_smoke.docker import remove_container_by_name
+from media_smoke.media_service import MEDIA_STARTUP_FAILURE_PATTERN
+from media_smoke.network import can_connect_to_tcp
+from media_smoke.time import get_utc_now
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-COMPOSE_FILE = REPO_ROOT / "services" / "camera" / "compose.yaml"
-CLIENT_CONTEXT = REPO_ROOT / ".github" / "scripts" / "camera_smoke"
+COMPOSE_FILE = REPO_ROOT / "services" / "media" / "compose.yaml"
+CLIENT_CONTEXT = REPO_ROOT / ".github" / "scripts" / "media_smoke"
 CLIENT_DOCKERFILE = CLIENT_CONTEXT / "pipewire_capture.Dockerfile"
 TEST_RESULTS_DIR = REPO_ROOT / "test-results" / "camera-boardfarm-pipewire-capture-smoke"
-SERVICE_NAME = "camera-service"
+SERVICE_NAME = "media-service"
 GRPC_HOST = "127.0.0.1"
 GRPC_PORT = 50051
 STARTUP_TIMEOUT_SECONDS = 60
@@ -79,19 +79,19 @@ def wait_for_startup() -> tuple[bool, str]:
 
     while time.monotonic() < deadline:
         logs = get_compose_logs(COMPOSE_FILE, cwd=REPO_ROOT)
-        if CAMERA_STARTUP_FAILURE_PATTERN.search(logs):
+        if MEDIA_STARTUP_FAILURE_PATTERN.search(logs):
             return False, "startup logs contain a known failure pattern"
         if has_compose_service_exited(COMPOSE_FILE, SERVICE_NAME, cwd=REPO_ROOT):
-            return False, "camera-service process exited during startup"
+            return False, "media-service process exited during startup"
         if (
             is_compose_service_running(COMPOSE_FILE, SERVICE_NAME, cwd=REPO_ROOT)
             and can_connect_to_tcp(GRPC_HOST, GRPC_PORT)
-            and "starting camera API server" in logs
+            and "starting media API server" in logs
         ):
-            return True, "camera service is running and accepting TCP connections"
+            return True, "media service is running and accepting TCP connections"
         time.sleep(POLL_INTERVAL_SECONDS)
 
-    return False, "timed out waiting for camera service startup readiness"
+    return False, "timed out waiting for media service startup readiness"
 
 
 def read_os_release() -> str | None:
@@ -134,7 +134,7 @@ def cleanup_compose_and_record_result(metadata: JsonObject) -> None:
         )
 
 
-def start_camera_service(metadata: JsonObject) -> None:
+def start_media_service(metadata: JsonObject) -> None:
     up_result = run_command(
         *build_compose_command(COMPOSE_FILE, "up", "-d", "--build"),
         cwd=REPO_ROOT,
@@ -145,11 +145,11 @@ def start_camera_service(metadata: JsonObject) -> None:
         fail_with_result(
             metadata,
             "service_runtime_socket_setup_failed",
-            "Camera Compose startup command failed. See compose-up.txt.",
+            "Media Service Compose startup command failed. See compose-up.txt.",
         )
 
 
-def verify_camera_service_started(metadata: JsonObject) -> None:
+def verify_media_service_started(metadata: JsonObject) -> None:
     ready, startup_message = wait_for_startup()
     metadata["startup_ready"] = ready
     metadata["startup_result"] = startup_message
@@ -269,7 +269,7 @@ def compose_volume_name() -> str:
     project_name = os.environ.get("COMPOSE_PROJECT_NAME")
     if project_name:
         return f"{project_name}_pipewire-runtime"
-    return "camera_pipewire-runtime"
+    return "media_pipewire-runtime"
 
 
 def container_output(container: Container, *, stdout: bool, stderr: bool) -> str:
@@ -485,8 +485,8 @@ def test_camera_boardfarm_pipewire_capture_smoke(
     pipewire_capture_metadata: JsonObject,
     docker_client: docker.DockerClient,
 ) -> None:
-    start_camera_service(pipewire_capture_metadata)
-    verify_camera_service_started(pipewire_capture_metadata)
+    start_media_service(pipewire_capture_metadata)
+    verify_media_service_started(pipewire_capture_metadata)
     camera = get_configured_camera_target(pipewire_capture_metadata)
     verify_direct_pipewire_capture(pipewire_capture_metadata, docker_client, camera)
     pipewire_capture_metadata["result"] = "passed"

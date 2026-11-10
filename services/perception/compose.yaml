@@ -69,7 +69,7 @@ services:
                 content_type: application/json
                 schema: schemas/perception-lifecycle-event.schema.json
       dependencies:
-        cairn.camera-service: required
+        cairn.media-service: required
         cairn.messaging-service: required
 
 volumes:

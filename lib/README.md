@@ -46,8 +46,8 @@ uv run --locked python -m pytest -m e2e tests/test_e2e_perception_workflow.py
 
 The Rust SDK lives at `crates/cairn` and is published as the `arm-cairn`
 Cargo package; its Rust import name is `cairn`. Its supporting client packages
-are `arm-cairn-camera`, `arm-cairn-notification`, and `arm-cairn-perception`.
-The SDK provides typed clients for the Camera, Notification, and Perception
+are `arm-cairn-media`, `arm-cairn-notification`, and `arm-cairn-perception`.
+The SDK provides typed clients for the Media, Notification, and Perception
 services. `NotificationService` takes a gRPC health endpoint and connects to
 Redis at `127.0.0.1:6379` after the service reports readiness.
 

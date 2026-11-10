@@ -98,7 +98,7 @@ Compose:
 
 ```bash
 docker compose -f services/compose.yaml config
-docker compose -f services/camera/compose.yaml config
+docker compose -f services/media/compose.yaml config
 ```
 
 Messaging:
@@ -108,12 +108,12 @@ docker compose -f services/compose.yaml build messaging
 docker compose -f services/compose.yaml up -d messaging
 ```
 
-Camera:
+Media:
 
 ```bash
-docker compose -f services/compose.yaml build camera-service
-docker compose -f services/camera/compose.yaml up --build
-cd services/camera
+docker compose -f services/compose.yaml build media-service
+docker compose -f services/media/compose.yaml up --build
+cd services/media
 cargo fmt --all -- --check
 cargo clippy --all-targets --all-features --no-deps
 cargo test --all-targets --all-features

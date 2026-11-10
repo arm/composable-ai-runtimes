@@ -13,9 +13,9 @@ from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
-from camera_smoke.artifacts import write_command_transcript, write_text_artifact
-from camera_smoke.commands import run_command
-from camera_smoke.time import get_utc_now
+from media_smoke.artifacts import write_command_transcript, write_text_artifact
+from media_smoke.commands import run_command
+from media_smoke.time import get_utc_now
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 ENGINE = os.environ.get("TOPO_SMOKE_ENGINE", "docker")

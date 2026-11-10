@@ -69,16 +69,16 @@ version = "0.0.0"
 source = { virtual = "." }
 
 [package.dev-dependencies]
-camera-container-smoke = [
+media-container-smoke = [
     { name = "docker" },
     { name = "pytest" },
 ]
-camera-notifications-smoke = [
+media-notifications-smoke = [
     { name = "protobuf" },
     { name = "pytest" },
     { name = "redis" },
 ]
-camera-smoke = [
+media-smoke = [
     { name = "pytest" },
 ]
 compose-validation = [
@@ -108,16 +108,16 @@ release = [
 [package.metadata]
 
 [package.metadata.requires-dev]
-camera-container-smoke = [
+media-container-smoke = [
     { name = "docker", specifier = "==7.1.0" },
     { name = "pytest", specifier = "==9.1.1" },
 ]
-camera-notifications-smoke = [
+media-notifications-smoke = [
     { name = "protobuf", specifier = "==7.35.1" },
     { name = "pytest", specifier = "==9.1.1" },
     { name = "redis", specifier = "==8.1.0" },
 ]
-camera-smoke = [{ name = "pytest", specifier = "==9.1.1" }]
+media-smoke = [{ name = "pytest", specifier = "==9.1.1" }]
 compose-validation = [
     { name = "jsonschema", specifier = "==4.26.0" },
     { name = "pyyaml", specifier = "==6.0.2" },

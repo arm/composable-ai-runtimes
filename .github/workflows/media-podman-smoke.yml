@@ -1,0 +1,113 @@
+# SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
+# SPDX-License-Identifier: Apache-2.0
+
+name: Media Podman Smoke
+
+on:
+  merge_group:
+    types: [checks_requested]
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  changes:
+    if: vars.INTERNAL_REPO == 'true'
+    uses: ./.github/workflows/ci-detect-changes.yml
+    permissions:
+      contents: read
+    with:
+      paths: |
+        .github/scripts/camera-boardfarm-list-cameras-smoke.py
+        .github/scripts/media_smoke/**
+        .github/workflows/media-podman-smoke.yml
+        pyproject.toml
+        uv.lock
+        services/media/**
+        .github/workflows/ci-detect-changes.yml
+        .github/workflows/ci-evaluate-results.yml
+
+  boardfarm-rootful-podman-smoke:
+    needs: changes
+    if: vars.INTERNAL_REPO == 'true' && needs.changes.outputs.changed == 'true' && (github.event_name == 'merge_group' || github.event_name == 'workflow_dispatch')
+    name: Validate media service with rootful Podman on Pi board farm
+    runs-on: [self-hosted, Linux, ARM64, boardfarm, pi5]
+    concurrency:
+      group: camera-boardfarm-pi5-usb-camera
+      queue: max
+      cancel-in-progress: false
+    timeout-minutes: 30
+    env:
+      COMPOSE_PROJECT_NAME: camera-boardfarm-podman-${{ github.run_id }}
+      CONTAINER_ENGINE: podman
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          version-file: ${{ github.workspace }}/pyproject.toml
+          checksum: "4bb69cf95ed13f23713bb7bc09f241896ea0c75b7c557e615a20604b82f9c403"
+
+      - name: Prepare media service board-farm runner
+        run: uv run --locked --only-group media-smoke python .github/scripts/media_smoke/runner_maintenance.py
+
+      - name: Verify rootful Podman
+        run: |
+          mkdir -p test-results/camera-boardfarm-list-cameras-smoke
+          sudo --non-interactive podman info > test-results/camera-boardfarm-list-cameras-smoke/podman-info.txt
+          test "$(sudo --non-interactive podman info --format '{{.Host.Security.Rootless}}')" = false
+
+      - name: Log in to GHCR
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and load media image
+        run: |
+          set -euo pipefail
+          docker build --tag media-service:latest services/media
+          docker save media-service:latest | sudo --non-interactive podman load
+          sudo --non-interactive podman image exists media-service:latest
+
+      - name: Install grpcurl
+        run: |
+          curl -fsSL https://github.com/fullstorydev/grpcurl/releases/download/v1.9.3/grpcurl_1.9.3_linux_arm64.tar.gz \
+            | tar -xz -C "${RUNNER_TEMP}" grpcurl
+
+      - name: Launch and query the media service
+        env:
+          GRPCURL_BIN: ${{ runner.temp }}/grpcurl
+        run: |
+          uv run --locked --only-group media-smoke python -m pytest \
+            .github/scripts/camera-boardfarm-list-cameras-smoke.py \
+            --junitxml=test-results/camera-boardfarm-list-cameras-smoke/junit.xml
+
+      - name: Clean up rootful Podman resources
+        if: always()
+        run: |
+          status=0
+          sudo --non-interactive podman compose --project-name "${COMPOSE_PROJECT_NAME}" -f services/media/compose.yaml down --volumes --remove-orphans || status=$?
+          sudo --non-interactive podman image rm --force media-service:latest || status=$?
+          exit "${status}"
+
+      - name: Upload smoke results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: camera-boardfarm-rootful-podman-smoke-results
+          path: test-results/camera-boardfarm-list-cameras-smoke/
+
+  required:
+    name: CI / Media Podman Smoke
+    if: always() && vars.INTERNAL_REPO == 'true' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')
+    needs: [changes, boardfarm-rootful-podman-smoke]
+    uses: ./.github/workflows/ci-evaluate-results.yml
+    with:
+      results: ${{ toJSON(needs) }}
+      queue_only_job_ids: '["boardfarm-rootful-podman-smoke"]'

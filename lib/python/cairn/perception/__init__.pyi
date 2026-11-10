@@ -8,7 +8,7 @@ Python interface for constructing, validating, and deploying Perception workflow
 """
 
 import builtins
-from cairn import camera
+from cairn import media
 import collections.abc
 import enum
 import typing
@@ -798,7 +798,7 @@ class PerceptionWorkflow:
     await ``PerceptionService.validate()`` or ``deploy()``. Models must already be
     registered on the service.
     """
-    def __new__(cls, name: builtins.str, source_configuration: camera.StreamConfiguration, *, output_events: builtins.bool = True) -> PerceptionWorkflow:
+    def __new__(cls, name: builtins.str, source_configuration: media.StreamConfiguration, *, output_events: builtins.bool = True) -> PerceptionWorkflow:
         r"""
         Create a workflow with the given name and camera stream configuration.
         Pass `output_events=False` to disable lifecycle-event publication. The

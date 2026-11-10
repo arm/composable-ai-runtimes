@@ -12,27 +12,27 @@ from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
-from camera_smoke.artifacts import write_command_transcript, write_text_artifact
-from camera_smoke.camera_service import CAMERA_STARTUP_FAILURE_PATTERN
-from camera_smoke.commands import CommandResult
-from camera_smoke.commands import run_command as run_shell_command
-from camera_smoke.compose import (
+from media_smoke.artifacts import write_command_transcript, write_text_artifact
+from media_smoke.commands import CommandResult
+from media_smoke.commands import run_command as run_shell_command
+from media_smoke.compose import (
     build_compose_command as build_shared_compose_command,
 )
-from camera_smoke.compose import (
+from media_smoke.compose import (
     cleanup_compose,
     get_compose_logs,
     has_compose_service_exited,
     is_compose_service_running,
     write_compose_diagnostics,
 )
-from camera_smoke.grpc import classify_grpcurl_failure
-from camera_smoke.helpers import with_timeout
-from camera_smoke.network import can_connect_to_tcp
-from camera_smoke.time import get_utc_now
+from media_smoke.grpc import classify_grpcurl_failure
+from media_smoke.helpers import with_timeout
+from media_smoke.media_service import MEDIA_STARTUP_FAILURE_PATTERN
+from media_smoke.network import can_connect_to_tcp
+from media_smoke.time import get_utc_now
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-COMPOSE_FILE = REPO_ROOT / "services" / "camera" / "compose.yaml"
+COMPOSE_FILE = REPO_ROOT / "services" / "media" / "compose.yaml"
 FAILURE_COMPOSE_FILE = (
     REPO_ROOT
     / ".github"
@@ -42,18 +42,18 @@ FAILURE_COMPOSE_FILE = (
 TEST_RESULTS_DIR = (
     REPO_ROOT / "test-results" / "camera-boardfarm-format-collection-failure"
 )
-SERVICE_NAME = "camera-service"
+SERVICE_NAME = "media-service"
 GRPC_HOST = "127.0.0.1"
 GRPC_PORT = 50051
 GRPC_TARGET = f"{GRPC_HOST}:{GRPC_PORT}"
 GRPCURL_BINARY_ENV = "GRPCURL_BIN"
 GRPCURL_DEFAULT_BINARY = "grpcurl"
-CAMERA_SERVICE_PROTO = (
-    REPO_ROOT / "services" / "camera" / "proto" / "camera_service.proto"
+MEDIA_SERVICE_PROTO = (
+    REPO_ROOT / "services" / "media" / "proto" / "media_service.proto"
 )
-CAMERA_SERVICE_PROTO_ARG = str(CAMERA_SERVICE_PROTO.relative_to(REPO_ROOT))
-LIST_CAMERAS_METHOD = "camera.pipewire.v1.CameraService/ListCameras"
-GET_STREAM_CONFIGURATIONS_METHOD = "camera.pipewire.v1.CameraService/get_stream_configurations"
+MEDIA_SERVICE_PROTO_ARG = str(MEDIA_SERVICE_PROTO.relative_to(REPO_ROOT))
+LIST_CAMERAS_METHOD = "media.pipewire.v1.MediaService/ListCameras"
+GET_STREAM_CONFIGURATIONS_METHOD = "media.pipewire.v1.MediaService/get_stream_configurations"
 STARTUP_TIMEOUT_SECONDS = 60
 CAMERA_DISCOVERY_TIMEOUT_SECONDS = 60
 POLL_INTERVAL_SECONDS = 2
@@ -74,21 +74,21 @@ def run_command(*args: str) -> CommandResult:
     interval_seconds=POLL_INTERVAL_SECONDS,
     on_timeout=lambda: (
         False,
-        "timed out waiting for camera service startup readiness",
+        "timed out waiting for media service startup readiness",
     ),
 )
 def wait_for_startup() -> tuple[bool, str] | None:
     logs = get_compose_logs(COMPOSE_FILE, cwd=REPO_ROOT)
-    if CAMERA_STARTUP_FAILURE_PATTERN.search(logs):
+    if MEDIA_STARTUP_FAILURE_PATTERN.search(logs):
         return False, "startup logs contain a known failure pattern"
     if has_compose_service_exited(COMPOSE_FILE, SERVICE_NAME, cwd=REPO_ROOT):
-        return False, "camera-service process exited during startup"
+        return False, "media-service process exited during startup"
     if (
         is_compose_service_running(COMPOSE_FILE, SERVICE_NAME, cwd=REPO_ROOT)
         and can_connect_to_tcp(GRPC_HOST, GRPC_PORT)
-        and "starting camera API server" in logs
+        and "starting media API server" in logs
     ):
-        return True, "camera service is running and accepting TCP connections"
+        return True, "media service is running and accepting TCP connections"
     return None
 
 
@@ -106,7 +106,7 @@ def wait_for_camera_id(grpcurl_binary: str) -> str | int | None:
         grpcurl_binary,
         "-plaintext",
         "-max-time", "10",
-        "-proto", CAMERA_SERVICE_PROTO_ARG,
+        "-proto", MEDIA_SERVICE_PROTO_ARG,
         "-d", "{}",
         GRPC_TARGET,
         LIST_CAMERAS_METHOD,
@@ -133,7 +133,7 @@ def metadata() -> Iterator[JsonObject]:
         "compose_project_name": os.environ.get("COMPOSE_PROJECT_NAME"),
         "grpcurl_binary": os.environ.get(GRPCURL_BINARY_ENV, GRPCURL_DEFAULT_BINARY),
         "grpc_target": GRPC_TARGET,
-        "grpc_proto": CAMERA_SERVICE_PROTO_ARG,
+        "grpc_proto": MEDIA_SERVICE_PROTO_ARG,
         "board_id": (
             os.environ.get("CAMERA_BOARDFARM_BOARD_ID")
             or os.environ.get("BOARD_ID")
@@ -177,7 +177,7 @@ def test_camera_format_collection_failure(metadata: JsonObject) -> None:
         fail_with_result(
             metadata,
             "compose_start_failed",
-            "Camera Compose startup command failed. See compose-up.txt.",
+            "Media Service Compose startup command failed. See compose-up.txt.",
         )
 
     ready, startup_message = wait_for_startup()
@@ -198,7 +198,7 @@ def test_camera_format_collection_failure(metadata: JsonObject) -> None:
         "-plaintext",
         "-max-time", "10",
         "-proto",
-        CAMERA_SERVICE_PROTO_ARG,
+        MEDIA_SERVICE_PROTO_ARG,
         "-d",
         json.dumps({"cameraId": camera_id}),
         GRPC_TARGET,

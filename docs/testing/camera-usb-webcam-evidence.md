@@ -26,8 +26,8 @@ webcam target in [camera-test.md](camera-test.md) to `Supported`.
 ## Camera Discovery
 
 The `camera-boardfarm-list-cameras-smoke-results` artifact from the workflow
-run recorded a successful `CameraService.list_cameras` response after the
-camera service started and accepted TCP connections on `127.0.0.1:50051`.
+run recorded a successful camera-listing response after the
+media service started and accepted TCP connections on `127.0.0.1:50051`.
 
 | Camera name | Supported formats |
 | --- | --- |

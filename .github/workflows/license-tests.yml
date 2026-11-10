@@ -33,7 +33,7 @@ jobs:
         .github/scripts/rust-notices/**
         .github/scripts/check_license_headers.py
         services/*/scripts/source_links.py
-        services/camera/Dockerfile
+        services/media/Dockerfile
         services/perception/Dockerfile
         lib/Cargo.toml
         lib/Cargo.lock
@@ -75,7 +75,7 @@ jobs:
           checksum: "f68d291c75783122dad58ab77def0e13f3233f358731db5d6d7e8715603b928f"
 
       - name: Check PipeWire inventory against committed build pins
-        run: python .github/scripts/sbom/check_pipewire.py services/camera services/perception
+        run: python .github/scripts/sbom/check_pipewire.py services/media services/perception
 
       - name: Test source report format
         run: |
