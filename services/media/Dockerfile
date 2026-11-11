@@ -3,9 +3,10 @@
 
 ARG BASE_IMAGE=docker.io/library/debian:trixie@sha256:3352c2e13876c8a5c5873ef20870e1939e73cb9a3c1aeba5e3e72172a85ce9ed
 ARG RUST_IMAGE=docker.io/library/rust:1.99.1-trixie@sha256:931c2c0531a8b143e044f0f3914dfe802f15bb3d1955f0b657e9359327ac2ffc
-ARG PIPEWIRE_VERSION=1.6.9
-ARG PIPEWIRE_COMMIT=8fa27cabdc6c0c1350c69c026af5850ef0af1e26
-ARG RPI_LIBCAMERA_VERSION=0.7.2+rpt20261009-1
+ARG PIPEWIRE_VERSION=1.6.11
+# Stable 1.6 backport of libcamera 0.8 support, not yet in a release tag.
+ARG PIPEWIRE_COMMIT=15c4a92ceae560a4e8c6c14b8c338db075860a57
+ARG RPI_LIBCAMERA_VERSION=0.8.0+rpt20261104-1
 
 FROM ${BASE_IMAGE} AS package-repositories
 
@@ -47,6 +48,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /tmp
 RUN git clone --branch "${PIPEWIRE_VERSION}" --depth 1 \
       https://gitlab.freedesktop.org/pipewire/pipewire.git pipewire-src \
+  && git -C pipewire-src fetch --depth 1 origin "${PIPEWIRE_COMMIT}" \
+  && git -C pipewire-src checkout --detach "${PIPEWIRE_COMMIT}" \
   && test "$(git -C pipewire-src rev-parse HEAD)" = "${PIPEWIRE_COMMIT}" \
   && git -C pipewire-src rev-parse HEAD > pipewire-src/source-revision
 
@@ -123,13 +126,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libavahi-client3=0.8-16 \
     libcamera-ipa="${RPI_LIBCAMERA_VERSION}" \
     libcamera-v4l2="${RPI_LIBCAMERA_VERSION}" \
-    libcamera0.7="${RPI_LIBCAMERA_VERSION}" \
+    libcamera0.8="${RPI_LIBCAMERA_VERSION}" \
     libcap2-bin=1:2.75-10+deb13u1+b3 \
     libdbus-1-3=1.16.2-2 \
     libdrm2=2.4.124-2 \
     libgbm1=25.0.7-2+deb13u1 \
     libglib2.0-0t64=2.84.4-3~deb13u5 \
-    libpisp1=1.7.0-1 \
+    libpisp1=1.8.0-1 \
     libsystemd0=257.13-1~deb13u1 \
     libudev1=257.13-1~deb13u1 \
     libunwind8=1.8.1-0.1 \

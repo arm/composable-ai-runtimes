@@ -6,7 +6,7 @@
     {
       "type": "library",
       "name": "pipewire",
-      "version": "1.6.9",
+      "version": "1.6.11",
       "description": "Source-built PipeWire daemon, libraries, tools, and plugins; not a transitive dependency inventory.",
       "licenses": [
         {
@@ -15,11 +15,11 @@
           }
         }
       ],
-      "purl": "pkg:generic/pipewire@1.6.9?vcs_url=git%2Bhttps%3A%2F%2Fgitlab.freedesktop.org%2Fpipewire%2Fpipewire.git%408fa27cabdc6c0c1350c69c026af5850ef0af1e26",
+      "purl": "pkg:generic/pipewire@1.6.11?vcs_url=git%2Bhttps%3A%2F%2Fgitlab.freedesktop.org%2Fpipewire%2Fpipewire.git%4015c4a92ceae560a4e8c6c14b8c338db075860a57",
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://gitlab.freedesktop.org/pipewire/pipewire/-/archive/8fa27cabdc6c0c1350c69c026af5850ef0af1e26/pipewire-8fa27cabdc6c0c1350c69c026af5850ef0af1e26.tar.gz"
+          "url": "https://gitlab.freedesktop.org/pipewire/pipewire/-/archive/15c4a92ceae560a4e8c6c14b8c338db075860a57/pipewire-15c4a92ceae560a4e8c6c14b8c338db075860a57.tar.gz"
         }
       ]
     }

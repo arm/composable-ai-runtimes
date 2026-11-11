@@ -3,8 +3,8 @@
 
 x-redis-port: &redis_port 6379
 x-pipewire-build-args: &pipewire_build_args
-  PIPEWIRE_VERSION: "1.6.9"
-  PIPEWIRE_COMMIT: 8fa27cabdc6c0c1350c69c026af5850ef0af1e26
+  PIPEWIRE_VERSION: "1.6.11"
+  PIPEWIRE_COMMIT: 15c4a92ceae560a4e8c6c14b8c338db075860a57
 
 services:
   messaging-service:

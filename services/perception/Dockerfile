@@ -3,8 +3,9 @@
 
 ARG PYTHON_IMAGE=docker.io/library/python:3.13.17-slim-trixie@sha256:19ed48e5e9c132082510ba9efb11bc2098d582f610374670fa30b6b17026617b
 ARG UV_IMAGE=ghcr.io/astral-sh/uv:0.13.5@sha256:32a7bb39b496babbd997b0a39a4d66c126bdaf5661b302bf6f06abda8deca6ff
-ARG PIPEWIRE_VERSION=1.6.9
-ARG PIPEWIRE_COMMIT=8fa27cabdc6c0c1350c69c026af5850ef0af1e26
+ARG PIPEWIRE_VERSION=1.6.11
+# Stable 1.6 backport of libcamera 0.8 support, not yet in a release tag.
+ARG PIPEWIRE_COMMIT=15c4a92ceae560a4e8c6c14b8c338db075860a57
 
 FROM ${PYTHON_IMAGE} AS package-repositories
 
@@ -89,6 +90,8 @@ RUN apt-get update \
 WORKDIR /tmp
 RUN git clone --branch "${PIPEWIRE_VERSION}" --depth 1 \
       https://gitlab.freedesktop.org/pipewire/pipewire.git pipewire-src \
+  && git -C pipewire-src fetch --depth 1 origin "${PIPEWIRE_COMMIT}" \
+  && git -C pipewire-src checkout --detach "${PIPEWIRE_COMMIT}" \
   && test "$(git -C pipewire-src rev-parse HEAD)" = "${PIPEWIRE_COMMIT}" \
   && git -C pipewire-src rev-parse HEAD > pipewire-src/source-revision
 
