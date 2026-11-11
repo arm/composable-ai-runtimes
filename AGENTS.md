@@ -182,6 +182,11 @@ Before completion:
 
 ## Pull requests
 
+Preserve PR template headings, checklist wording, links, and comments verbatim.
+Only change checkbox states and fill designated content sections. Do not append
+explanations to checklist items; put relevant explanations in the appropriate
+description section.
+
 Keep each PR to at most 500 changed lines, counting additions and deletions
 against its base branch. Split changes exceeding 500 lines into multiple
 logically cohesive PRs unless the change cannot be logically split.
