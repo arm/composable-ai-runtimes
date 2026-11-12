@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from cairn.perception.v1 import perception_pb2
+from perception_service._proto.perception.v1 import perception_pb2
 from perception_service.opk.config import OpkCommEndpoint
 from perception_service.workflow.issues import ValidationCode
 from perception_service.workflow.model_registry import ModelRegistry

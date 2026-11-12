@@ -15,7 +15,7 @@ import pytest
 from grpc_health.v1 import health, health_pb2, health_pb2_grpc
 
 import perception_service.service as service_module
-from cairn.perception.v1 import perception_pb2, perception_pb2_grpc
+from perception_service._proto.perception.v1 import perception_pb2, perception_pb2_grpc
 from perception_service.gstreamer.errors import PipelineError, RuntimeUnavailableError
 from perception_service.messaging.lifecycle import (
     LifecyclePublisher,

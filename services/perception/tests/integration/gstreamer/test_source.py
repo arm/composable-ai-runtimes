@@ -7,7 +7,7 @@ import pytest
 gi.require_version("Gst", "1.0")
 from gi.repository import Gst  # noqa: E402
 
-from cairn.perception.v1 import perception_pb2  # noqa: E402
+from perception_service._proto.perception.v1 import perception_pb2  # noqa: E402
 from perception_service.workflow.stages.source import (  # noqa: E402
     CameraSourceDefinition,
 )

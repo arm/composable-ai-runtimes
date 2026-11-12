@@ -3,7 +3,7 @@
 
 import pytest
 
-from cairn.perception.v1 import perception_pb2
+from perception_service._proto.perception.v1 import perception_pb2
 import perception_service.workflow.stages.source as source_module
 from perception_service.gstreamer.values import (
     MAX_GSTREAMER_INT,

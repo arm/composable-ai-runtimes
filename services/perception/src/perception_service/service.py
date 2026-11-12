@@ -16,7 +16,7 @@ import grpc
 from grpc_health.v1 import health, health_pb2, health_pb2_grpc
 from loguru import logger
 
-from cairn.perception.v1 import perception_pb2, perception_pb2_grpc
+from perception_service._proto.perception.v1 import perception_pb2, perception_pb2_grpc
 from perception_service.messaging.lifecycle import (
     LifecyclePublisher,
     SessionState,

@@ -6,7 +6,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import ClassVar
 
-from cairn.perception.v1.perception_pb2 import (
+from perception_service._proto.perception.v1.perception_pb2 import (
     StreamConfiguration,
     DebugOutput,
     InferenceStage,

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
 # SPDX-License-Identifier: Apache-2.0
 
-from cairn.perception.v1.perception_pb2 import (
+from perception_service._proto.perception.v1.perception_pb2 import (
     RESOLVED_STAGE_ROLE_PROCESSING,
     ValidationIssue,
 )

@@ -4,7 +4,7 @@
 from collections.abc import Iterable
 from dataclasses import dataclass
 
-from cairn.perception.v1.perception_pb2 import (
+from perception_service._proto.perception.v1.perception_pb2 import (
     OutputSpec,
     ResolvedStage,
     WorkflowSpec,

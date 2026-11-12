@@ -40,12 +40,13 @@ perception_proto_dir="${service_dir}/proto"
 messaging_proto_dir="${repo_root}/services/messaging/proto"
 perception_proto="cairn/perception/v1/perception.proto"
 messaging_proto="cairn/messaging/v1/messaging.proto"
+perception_python_proto_path="perception_service/_proto"
 generated_files=(
-  cairn/perception/v1/perception_pb2.py
-  cairn/perception/v1/perception_pb2.pyi
-  cairn/perception/v1/perception_pb2_grpc.py
-  cairn/messaging/v1/messaging_pb2.py
-  cairn/messaging/v1/messaging_pb2.pyi
+  "${perception_python_proto_path}/perception/v1/perception_pb2.py"
+  "${perception_python_proto_path}/perception/v1/perception_pb2.pyi"
+  "${perception_python_proto_path}/perception/v1/perception_pb2_grpc.py"
+  "${perception_python_proto_path}/messaging/v1/messaging_pb2.py"
+  "${perception_python_proto_path}/messaging/v1/messaging_pb2.pyi"
 )
 
 if [[ "${check_only}" == true ]]; then
@@ -59,16 +60,16 @@ fi
   cd "${service_dir}"
   uv sync --project "${repo_root}" --locked --only-group proto
   uv run --project "${repo_root}" --no-sync python -m grpc_tools.protoc \
-    --proto_path="${perception_proto_dir}" \
-    --proto_path="${messaging_proto_dir}" \
+    --proto_path="${perception_python_proto_path}=${perception_proto_dir}/cairn" \
+    --proto_path="${perception_python_proto_path}=${messaging_proto_dir}/cairn" \
     --python_out="${output_dir}" \
     --pyi_out="${output_dir}" \
-    "${perception_proto}" \
-    "${messaging_proto}"
+    "${perception_proto_dir}/${perception_proto}" \
+    "${messaging_proto_dir}/${messaging_proto}"
   uv run --project "${repo_root}" --no-sync python -m grpc_tools.protoc \
-    --proto_path="${perception_proto_dir}" \
+    --proto_path="${perception_python_proto_path}=${perception_proto_dir}/cairn" \
     --grpc_python_out="${output_dir}" \
-    "${perception_proto}"
+    "${perception_proto_dir}/${perception_proto}"
 )
 
 if [[ "${check_only}" == false ]]; then

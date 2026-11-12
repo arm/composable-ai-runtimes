@@ -3,7 +3,7 @@
 import grpc
 import warnings
 
-from cairn.perception.v1 import perception_pb2 as cairn_dot_perception_dot_v1_dot_perception__pb2
+from perception_service._proto.perception.v1 import perception_pb2 as perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2
 
 GRPC_GENERATED_VERSION = '1.83.0'
 GRPC_VERSION = grpc.__version__
@@ -18,7 +18,7 @@ except ImportError:
 if _version_not_supported:
     raise RuntimeError(
         f'The grpc package installed is at version {GRPC_VERSION},'
-        + ' but the generated code in cairn/perception/v1/perception_pb2_grpc.py depends on'
+        + ' but the generated code in perception_service/_proto/perception/v1/perception_pb2_grpc.py depends on'
         + f' grpcio>={GRPC_GENERATED_VERSION}.'
         + f' Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}'
         + f' or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.'
@@ -36,48 +36,48 @@ class PerceptionServiceStub:
         """
         self.GetServiceInfo = channel.unary_unary(
                 '/cairn.perception.v1.PerceptionService/GetServiceInfo',
-                request_serializer=cairn_dot_perception_dot_v1_dot_perception__pb2.GetServiceInfoRequest.SerializeToString,
-                response_deserializer=cairn_dot_perception_dot_v1_dot_perception__pb2.GetServiceInfoResponse.FromString,
+                request_serializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.GetServiceInfoRequest.SerializeToString,
+                response_deserializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.GetServiceInfoResponse.FromString,
                 _registered_method=True)
         self.ValidateWorkflow = channel.unary_unary(
                 '/cairn.perception.v1.PerceptionService/ValidateWorkflow',
-                request_serializer=cairn_dot_perception_dot_v1_dot_perception__pb2.ValidateWorkflowRequest.SerializeToString,
-                response_deserializer=cairn_dot_perception_dot_v1_dot_perception__pb2.ValidateWorkflowResponse.FromString,
+                request_serializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.ValidateWorkflowRequest.SerializeToString,
+                response_deserializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.ValidateWorkflowResponse.FromString,
                 _registered_method=True)
         self.DeployWorkflow = channel.unary_unary(
                 '/cairn.perception.v1.PerceptionService/DeployWorkflow',
-                request_serializer=cairn_dot_perception_dot_v1_dot_perception__pb2.DeployWorkflowRequest.SerializeToString,
-                response_deserializer=cairn_dot_perception_dot_v1_dot_perception__pb2.DeployWorkflowResponse.FromString,
+                request_serializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.DeployWorkflowRequest.SerializeToString,
+                response_deserializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.DeployWorkflowResponse.FromString,
                 _registered_method=True)
         self.GetSession = channel.unary_unary(
                 '/cairn.perception.v1.PerceptionService/GetSession',
-                request_serializer=cairn_dot_perception_dot_v1_dot_perception__pb2.GetSessionRequest.SerializeToString,
-                response_deserializer=cairn_dot_perception_dot_v1_dot_perception__pb2.PerceptionSession.FromString,
+                request_serializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.GetSessionRequest.SerializeToString,
+                response_deserializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.PerceptionSession.FromString,
                 _registered_method=True)
         self.ListSessions = channel.unary_unary(
                 '/cairn.perception.v1.PerceptionService/ListSessions',
-                request_serializer=cairn_dot_perception_dot_v1_dot_perception__pb2.ListSessionsRequest.SerializeToString,
-                response_deserializer=cairn_dot_perception_dot_v1_dot_perception__pb2.ListSessionsResponse.FromString,
+                request_serializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.ListSessionsRequest.SerializeToString,
+                response_deserializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.ListSessionsResponse.FromString,
                 _registered_method=True)
         self.GetSessionSnapshot = channel.unary_unary(
                 '/cairn.perception.v1.PerceptionService/GetSessionSnapshot',
-                request_serializer=cairn_dot_perception_dot_v1_dot_perception__pb2.GetSessionRequest.SerializeToString,
-                response_deserializer=cairn_dot_perception_dot_v1_dot_perception__pb2.SessionSnapshot.FromString,
+                request_serializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.GetSessionRequest.SerializeToString,
+                response_deserializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.SessionSnapshot.FromString,
                 _registered_method=True)
         self.StopSession = channel.unary_unary(
                 '/cairn.perception.v1.PerceptionService/StopSession',
-                request_serializer=cairn_dot_perception_dot_v1_dot_perception__pb2.StopSessionRequest.SerializeToString,
-                response_deserializer=cairn_dot_perception_dot_v1_dot_perception__pb2.PerceptionSession.FromString,
+                request_serializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.StopSessionRequest.SerializeToString,
+                response_deserializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.PerceptionSession.FromString,
                 _registered_method=True)
         self.EnableStage = channel.unary_unary(
                 '/cairn.perception.v1.PerceptionService/EnableStage',
-                request_serializer=cairn_dot_perception_dot_v1_dot_perception__pb2.StageControlRequest.SerializeToString,
-                response_deserializer=cairn_dot_perception_dot_v1_dot_perception__pb2.PerceptionSession.FromString,
+                request_serializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.StageControlRequest.SerializeToString,
+                response_deserializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.PerceptionSession.FromString,
                 _registered_method=True)
         self.DisableStage = channel.unary_unary(
                 '/cairn.perception.v1.PerceptionService/DisableStage',
-                request_serializer=cairn_dot_perception_dot_v1_dot_perception__pb2.StageControlRequest.SerializeToString,
-                response_deserializer=cairn_dot_perception_dot_v1_dot_perception__pb2.PerceptionSession.FromString,
+                request_serializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.StageControlRequest.SerializeToString,
+                response_deserializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.PerceptionSession.FromString,
                 _registered_method=True)
 
 
@@ -143,48 +143,48 @@ def add_PerceptionServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'GetServiceInfo': grpc.unary_unary_rpc_method_handler(
                     servicer.GetServiceInfo,
-                    request_deserializer=cairn_dot_perception_dot_v1_dot_perception__pb2.GetServiceInfoRequest.FromString,
-                    response_serializer=cairn_dot_perception_dot_v1_dot_perception__pb2.GetServiceInfoResponse.SerializeToString,
+                    request_deserializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.GetServiceInfoRequest.FromString,
+                    response_serializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.GetServiceInfoResponse.SerializeToString,
             ),
             'ValidateWorkflow': grpc.unary_unary_rpc_method_handler(
                     servicer.ValidateWorkflow,
-                    request_deserializer=cairn_dot_perception_dot_v1_dot_perception__pb2.ValidateWorkflowRequest.FromString,
-                    response_serializer=cairn_dot_perception_dot_v1_dot_perception__pb2.ValidateWorkflowResponse.SerializeToString,
+                    request_deserializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.ValidateWorkflowRequest.FromString,
+                    response_serializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.ValidateWorkflowResponse.SerializeToString,
             ),
             'DeployWorkflow': grpc.unary_unary_rpc_method_handler(
                     servicer.DeployWorkflow,
-                    request_deserializer=cairn_dot_perception_dot_v1_dot_perception__pb2.DeployWorkflowRequest.FromString,
-                    response_serializer=cairn_dot_perception_dot_v1_dot_perception__pb2.DeployWorkflowResponse.SerializeToString,
+                    request_deserializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.DeployWorkflowRequest.FromString,
+                    response_serializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.DeployWorkflowResponse.SerializeToString,
             ),
             'GetSession': grpc.unary_unary_rpc_method_handler(
                     servicer.GetSession,
-                    request_deserializer=cairn_dot_perception_dot_v1_dot_perception__pb2.GetSessionRequest.FromString,
-                    response_serializer=cairn_dot_perception_dot_v1_dot_perception__pb2.PerceptionSession.SerializeToString,
+                    request_deserializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.GetSessionRequest.FromString,
+                    response_serializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.PerceptionSession.SerializeToString,
             ),
             'ListSessions': grpc.unary_unary_rpc_method_handler(
                     servicer.ListSessions,
-                    request_deserializer=cairn_dot_perception_dot_v1_dot_perception__pb2.ListSessionsRequest.FromString,
-                    response_serializer=cairn_dot_perception_dot_v1_dot_perception__pb2.ListSessionsResponse.SerializeToString,
+                    request_deserializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.ListSessionsRequest.FromString,
+                    response_serializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.ListSessionsResponse.SerializeToString,
             ),
             'GetSessionSnapshot': grpc.unary_unary_rpc_method_handler(
                     servicer.GetSessionSnapshot,
-                    request_deserializer=cairn_dot_perception_dot_v1_dot_perception__pb2.GetSessionRequest.FromString,
-                    response_serializer=cairn_dot_perception_dot_v1_dot_perception__pb2.SessionSnapshot.SerializeToString,
+                    request_deserializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.GetSessionRequest.FromString,
+                    response_serializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.SessionSnapshot.SerializeToString,
             ),
             'StopSession': grpc.unary_unary_rpc_method_handler(
                     servicer.StopSession,
-                    request_deserializer=cairn_dot_perception_dot_v1_dot_perception__pb2.StopSessionRequest.FromString,
-                    response_serializer=cairn_dot_perception_dot_v1_dot_perception__pb2.PerceptionSession.SerializeToString,
+                    request_deserializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.StopSessionRequest.FromString,
+                    response_serializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.PerceptionSession.SerializeToString,
             ),
             'EnableStage': grpc.unary_unary_rpc_method_handler(
                     servicer.EnableStage,
-                    request_deserializer=cairn_dot_perception_dot_v1_dot_perception__pb2.StageControlRequest.FromString,
-                    response_serializer=cairn_dot_perception_dot_v1_dot_perception__pb2.PerceptionSession.SerializeToString,
+                    request_deserializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.StageControlRequest.FromString,
+                    response_serializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.PerceptionSession.SerializeToString,
             ),
             'DisableStage': grpc.unary_unary_rpc_method_handler(
                     servicer.DisableStage,
-                    request_deserializer=cairn_dot_perception_dot_v1_dot_perception__pb2.StageControlRequest.FromString,
-                    response_serializer=cairn_dot_perception_dot_v1_dot_perception__pb2.PerceptionSession.SerializeToString,
+                    request_deserializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.StageControlRequest.FromString,
+                    response_serializer=perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.PerceptionSession.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -212,8 +212,8 @@ class PerceptionService:
             request,
             target,
             '/cairn.perception.v1.PerceptionService/GetServiceInfo',
-            cairn_dot_perception_dot_v1_dot_perception__pb2.GetServiceInfoRequest.SerializeToString,
-            cairn_dot_perception_dot_v1_dot_perception__pb2.GetServiceInfoResponse.FromString,
+            perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.GetServiceInfoRequest.SerializeToString,
+            perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.GetServiceInfoResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -239,8 +239,8 @@ class PerceptionService:
             request,
             target,
             '/cairn.perception.v1.PerceptionService/ValidateWorkflow',
-            cairn_dot_perception_dot_v1_dot_perception__pb2.ValidateWorkflowRequest.SerializeToString,
-            cairn_dot_perception_dot_v1_dot_perception__pb2.ValidateWorkflowResponse.FromString,
+            perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.ValidateWorkflowRequest.SerializeToString,
+            perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.ValidateWorkflowResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -266,8 +266,8 @@ class PerceptionService:
             request,
             target,
             '/cairn.perception.v1.PerceptionService/DeployWorkflow',
-            cairn_dot_perception_dot_v1_dot_perception__pb2.DeployWorkflowRequest.SerializeToString,
-            cairn_dot_perception_dot_v1_dot_perception__pb2.DeployWorkflowResponse.FromString,
+            perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.DeployWorkflowRequest.SerializeToString,
+            perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.DeployWorkflowResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -293,8 +293,8 @@ class PerceptionService:
             request,
             target,
             '/cairn.perception.v1.PerceptionService/GetSession',
-            cairn_dot_perception_dot_v1_dot_perception__pb2.GetSessionRequest.SerializeToString,
-            cairn_dot_perception_dot_v1_dot_perception__pb2.PerceptionSession.FromString,
+            perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.GetSessionRequest.SerializeToString,
+            perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.PerceptionSession.FromString,
             options,
             channel_credentials,
             insecure,
@@ -320,8 +320,8 @@ class PerceptionService:
             request,
             target,
             '/cairn.perception.v1.PerceptionService/ListSessions',
-            cairn_dot_perception_dot_v1_dot_perception__pb2.ListSessionsRequest.SerializeToString,
-            cairn_dot_perception_dot_v1_dot_perception__pb2.ListSessionsResponse.FromString,
+            perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.ListSessionsRequest.SerializeToString,
+            perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.ListSessionsResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -347,8 +347,8 @@ class PerceptionService:
             request,
             target,
             '/cairn.perception.v1.PerceptionService/GetSessionSnapshot',
-            cairn_dot_perception_dot_v1_dot_perception__pb2.GetSessionRequest.SerializeToString,
-            cairn_dot_perception_dot_v1_dot_perception__pb2.SessionSnapshot.FromString,
+            perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.GetSessionRequest.SerializeToString,
+            perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.SessionSnapshot.FromString,
             options,
             channel_credentials,
             insecure,
@@ -374,8 +374,8 @@ class PerceptionService:
             request,
             target,
             '/cairn.perception.v1.PerceptionService/StopSession',
-            cairn_dot_perception_dot_v1_dot_perception__pb2.StopSessionRequest.SerializeToString,
-            cairn_dot_perception_dot_v1_dot_perception__pb2.PerceptionSession.FromString,
+            perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.StopSessionRequest.SerializeToString,
+            perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.PerceptionSession.FromString,
             options,
             channel_credentials,
             insecure,
@@ -401,8 +401,8 @@ class PerceptionService:
             request,
             target,
             '/cairn.perception.v1.PerceptionService/EnableStage',
-            cairn_dot_perception_dot_v1_dot_perception__pb2.StageControlRequest.SerializeToString,
-            cairn_dot_perception_dot_v1_dot_perception__pb2.PerceptionSession.FromString,
+            perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.StageControlRequest.SerializeToString,
+            perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.PerceptionSession.FromString,
             options,
             channel_credentials,
             insecure,
@@ -428,8 +428,8 @@ class PerceptionService:
             request,
             target,
             '/cairn.perception.v1.PerceptionService/DisableStage',
-            cairn_dot_perception_dot_v1_dot_perception__pb2.StageControlRequest.SerializeToString,
-            cairn_dot_perception_dot_v1_dot_perception__pb2.PerceptionSession.FromString,
+            perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.StageControlRequest.SerializeToString,
+            perception__service_dot___proto_dot_perception_dot_v1_dot_perception__pb2.PerceptionSession.FromString,
             options,
             channel_credentials,
             insecure,

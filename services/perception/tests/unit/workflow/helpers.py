@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
 # SPDX-License-Identifier: Apache-2.0
 
-from cairn.perception.v1 import perception_pb2
+from perception_service._proto.perception.v1 import perception_pb2
 from perception_service.opk.config import OpkCommEndpoint
 from perception_service.workflow.model_registry import ModelRegistry
 from perception_service.workflow.stage import (

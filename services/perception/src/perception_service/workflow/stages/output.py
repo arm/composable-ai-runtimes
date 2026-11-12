@@ -3,7 +3,7 @@
 
 from typing import ClassVar, Final
 
-from cairn.perception.v1.perception_pb2 import (
+from perception_service._proto.perception.v1.perception_pb2 import (
     RESOLVED_STAGE_ROLE_OUTPUT,
     DebugOutput,
     DebugPorts,

@@ -3,7 +3,7 @@
 
 import pytest
 
-from cairn.perception.v1 import perception_pb2
+from perception_service._proto.perception.v1 import perception_pb2
 from perception_service.workflow.issues import ValidationCode
 from perception_service.workflow.pipeline import PerceptionPipeline
 from perception_service.workflow.validation import validate_pipeline, validate_workflow

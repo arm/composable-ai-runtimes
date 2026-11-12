@@ -10,7 +10,7 @@ import grpc
 import pytest
 from grpc_health.v1 import health_pb2_grpc
 
-from cairn.perception.v1 import perception_pb2_grpc
+from perception_service._proto.perception.v1 import perception_pb2_grpc
 
 READINESS_TIMEOUT_SECONDS = 30
 PERCEPTION_ROOT = Path(__file__).resolve().parents[2]

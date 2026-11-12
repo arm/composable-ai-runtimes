@@ -13,8 +13,8 @@ from open_perception_kit import packet
 from redis import Redis
 from redis.client import PubSub
 
-from cairn.messaging.v1.messaging_pb2 import CairnEvent
-from cairn.perception.v1 import perception_pb2, perception_pb2_grpc
+from perception_service._proto.messaging.v1.messaging_pb2 import CairnEvent
+from perception_service._proto.perception.v1 import perception_pb2, perception_pb2_grpc
 
 pytestmark = pytest.mark.e2e
 

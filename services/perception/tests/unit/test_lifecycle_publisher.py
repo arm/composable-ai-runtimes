@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 import pytest
 from jsonschema import Draft202012Validator
 
-from cairn.messaging.v1.messaging_pb2 import CairnEvent
+from perception_service._proto.messaging.v1.messaging_pb2 import CairnEvent
 from perception_service.messaging.lifecycle import (
     LifecyclePublisher,
     SessionState,

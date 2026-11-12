@@ -11,7 +11,7 @@ from enum import StrEnum
 from types import TracebackType
 from typing import Self
 
-from cairn.messaging.v1.messaging_pb2 import CairnEvent
+from perception_service._proto.messaging.v1.messaging_pb2 import CairnEvent
 from loguru import logger
 from perception_service.messaging import EVENT_ORIGIN
 from perception_service.messaging.topics import session_topic

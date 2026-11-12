@@ -5,7 +5,7 @@ import threading
 
 import pytest
 
-from cairn.messaging.v1.messaging_pb2 import CairnEvent
+from perception_service._proto.messaging.v1.messaging_pb2 import CairnEvent
 from perception_service.opk.frame_results import FrameResultRecord
 from perception_service.messaging.result_publisher import (
     RedisResultPublisher,

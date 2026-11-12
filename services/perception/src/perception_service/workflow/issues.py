@@ -3,7 +3,7 @@
 
 from enum import StrEnum, unique
 
-from cairn.perception.v1 import perception_pb2
+from perception_service._proto.perception.v1 import perception_pb2
 
 
 @unique
