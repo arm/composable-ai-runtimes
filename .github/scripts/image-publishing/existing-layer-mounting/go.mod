@@ -7,10 +7,10 @@ go 1.25.9
 
 require (
 	github.com/containerd/platforms v1.0.0-rc.4
-	github.com/moby/buildkit v0.31.0
+	github.com/moby/buildkit v0.31.1
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.1
-	oras.land/oras-go/v2 v2.6.0
+	oras.land/oras-go/v2 v2.6.2
 )
 
 require (
@@ -19,6 +19,6 @@ require (
 	github.com/package-url/packageurl-go v0.1.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/sirupsen/logrus v1.9.4 // indirect
-	golang.org/x/sync v0.20.0 // indirect
+	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.45.0 // indirect
 )
