@@ -27,5 +27,5 @@ docker exec "$source_container" sh -ec '
   apt-get -o APT::Update::Error-Mode=any update
 '
 
-uv run --no-project python "$script_dir/source_links.py" \
+uv run --no-project python "$script_dir/source-links.py" \
   --apt-container "$source_container" "$@"

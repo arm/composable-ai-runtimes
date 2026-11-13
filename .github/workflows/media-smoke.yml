@@ -30,11 +30,11 @@ jobs:
       paths: |
         compose.yaml
         .github/scripts/camera-boardfarm-list-cameras-smoke.py
-        .github/scripts/camera-boardfarm-notifications-hotplug.py
+        .github/scripts/camera-boardfarm-notifications-hotplug-smoke.py
         .github/scripts/camera-boardfarm-pipewire-failure-smoke.py
         .github/scripts/camera-boardfarm-format-collection-failure-smoke.py
         .github/scripts/camera-boardfarm-format-collection-failure.compose.yaml
-        .github/scripts/camera-boardfarm-notifications-reconnect.py
+        .github/scripts/camera-boardfarm-notifications-reconnect-smoke.py
         .github/scripts/camera-boardfarm-pipewire-capture-smoke.py
         .github/scripts/media-boardfarm-startup-smoke.py
         .github/scripts/services-topo-smoke.py
@@ -336,8 +336,8 @@ jobs:
         run: |
           mkdir -p test-results/camera-boardfarm-notifications
           uv run --locked --only-group media-notifications-smoke python -m pytest -p no:cacheprovider \
-            .github/scripts/camera-boardfarm-notifications-hotplug.py \
-            .github/scripts/camera-boardfarm-notifications-reconnect.py \
+            .github/scripts/camera-boardfarm-notifications-hotplug-smoke.py \
+            .github/scripts/camera-boardfarm-notifications-reconnect-smoke.py \
             --junitxml=test-results/camera-boardfarm-notifications/junit.xml
 
       - name: Clean up media service board-farm notification Compose resources

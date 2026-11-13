@@ -3,10 +3,12 @@
 
 import json
 import sys
+from importlib import import_module
 from pathlib import Path
 
 import pytest
-import source_links as report_generator
+
+report_generator = import_module("source-links")
 
 
 def test_supplement_joins_package_report(
@@ -29,7 +31,7 @@ def test_supplement_joins_package_report(
     monkeypatch.setattr(report_generator, "apt_source_links", lambda *args: [("APT", "https://example.org/apt")])
     monkeypatch.setattr(report_generator, "python_source_links", lambda *args: [("PyPI", "https://example.org/python")])
     output = tmp_path / "report.md"
-    args = ["source_links.py", "--image", "image@sha256:example", "--apt-container", "apt", "--output", str(output), str(sbom)]
+    args = ["source-links.py", "--image", "image@sha256:example", "--apt-container", "apt", "--output", str(output), str(sbom)]
     monkeypatch.setattr(sys, "argv", args)
     report_generator.main()
     package_report = output.read_text()
@@ -55,7 +57,7 @@ def test_empty_supplement_fails_before_writing_report(
     supplement.write_text("[]")
     output = tmp_path / "report.md"
     monkeypatch.setattr(sys, "argv", [
-        "source_links.py", "--image", "test", "--apt-container", "apt",
+        "source-links.py", "--image", "test", "--apt-container", "apt",
         "--output", str(output), "--supplement", str(supplement), "unused.json",
     ])
     with pytest.raises(SystemExit) as error:

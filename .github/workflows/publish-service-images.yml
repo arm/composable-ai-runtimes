@@ -378,7 +378,7 @@ jobs:
           # Use the service's base image and repository setup, before any service build steps.
           docker build --target package-repositories \
             --tag "cairn-source-repositories:${SERVICE}" "services/${SERVICE}"
-          bash .github/scripts/sbom/prepare_source_links.sh \
+          bash .github/scripts/sbom/prepare-source-links.sh \
             "cairn-source-repositories:${SERVICE}" \
             --image "${SERVICE_REPOSITORY}@${IMAGE_DIGEST}" \
             "${supplement_args[@]}" \

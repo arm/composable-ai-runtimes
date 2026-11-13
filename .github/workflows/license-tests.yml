@@ -31,7 +31,7 @@ jobs:
         .github/scripts/container-notices/**
         .github/scripts/probe-notices/**
         .github/scripts/rust-notices/**
-        .github/scripts/check_license_headers.py
+        .github/scripts/check-license-headers.py
         services/*/scripts/source_links.py
         services/media/Dockerfile
         services/perception/Dockerfile
