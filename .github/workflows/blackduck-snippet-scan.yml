@@ -73,4 +73,4 @@ jobs:
           ./patchscan 'HEAD^!' \
             --detect.project.name "${BLACKDUCK_PROJECT_NAME}" \
             --detect.project.version.name "${BLACKDUCK_PROJECT_VERSION}" \
-            --detect.excluded.directories "lib/tests/generated,services/perception/src/perception_service/_proto"
+            --detect.excluded.directories "lib/crates/cairn-media/src/generated,lib/tests/generated,services/perception/src/perception_service/_proto"
