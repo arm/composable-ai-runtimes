@@ -1,6 +1,6 @@
 ---
 name: update-docs
-description: Reconcile repository documentation with the current branch by comparing it to the base branch and applying accurate updates to user-facing docs, developer READMEs, and necessary code comments. Use when documentation should be updated or refreshed after feature work, before review or merge, or after iterative development has caused drift.
+description: Reconcile repository documentation with the current branch by comparing it to the base branch and applying accurate updates to user-facing docs, developer READMEs, and necessary code comments. Use when the user explicitly requests documentation updates or branch-wide reconciliation. Review, merge, handoff, or completion alone does not activate this skill.
 ---
 <!---
 SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
@@ -27,7 +27,8 @@ Resolve the comparison base in this order:
 4. Use `@{upstream}` only when it clearly points to an integration branch rather than the remote copy of the current feature branch
 5. Ask the user only if none of the above exist
 
-If a candidate merge-base is `HEAD` or otherwise yields no committed branch delta, keep falling back instead of accepting that candidate as the base.
+Retain the resolved comparison base even when the committed diff is empty.
+Report the empty delta and inspect relevant local edits separately.
 
 Use the committed branch base to understand the branch delta with:
 - `git diff --name-status <base>...HEAD`
