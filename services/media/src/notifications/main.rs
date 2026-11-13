@@ -15,8 +15,8 @@ use std::{cell::RefCell, collections::HashMap, error::Error, rc::Rc};
 use crate::redis::{
     CameraEventType, RedisConfig, configure_redis_conn_with_retry, send_camera_event,
 };
-use media::camera::Camera;
-use media::helpers::is_camera_node;
+use media::device::{Device, DeviceType};
+use media::helpers::is_device_type;
 use media::logging;
 use pipewire::{self as pw, context::ContextRc, main_loop::MainLoopRc};
 use tracing::{debug, info, warn};
@@ -58,14 +58,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     let registry = core.get_registry_rc()?;
     debug!("acquired PipeWire registry");
 
-    let camera_cache = Rc::new(RefCell::new(HashMap::<u32, Camera>::new()));
+    let camera_cache = Rc::new(RefCell::new(HashMap::<u32, Device>::new()));
     let camera_cache_remove = Rc::clone(&camera_cache);
 
     let _listener = registry
         .add_listener_local()
         .global(move |global| {
-            if is_camera_node(global) {
-                let camera = match Camera::try_from_global_object(global) {
+            if is_device_type(global, &DeviceType::Camera) {
+                let camera = match Device::try_from_global_object(global) {
                     Ok(camera) => camera,
                     Err(err) => {
                         warn!(
@@ -76,9 +76,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         return;
                     }
                 };
-                camera_cache
-                    .borrow_mut()
-                    .insert(camera.node_id, camera.clone());
+                camera_cache.borrow_mut().insert(global.id, camera.clone());
 
                 info!(
                     node_id = camera.node_id,
@@ -128,7 +126,7 @@ fn publish_camera_event(
     redis_conn: &Rc<RefCell<::redis::Connection>>,
     redis_config: &RedisConfig,
     event_type: CameraEventType,
-    camera: &Camera,
+    camera: &Device,
     events_channel: &str,
 ) {
     let publish_result = send_camera_event(

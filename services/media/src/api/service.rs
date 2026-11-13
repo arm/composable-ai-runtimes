@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use super::parameters::{FrameRate, Resolution, StreamFormat, StreamFormatFilter};
-use super::snapshot::{SnapshotCamera, SnapshotError, list_camera_formats, list_cameras};
+use super::snapshot::{SnapshotError, list_camera_formats, list_devices};
+use crate::device::{Device, DeviceType};
 use tokio::task;
 use tonic::{Request, Response, Status};
 
@@ -18,7 +19,7 @@ use tracing::{debug, warn};
 
 #[derive(Clone, Copy)]
 pub(crate) struct MediaServiceProvider {
-    pub(crate) list_cameras: fn() -> Result<Vec<SnapshotCamera>, SnapshotError>,
+    pub(crate) list_devices: fn(DeviceType) -> Result<Vec<Device>, SnapshotError>,
     pub(crate) list_camera_formats:
         fn(u64, Option<StreamFormatFilter>) -> Result<(u64, Vec<StreamFormat>), SnapshotError>,
 }
@@ -26,7 +27,7 @@ pub(crate) struct MediaServiceProvider {
 impl Default for MediaServiceProvider {
     fn default() -> Self {
         Self {
-            list_cameras,
+            list_devices,
             list_camera_formats,
         }
     }
@@ -37,8 +38,8 @@ pub struct MediaApiService {
     pub(crate) provider: MediaServiceProvider,
 }
 
-impl From<SnapshotCamera> for pipewire::Camera {
-    fn from(camera: SnapshotCamera) -> Self {
+impl From<Device> for pipewire::Camera {
+    fn from(camera: Device) -> Self {
         Self {
             id: camera.object_serial,
             name: camera.name,
@@ -141,7 +142,8 @@ impl MediaService for MediaApiService {
         let remote_addr = request.remote_addr();
         debug!(?remote_addr, "listing cameras");
 
-        let cameras = task::spawn_blocking(self.provider.list_cameras)
+        let list_devices = self.provider.list_devices;
+        let cameras = task::spawn_blocking(move || list_devices(DeviceType::Camera))
             .await
             .map_err(|err| {
                 warn!(?remote_addr, error = %err, "camera listing task failed");

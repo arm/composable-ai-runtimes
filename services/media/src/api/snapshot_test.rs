@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use super::snapshot::{
-    SnapshotCamera, SnapshotError, SnapshotState, append_camera, camera_lookup_error,
-    is_pending_sync_complete,
+    SnapshotError, SnapshotState, append_device, camera_lookup_error, is_pending_sync_complete,
 };
+use crate::device::{Device, DeviceType};
 use pipewire as pw;
 use std::collections::HashMap;
 
@@ -79,8 +79,8 @@ fn non_core_pipewire_id_factory() -> u32 {
 }
 
 #[test]
-fn append_camera_records_camera_node() {
-    let mut cameras = HashMap::new();
+fn append_device_records_camera_node() {
+    let mut devices = HashMap::new();
     let camera = node_global_factory(
         7,
         42,
@@ -89,21 +89,23 @@ fn append_camera_records_camera_node() {
         Some("front"),
     );
 
-    append_camera(&mut cameras, &camera);
+    append_device(&mut devices, &camera);
 
     assert_eq!(
-        cameras.get(&7),
-        Some(&SnapshotCamera {
+        devices.get(&7),
+        Some(&Device {
+            node_id: 7,
             object_serial: 42,
             name: "front".to_string(),
+            device_type: DeviceType::Camera,
         })
     );
-    assert_eq!(cameras.len(), 1);
+    assert_eq!(devices.len(), 1);
 }
 
 #[test]
-fn append_camera_ignores_camera_nodes_without_serial() {
-    let mut cameras = HashMap::new();
+fn append_device_ignores_camera_nodes_without_serial() {
+    let mut devices = HashMap::new();
     let camera = pw::registry::GlobalObject {
         id: 7,
         permissions: pw::permissions::PermissionFlags::all(),
@@ -115,14 +117,14 @@ fn append_camera_ignores_camera_nodes_without_serial() {
         }),
     };
 
-    append_camera(&mut cameras, &camera);
+    append_device(&mut devices, &camera);
 
-    assert!(cameras.is_empty());
+    assert!(devices.is_empty());
 }
 
 #[test]
-fn append_camera_ignores_camera_nodes_with_invalid_serial() {
-    let mut cameras = HashMap::new();
+fn append_device_ignores_camera_nodes_with_invalid_serial() {
+    let mut devices = HashMap::new();
     let camera = node_global_factory(
         7,
         "not-a-number",
@@ -131,14 +133,14 @@ fn append_camera_ignores_camera_nodes_with_invalid_serial() {
         Some("front"),
     );
 
-    append_camera(&mut cameras, &camera);
+    append_device(&mut devices, &camera);
 
-    assert!(cameras.is_empty());
+    assert!(devices.is_empty());
 }
 
 #[test]
-fn append_camera_replaces_existing_camera_for_same_node_id() {
-    let mut cameras = HashMap::new();
+fn append_device_replaces_existing_camera_for_same_node_id() {
+    let mut devices = HashMap::new();
     let initial_camera = node_global_factory(
         7,
         42,
@@ -154,15 +156,17 @@ fn append_camera_replaces_existing_camera_for_same_node_id() {
         Some("front-updated"),
     );
 
-    append_camera(&mut cameras, &initial_camera);
-    append_camera(&mut cameras, &replacement_camera);
+    append_device(&mut devices, &initial_camera);
+    append_device(&mut devices, &replacement_camera);
 
-    assert_eq!(cameras.len(), 1);
+    assert_eq!(devices.len(), 1);
     assert_eq!(
-        cameras.get(&7),
-        Some(&SnapshotCamera {
+        devices.get(&7),
+        Some(&Device {
+            node_id: 7,
             object_serial: 43,
             name: "front-updated".to_string(),
+            device_type: DeviceType::Camera,
         })
     );
 }
@@ -192,36 +196,40 @@ fn is_pending_sync_complete_rejects_matching_sequence_from_non_core_id() {
 }
 
 #[test]
-fn take_cameras_returns_empty_vec_for_empty_snapshot() {
+fn take_devices_returns_empty_vec_for_empty_snapshot() {
     let mut state = SnapshotState::default();
 
-    assert_eq!(state.take_cameras(), vec![]);
+    assert_eq!(state.take_devices(), vec![]);
 }
 
 #[test]
-fn take_cameras_consumes_cameras_after_successful_extraction() {
+fn take_devices_consumes_devices_after_successful_extraction() {
     let mut state = SnapshotState {
-        cameras: HashMap::from([(
+        devices: HashMap::from([(
             7,
-            SnapshotCamera {
+            Device {
+                node_id: 7,
                 object_serial: 42,
                 name: "front".to_string(),
+                device_type: DeviceType::Camera,
             },
         )]),
     };
 
     assert_eq!(
-        state.take_cameras(),
-        vec![SnapshotCamera {
+        state.take_devices(),
+        vec![Device {
+            node_id: 7,
             object_serial: 42,
             name: "front".to_string(),
+            device_type: DeviceType::Camera,
         }]
     );
-    assert_eq!(state.take_cameras(), vec![]);
+    assert_eq!(state.take_devices(), vec![]);
 }
 
 #[test]
-fn take_cameras_sorts_cameras_by_object_serial_before_returning() {
+fn take_devices_sorts_devices_by_object_serial_before_returning() {
     let camera_b = node_global_factory(
         11,
         100,
@@ -238,25 +246,29 @@ fn take_cameras_sorts_cameras_by_object_serial_before_returning() {
     );
 
     let mut state = SnapshotState {
-        cameras: HashMap::from([
+        devices: HashMap::from([
             (
                 camera_b.id,
-                SnapshotCamera {
+                Device {
+                    node_id: camera_b.id,
                     object_serial: 100,
                     name: "rear".to_string(),
+                    device_type: DeviceType::Camera,
                 },
             ),
             (
                 camera_a.id,
-                SnapshotCamera {
+                Device {
+                    node_id: camera_a.id,
                     object_serial: 50,
                     name: "front".to_string(),
+                    device_type: DeviceType::Camera,
                 },
             ),
         ]),
     };
 
-    let cameras = state.take_cameras();
-    assert_eq!(cameras[0].object_serial, 50);
-    assert_eq!(cameras[1].object_serial, 100);
+    let devices = state.take_devices();
+    assert_eq!(devices[0].object_serial, 50);
+    assert_eq!(devices[1].object_serial, 100);
 }

@@ -9,7 +9,7 @@ use std::{
 };
 
 use crate::messaging::CairnEvent;
-use media::camera::Camera;
+use media::device::Device;
 use prost::Message;
 use prost_types::Timestamp;
 use redis::{
@@ -77,8 +77,8 @@ pub struct EventCamera {
     pub name: String,
 }
 
-impl From<&Camera> for EventCamera {
-    fn from(camera: &Camera) -> Self {
+impl From<&Device> for EventCamera {
+    fn from(camera: &Device) -> Self {
         Self {
             id: camera.object_serial,
             name: camera.name.clone(),
@@ -181,7 +181,7 @@ where
 pub fn send_camera_event(
     redis_conn: &mut Connection,
     event_type: CameraEventType,
-    camera: &Camera,
+    camera: &Device,
     events_channel: &str,
 ) -> Result<(), Box<dyn Error>> {
     let encoded_event = encode_camera_event(event_type, camera, events_channel)?;
@@ -192,7 +192,7 @@ pub fn send_camera_event(
 
 pub(crate) fn encode_camera_event(
     event_type: CameraEventType,
-    camera: &Camera,
+    camera: &Device,
     events_channel: &str,
 ) -> Result<Vec<u8>, Box<dyn Error>> {
     let payload = serde_json::to_vec(&CameraEvent {

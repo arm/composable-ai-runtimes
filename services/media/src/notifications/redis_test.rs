@@ -10,7 +10,7 @@ use crate::{
     redis::{CameraEvent, CameraEventType, EventCamera, encode_camera_event},
 };
 
-use media::camera::Camera;
+use media::device::{Device, DeviceType};
 use prost::Message;
 use redis::{ConnectionAddr, ErrorKind, IntoConnectionInfo, RedisError, RedisResult};
 
@@ -153,10 +153,11 @@ fn test_retry_with_fibonacci_does_not_retry_non_io_errors() {
 
 #[test]
 fn test_camera_event_payload_from_camera_exposes_object_serial() {
-    let camera = Camera {
+    let camera = Device {
         node_id: 7,
         object_serial: 42,
         name: "front-camera".to_string(),
+        device_type: DeviceType::Camera,
     };
 
     assert_eq!(
@@ -182,10 +183,11 @@ fn test_camera_event_type_to_string_returns_event_identifier() {
 
 #[test]
 fn test_camera_event_encoding_uses_messaging_envelope() {
-    let camera = Camera {
+    let camera = Device {
         node_id: 7,
         object_serial: 42,
         name: "front-camera".to_string(),
+        device_type: DeviceType::Camera,
     };
 
     let encoded_event =

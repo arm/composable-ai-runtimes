@@ -3,8 +3,8 @@
 
 use crate::api::parameters::{StreamFormat, StreamFormatFilter};
 use crate::api::stream_format_collector::StreamFormatCollector;
-use crate::camera::Camera;
-use crate::helpers::is_camera_node;
+use crate::device::{Device, DeviceType};
+use crate::helpers::is_device_type;
 use pipewire as pw;
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
@@ -37,22 +37,7 @@ impl std::fmt::Display for SnapshotError {
 
 impl std::error::Error for SnapshotError {}
 
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct SnapshotCamera {
-    pub(crate) object_serial: u64,
-    pub(crate) name: String,
-}
-
-impl From<Camera> for SnapshotCamera {
-    fn from(metadata: Camera) -> Self {
-        Self {
-            object_serial: metadata.object_serial,
-            name: metadata.name,
-        }
-    }
-}
-
-pub(crate) fn list_cameras() -> Result<Vec<SnapshotCamera>, SnapshotError> {
+pub(crate) fn list_devices(device_type: DeviceType) -> Result<Vec<Device>, SnapshotError> {
     let PipeWireClient {
         mainloop,
         core,
@@ -65,13 +50,13 @@ pub(crate) fn list_cameras() -> Result<Vec<SnapshotCamera>, SnapshotError> {
     let _registry_listener = registry
         .add_listener_local()
         .global(move |global| {
-            if !is_camera_node(global) {
+            if !is_device_type(global, &device_type) {
                 return;
             }
-            append_camera(&mut registry_state.borrow_mut().cameras, global);
+            append_device(&mut registry_state.borrow_mut().devices, global);
         })
         .global_remove(move |node_id| {
-            remove_state.borrow_mut().cameras.remove(&node_id);
+            remove_state.borrow_mut().devices.remove(&node_id);
         })
         .register();
 
@@ -81,7 +66,7 @@ pub(crate) fn list_cameras() -> Result<Vec<SnapshotCamera>, SnapshotError> {
         "PipeWire snapshot timed out",
         SNAPSHOT_TIMEOUT,
     )?;
-    Ok(state.borrow_mut().take_cameras())
+    Ok(state.borrow_mut().take_devices())
 }
 
 pub(crate) fn list_camera_formats(
@@ -98,11 +83,11 @@ pub(crate) fn list_camera_formats(
         .registry
         .add_listener_local()
         .global(move |global| {
-            if !is_camera_node(global) {
+            if !is_device_type(global, &DeviceType::Camera) {
                 return;
             }
 
-            let Ok(camera) = Camera::try_from_global_object(global) else {
+            let Ok(camera) = Device::try_from_global_object(global) else {
                 return;
             };
 
@@ -158,15 +143,15 @@ pub(crate) fn list_camera_formats(
 
 #[derive(Default)]
 pub(super) struct SnapshotState {
-    pub(super) cameras: HashMap<u32, SnapshotCamera>,
+    pub(super) devices: HashMap<u32, Device>,
 }
 
 impl SnapshotState {
-    pub(super) fn take_cameras(&mut self) -> Vec<SnapshotCamera> {
-        let cameras = std::mem::take(&mut self.cameras);
-        let mut cameras = cameras.into_values().collect::<Vec<_>>();
-        cameras.sort_by_key(|camera| camera.object_serial);
-        cameras
+    pub(super) fn take_devices(&mut self) -> Vec<Device> {
+        let devices = std::mem::take(&mut self.devices);
+        let mut devices = devices.into_values().collect::<Vec<_>>();
+        devices.sort_by_key(|device| device.object_serial);
+        devices
     }
 }
 
@@ -264,24 +249,24 @@ fn run_until_synced(
     }
 }
 
-pub(crate) fn append_camera<P>(
-    cameras: &mut HashMap<u32, SnapshotCamera>,
+pub(crate) fn append_device<P>(
+    devices: &mut HashMap<u32, Device>,
     global: &pw::registry::GlobalObject<P>,
 ) where
     P: AsRef<pw::spa::utils::dict::DictRef>,
 {
-    let camera = match Camera::try_from_global_object(global) {
-        Ok(camera) => camera,
+    let device = match Device::try_from_global_object(global) {
+        Ok(device) => device,
         Err(err) => {
             warn!(
                 node_id = global.id,
                 error = %err,
-                "skipping camera node with invalid metadata"
+                "skipping device node with invalid metadata"
             );
             return;
         }
     };
-    cameras.insert(camera.node_id, SnapshotCamera::from(camera));
+    devices.insert(global.id, device);
 }
 
 pub(crate) fn is_pending_sync_complete(

@@ -3,7 +3,8 @@
 
 use super::parameters::{FrameRate, Resolution, StreamFormat};
 use super::service::{map_snapshot_error, pipewire, validate_stream_configuration_request};
-use super::snapshot::{SnapshotCamera, SnapshotError};
+use super::snapshot::SnapshotError;
+use crate::device::{Device, DeviceType};
 use tonic::Code;
 
 #[test]
@@ -129,10 +130,12 @@ fn stream_format_converts_to_grpc_stream_format() {
 }
 
 #[test]
-fn snapshot_camera_converts_to_grpc_camera() {
-    let snapshot = SnapshotCamera {
+fn device_converts_to_grpc_camera() {
+    let snapshot = Device {
+        node_id: 11,
         object_serial: 7,
         name: "front".to_string(),
+        device_type: DeviceType::Camera,
     };
 
     let camera = pipewire::Camera::from(snapshot);

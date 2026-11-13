@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 pub mod api;
-pub mod camera;
+pub mod device;
 pub mod helpers;
 pub mod logging;
 
 #[cfg(test)]
-mod camera_test;
+mod device_test;
 #[cfg(test)]
 mod helpers_test;

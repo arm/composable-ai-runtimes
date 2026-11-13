@@ -10,7 +10,7 @@ use super::{
         CameraEvent, CameraEventType, EventCamera, RedisConfig, configure_redis_conn_with_retry,
     },
 };
-use media::camera::Camera;
+use media::device::{Device, DeviceType};
 use prost::Message;
 use redis::{Client, Msg};
 use testcontainers::{
@@ -197,10 +197,11 @@ async fn test_default_channel_from_env_publishes_to_camera_events() -> Result<()
 
     let mut subscriber = subscribe_to_channel(&redis_config, MEDIA_EVENTS_CHANNEL)?;
     let cam_id = 42;
-    let camera = Camera {
-        node_id: cam_id as u32,
+    let camera = Device {
+        node_id: 7,
         object_serial: cam_id,
         name: "default-channel-camera".to_owned(),
+        device_type: DeviceType::Camera,
     };
     let publisher = Rc::new(RefCell::new(configure_redis_conn_with_retry(
         &redis_config,
@@ -238,10 +239,11 @@ async fn test_configured_channel_override_publishes_to_configured_channel()
 
     let mut subscriber = subscribe_to_channel(&redis_config, CUSTOM_MEDIA_EVENTS_CHANNEL)?;
     let cam_id = 84;
-    let camera = Camera {
-        node_id: cam_id as u32,
+    let camera = Device {
+        node_id: 7,
         object_serial: cam_id,
         name: "custom-channel-camera".to_owned(),
+        device_type: DeviceType::Camera,
     };
     let publisher = Rc::new(RefCell::new(configure_redis_conn_with_retry(
         &redis_config,
@@ -277,10 +279,11 @@ async fn test_connected_payload_contains_expected_fields() -> Result<(), Box<dyn
 
     let mut subscriber = subscribe_to_channel(&redis_config, CUSTOM_MEDIA_EVENTS_CHANNEL)?;
     let cam_id = 126;
-    let camera = Camera {
-        node_id: cam_id as u32,
+    let camera = Device {
+        node_id: 7,
         object_serial: cam_id,
         name: "configured-channel-camera".to_owned(),
+        device_type: DeviceType::Camera,
     };
     let publisher = Rc::new(RefCell::new(configure_redis_conn_with_retry(
         &redis_config,
@@ -323,10 +326,11 @@ async fn test_disconnected_payload_contains_expected_fields() -> Result<(), Box<
 
     let mut subscriber = subscribe_to_channel(&redis_config, CUSTOM_MEDIA_EVENTS_CHANNEL)?;
     let cam_id = 126;
-    let camera = Camera {
-        node_id: cam_id as u32,
+    let camera = Device {
+        node_id: 7,
         object_serial: cam_id,
         name: "configured-channel-camera".to_owned(),
+        device_type: DeviceType::Camera,
     };
     let publisher = Rc::new(RefCell::new(configure_redis_conn_with_retry(
         &redis_config,
@@ -370,10 +374,11 @@ async fn test_publish_failure_reconnects_and_replaces_redis_connection()
 
     let mut subscriber = subscribe_to_channel(&redis_config, MEDIA_EVENTS_CHANNEL)?;
     let cam_id = 126;
-    let camera = Camera {
-        node_id: cam_id as u32,
+    let camera = Device {
+        node_id: 7,
         object_serial: cam_id,
         name: "reconnected-camera".to_owned(),
+        device_type: DeviceType::Camera,
     };
     let publisher = Rc::new(RefCell::new(configure_redis_conn_with_retry(
         &redis_config,

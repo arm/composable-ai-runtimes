@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
 // SPDX-License-Identifier: Apache-2.0
 
-use super::helpers::VIDEO_SOURCE_MEDIA_CLASS;
-use super::helpers::is_camera_node;
+use super::device::DeviceType;
+use super::helpers::is_device_type;
 use pipewire as pw;
 
 fn node_global_factory(
@@ -26,37 +26,37 @@ fn node_global_factory(
 }
 
 #[test]
-fn test_is_camera_node_detects_video_source_nodes() {
-    let global = node_global_factory(
-        10,
-        pw::types::ObjectType::Node,
-        Some(VIDEO_SOURCE_MEDIA_CLASS),
-    );
-
-    assert!(is_camera_node(&global));
+fn is_device_type_matches_requested_media_class() {
+    for (media_class, expected) in [("Video/Source", true), ("Audio/Source", false)] {
+        let global = node_global_factory(10, pw::types::ObjectType::Node, Some(media_class));
+        assert_eq!(
+            is_device_type(&global, &DeviceType::Camera),
+            expected,
+            "media class: {media_class}"
+        );
+    }
 }
 
 #[test]
-fn test_is_camera_node_rejects_non_camera_media_class() {
-    let global = node_global_factory(42, pw::types::ObjectType::Node, Some("Audio/Source"));
+fn is_device_type_requires_node_object() {
+    let global = node_global_factory(24, pw::types::ObjectType::Link, Some("Video/Source"));
 
-    assert!(!is_camera_node(&global));
+    assert!(!is_device_type(&global, &DeviceType::Camera));
 }
 
 #[test]
-fn test_is_camera_node_rejects_non_node_globals() {
-    let global = node_global_factory(
-        24,
-        pw::types::ObjectType::Link,
-        Some(VIDEO_SOURCE_MEDIA_CLASS),
-    );
-
-    assert!(!is_camera_node(&global));
-}
-
-#[test]
-fn test_is_camera_node_rejects_missing_media_class() {
-    let global = node_global_factory(11, pw::types::ObjectType::Node, None);
-
-    assert!(!is_camera_node(&global));
+fn is_device_type_requires_media_class_property() {
+    for (case, props) in [
+        ("no properties", None),
+        (
+            "no media class",
+            Some(pw::properties::properties! {
+                *pw::keys::NODE_NAME => "camera"
+            }),
+        ),
+    ] {
+        let mut global = node_global_factory(11, pw::types::ObjectType::Node, None);
+        global.props = props;
+        assert!(!is_device_type(&global, &DeviceType::Camera), "{case}");
+    }
 }

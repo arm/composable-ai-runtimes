@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use super::parameters::{FrameRate, Resolution, StreamFormat, StreamFormatFilter};
-use super::snapshot::{SnapshotCamera, SnapshotError};
+use super::snapshot::SnapshotError;
 use super::{
     server::serving_health_service,
     service::{
@@ -11,6 +11,7 @@ use super::{
         pipewire::media_service_server::MediaServiceServer,
     },
 };
+use crate::device::{Device, DeviceType};
 use tokio::{net::TcpListener, sync::oneshot, task::JoinHandle};
 use tokio_stream::wrappers::TcpListenerStream;
 use tonic::{Code, transport::Channel, transport::Server};
@@ -39,15 +40,19 @@ impl RunningServer {
     }
 }
 
-fn listed_cameras() -> Result<Vec<SnapshotCamera>, SnapshotError> {
+fn listed_devices(_device_type: DeviceType) -> Result<Vec<Device>, SnapshotError> {
     Ok(vec![
-        SnapshotCamera {
+        Device {
+            node_id: 7,
             object_serial: TEST_CAMERA_ID,
             name: "front-door".to_string(),
+            device_type: DeviceType::Camera,
         },
-        SnapshotCamera {
+        Device {
+            node_id: 8,
             object_serial: 202,
             name: "loading-bay".to_string(),
+            device_type: DeviceType::Camera,
         },
     ])
 }
@@ -122,7 +127,7 @@ fn unavailable_camera_formats(
     ))
 }
 
-fn unavailable_cameras() -> Result<Vec<SnapshotCamera>, SnapshotError> {
+fn unavailable_devices(_device_type: DeviceType) -> Result<Vec<Device>, SnapshotError> {
     Err(SnapshotError::Unavailable(
         "fake provider unavailable".to_string(),
     ))
@@ -168,9 +173,28 @@ async fn start_server(provider: MediaServiceProvider) -> RunningServer {
 }
 
 #[tokio::test]
+async fn list_cameras_requests_camera_device_type() {
+    let mut server = start_server(MediaServiceProvider {
+        list_devices: |device_type| {
+            assert_eq!(device_type, DeviceType::Camera);
+            Ok(Vec::new())
+        },
+        ..Default::default()
+    })
+    .await;
+
+    let response = server.client.list_cameras(pipewire::ListRequest {}).await;
+
+    server.shutdown().await;
+
+    let response = response.expect("list_cameras should succeed");
+    assert!(response.into_inner().cameras.is_empty());
+}
+
+#[tokio::test]
 async fn list_cameras_returns_provider_camera_identities() {
     let mut server = start_server(MediaServiceProvider {
-        list_cameras: listed_cameras,
+        list_devices: listed_devices,
         ..Default::default()
     })
     .await;
@@ -200,7 +224,7 @@ async fn list_cameras_returns_provider_camera_identities() {
 #[tokio::test]
 async fn list_cameras_maps_provider_failure_to_unavailable() {
     let mut server = start_server(MediaServiceProvider {
-        list_cameras: unavailable_cameras,
+        list_devices: unavailable_devices,
         ..Default::default()
     })
     .await;
@@ -218,7 +242,7 @@ async fn list_cameras_maps_provider_failure_to_unavailable() {
 #[tokio::test]
 async fn health_check_reports_serving() {
     let mut server = start_server(MediaServiceProvider {
-        list_cameras: unavailable_cameras,
+        list_devices: unavailable_devices,
         ..Default::default()
     })
     .await;
