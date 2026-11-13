@@ -6,8 +6,56 @@ syntax = "proto3";
 package media.pipewire.v1;
 
 service MediaService {
+  rpc ListDevices (ListDevicesRequest) returns (ListDevicesResponse);
+  rpc GetDeviceStreamConfigurations (DeviceStreamConfigurationRequest) returns (DeviceStreamConfigurationResponse);
+
   rpc ListCameras (ListRequest) returns (ListCamerasResponse);
   rpc get_stream_configurations(StreamConfigurationRequest) returns (StreamConfigurationResponse);
+}
+
+enum DeviceType {
+  DEVICE_TYPE_CAMERA = 0;
+  DEVICE_TYPE_MICROPHONE = 1;
+  DEVICE_TYPE_SPEAKER = 2;
+}
+
+message ListDevicesRequest {
+  optional DeviceType device_type = 1;
+}
+
+message ListDevicesResponse {
+  repeated Device devices = 1;
+}
+
+message Device {
+  uint64 id = 1;
+  string name = 2;
+  DeviceType device_type = 3;
+}
+
+message DeviceStreamConfigurationRequest {
+  uint64 device_id = 1;
+}
+
+message DeviceStreamConfigurationResponse {
+  repeated DeviceStreamConfiguration configurations = 1;
+}
+
+message DeviceStreamConfiguration {
+  string target = 1;
+  uint64 device_id = 2;
+  oneof format {
+    StreamFormat video_format = 3;
+    AudioFormat audio_format = 4;
+  }
+}
+
+message AudioFormat {
+  uint32 sample_rate = 1;
+  uint32 channels = 2;
+  string sample_format = 3;
+  repeated string channel_layout = 4;
+  bool interleaved = 5;
 }
 
 message ListRequest {}

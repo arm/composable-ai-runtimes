@@ -135,6 +135,22 @@ pub(super) fn validate_stream_configuration_request(
 
 #[tonic::async_trait]
 impl MediaService for MediaApiService {
+    async fn list_devices(
+        &self,
+        _request: Request<pipewire::ListDevicesRequest>,
+    ) -> Result<Response<pipewire::ListDevicesResponse>, Status> {
+        Err(Status::unimplemented("device discovery is not implemented"))
+    }
+
+    async fn get_device_stream_configurations(
+        &self,
+        _request: Request<pipewire::DeviceStreamConfigurationRequest>,
+    ) -> Result<Response<pipewire::DeviceStreamConfigurationResponse>, Status> {
+        Err(Status::unimplemented(
+            "device configurations are not implemented",
+        ))
+    }
+
     async fn list_cameras(
         &self,
         request: Request<ListRequest>,
