@@ -30,7 +30,7 @@ pub async fn serve(addr: SocketAddr) -> Result<(), tonic::transport::Error> {
 
     Server::builder()
         .add_service(
-            service::pipewire::media_service_server::MediaServiceServer::new(
+            service::media::media_service_server::MediaServiceServer::new(
                 service::MediaApiService::default(),
             ),
         )

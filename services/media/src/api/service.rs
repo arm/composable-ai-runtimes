@@ -7,12 +7,12 @@ use crate::device::{Device, DeviceType};
 use tokio::task;
 use tonic::{Request, Response, Status};
 
-pub mod pipewire {
-    tonic::include_proto!("media.pipewire.v1");
+pub mod media {
+    tonic::include_proto!("cairn.media.v1");
 }
 
-use pipewire::media_service_server::MediaService;
-use pipewire::{
+use media::media_service_server::MediaService;
+use media::{
     ListCamerasResponse, ListRequest, StreamConfigurationRequest, StreamConfigurationResponse,
 };
 use tracing::{debug, warn};
@@ -38,7 +38,7 @@ pub struct MediaApiService {
     pub(crate) provider: MediaServiceProvider,
 }
 
-impl From<Device> for pipewire::Camera {
+impl From<Device> for media::Camera {
     fn from(camera: Device) -> Self {
         Self {
             id: camera.object_serial,
@@ -47,8 +47,8 @@ impl From<Device> for pipewire::Camera {
     }
 }
 
-impl From<pipewire::StreamFormat> for StreamFormatFilter {
-    fn from(format: pipewire::StreamFormat) -> Self {
+impl From<media::StreamFormat> for StreamFormatFilter {
+    fn from(format: media::StreamFormat) -> Self {
         Self {
             resolution: format.resolution.map(|resolution| Resolution {
                 width: resolution.width,
@@ -63,15 +63,15 @@ impl From<pipewire::StreamFormat> for StreamFormatFilter {
     }
 }
 
-impl From<StreamFormat> for pipewire::StreamFormat {
+impl From<StreamFormat> for media::StreamFormat {
     fn from(format: StreamFormat) -> Self {
         Self {
-            resolution: Some(pipewire::Resolution {
+            resolution: Some(media::Resolution {
                 width: format.resolution.width,
                 height: format.resolution.height,
             }),
             pixel_format: format.pixel_format,
-            frame_rate: Some(pipewire::FrameRate {
+            frame_rate: Some(media::FrameRate {
                 numerator: format.frame_rate.numerator,
                 denominator: format.frame_rate.denominator,
             }),
@@ -137,15 +137,15 @@ pub(super) fn validate_stream_configuration_request(
 impl MediaService for MediaApiService {
     async fn list_devices(
         &self,
-        _request: Request<pipewire::ListDevicesRequest>,
-    ) -> Result<Response<pipewire::ListDevicesResponse>, Status> {
+        _request: Request<media::ListDevicesRequest>,
+    ) -> Result<Response<media::ListDevicesResponse>, Status> {
         Err(Status::unimplemented("device discovery is not implemented"))
     }
 
     async fn get_device_stream_configurations(
         &self,
-        _request: Request<pipewire::DeviceStreamConfigurationRequest>,
-    ) -> Result<Response<pipewire::DeviceStreamConfigurationResponse>, Status> {
+        _request: Request<media::DeviceStreamConfigurationRequest>,
+    ) -> Result<Response<media::DeviceStreamConfigurationResponse>, Status> {
         Err(Status::unimplemented(
             "device configurations are not implemented",
         ))
@@ -170,7 +170,7 @@ impl MediaService for MediaApiService {
                 map_snapshot_error(err)
             })?;
         let camera_count = cameras.len();
-        let cameras = cameras.into_iter().map(pipewire::Camera::from).collect();
+        let cameras = cameras.into_iter().map(media::Camera::from).collect();
 
         let response = Response::new(ListCamerasResponse { cameras });
 
@@ -208,7 +208,7 @@ impl MediaService for MediaApiService {
         let configuration_count = formats.len();
         let configurations = formats
             .into_iter()
-            .map(|format| pipewire::StreamConfiguration {
+            .map(|format| media::StreamConfiguration {
                 target: target.clone(),
                 camera_id,
                 format: Some(format.into()),

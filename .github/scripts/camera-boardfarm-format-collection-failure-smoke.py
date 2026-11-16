@@ -52,8 +52,8 @@ MEDIA_SERVICE_PROTO = (
     REPO_ROOT / "services" / "media" / "proto" / "media_service.proto"
 )
 MEDIA_SERVICE_PROTO_ARG = str(MEDIA_SERVICE_PROTO.relative_to(REPO_ROOT))
-LIST_CAMERAS_METHOD = "media.pipewire.v1.MediaService/ListCameras"
-GET_STREAM_CONFIGURATIONS_METHOD = "media.pipewire.v1.MediaService/get_stream_configurations"
+LIST_CAMERAS_METHOD = "cairn.media.v1.MediaService/ListCameras"
+GET_STREAM_CONFIGURATIONS_METHOD = "cairn.media.v1.MediaService/get_stream_configurations"
 STARTUP_TIMEOUT_SECONDS = 60
 CAMERA_DISCOVERY_TIMEOUT_SECONDS = 60
 POLL_INTERVAL_SECONDS = 2

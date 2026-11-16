@@ -80,7 +80,7 @@ def run_mock_media_service(
     server.add_generic_rpc_handlers(
         (
             grpc.method_handlers_generic_handler(
-                "media.pipewire.v1.MediaService",
+                "cairn.media.v1.MediaService",
                 {
                     "ListCameras": grpc.unary_unary_rpc_method_handler(
                         service.list_cameras,

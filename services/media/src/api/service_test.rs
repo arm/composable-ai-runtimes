@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use super::parameters::{FrameRate, Resolution, StreamFormat};
-use super::service::{map_snapshot_error, pipewire, validate_stream_configuration_request};
+use super::service::{map_snapshot_error, media, validate_stream_configuration_request};
 use super::snapshot::SnapshotError;
 use crate::device::{Device, DeviceType};
 use tonic::Code;
@@ -25,7 +25,7 @@ fn map_snapshot_error_returns_not_found_status() {
 
 #[test]
 fn validate_stream_configuration_request_rejects_zero_camera_id() {
-    let request = pipewire::StreamConfigurationRequest {
+    let request = media::StreamConfigurationRequest {
         camera_id: 0,
         format: None,
     };
@@ -38,10 +38,10 @@ fn validate_stream_configuration_request_rejects_zero_camera_id() {
 
 #[test]
 fn validate_stream_configuration_request_rejects_zero_resolution_dimension() {
-    let request = pipewire::StreamConfigurationRequest {
+    let request = media::StreamConfigurationRequest {
         camera_id: 52,
-        format: Some(pipewire::StreamFormat {
-            resolution: Some(pipewire::Resolution {
+        format: Some(media::StreamFormat {
+            resolution: Some(media::Resolution {
                 width: 0,
                 height: 1080,
             }),
@@ -61,12 +61,12 @@ fn validate_stream_configuration_request_rejects_zero_resolution_dimension() {
 
 #[test]
 fn validate_stream_configuration_request_rejects_zero_frame_rate_value() {
-    let request = pipewire::StreamConfigurationRequest {
+    let request = media::StreamConfigurationRequest {
         camera_id: 52,
-        format: Some(pipewire::StreamFormat {
+        format: Some(media::StreamFormat {
             resolution: None,
             pixel_format: String::new(),
-            frame_rate: Some(pipewire::FrameRate {
+            frame_rate: Some(media::FrameRate {
                 numerator: 30,
                 denominator: 0,
             }),
@@ -84,9 +84,9 @@ fn validate_stream_configuration_request_rejects_zero_frame_rate_value() {
 
 #[test]
 fn validate_stream_configuration_request_rejects_invalid_pixel_format() {
-    let request = pipewire::StreamConfigurationRequest {
+    let request = media::StreamConfigurationRequest {
         camera_id: 52,
-        format: Some(pipewire::StreamFormat {
+        format: Some(media::StreamFormat {
             resolution: None,
             pixel_format: "RGB 24".to_string(),
             frame_rate: None,
@@ -113,14 +113,14 @@ fn stream_format_converts_to_grpc_stream_format() {
         },
     };
 
-    let actual = pipewire::StreamFormat::from(format);
-    let expected = pipewire::StreamFormat {
-        resolution: Some(pipewire::Resolution {
+    let actual = media::StreamFormat::from(format);
+    let expected = media::StreamFormat {
+        resolution: Some(media::Resolution {
             width: 1920,
             height: 1080,
         }),
         pixel_format: "RGB".to_string(),
-        frame_rate: Some(pipewire::FrameRate {
+        frame_rate: Some(media::FrameRate {
             numerator: 30,
             denominator: 1,
         }),
@@ -138,7 +138,7 @@ fn device_converts_to_grpc_camera() {
         device_type: DeviceType::Camera,
     };
 
-    let camera = pipewire::Camera::from(snapshot);
+    let camera = media::Camera::from(snapshot);
 
     assert_eq!(camera.id, 7);
     assert_eq!(camera.name, "front");

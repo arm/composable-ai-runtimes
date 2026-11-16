@@ -255,13 +255,11 @@ pub mod media_service_client {
                 })?;
             let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/media.pipewire.v1.MediaService/ListDevices",
+                "/cairn.media.v1.MediaService/ListDevices",
             );
             let mut req = request.into_request();
             req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("media.pipewire.v1.MediaService", "ListDevices"),
-                );
+                .insert(GrpcMethod::new("cairn.media.v1.MediaService", "ListDevices"));
             self.inner.unary(req, path, codec).await
         }
         pub async fn get_device_stream_configurations(
@@ -281,13 +279,13 @@ pub mod media_service_client {
                 })?;
             let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/media.pipewire.v1.MediaService/GetDeviceStreamConfigurations",
+                "/cairn.media.v1.MediaService/GetDeviceStreamConfigurations",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "media.pipewire.v1.MediaService",
+                        "cairn.media.v1.MediaService",
                         "GetDeviceStreamConfigurations",
                     ),
                 );
@@ -310,13 +308,11 @@ pub mod media_service_client {
                 })?;
             let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/media.pipewire.v1.MediaService/ListCameras",
+                "/cairn.media.v1.MediaService/ListCameras",
             );
             let mut req = request.into_request();
             req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("media.pipewire.v1.MediaService", "ListCameras"),
-                );
+                .insert(GrpcMethod::new("cairn.media.v1.MediaService", "ListCameras"));
             self.inner.unary(req, path, codec).await
         }
         pub async fn get_stream_configurations(
@@ -336,13 +332,13 @@ pub mod media_service_client {
                 })?;
             let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/media.pipewire.v1.MediaService/get_stream_configurations",
+                "/cairn.media.v1.MediaService/get_stream_configurations",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "media.pipewire.v1.MediaService",
+                        "cairn.media.v1.MediaService",
                         "get_stream_configurations",
                     ),
                 );
@@ -468,7 +464,7 @@ pub mod media_service_server {
         }
         fn call(&mut self, req: http::Request<B>) -> Self::Future {
             match req.uri().path() {
-                "/media.pipewire.v1.MediaService/ListDevices" => {
+                "/cairn.media.v1.MediaService/ListDevices" => {
                     #[allow(non_camel_case_types)]
                     struct ListDevicesSvc<T: MediaService>(pub Arc<T>);
                     impl<
@@ -513,7 +509,7 @@ pub mod media_service_server {
                     };
                     Box::pin(fut)
                 }
-                "/media.pipewire.v1.MediaService/GetDeviceStreamConfigurations" => {
+                "/cairn.media.v1.MediaService/GetDeviceStreamConfigurations" => {
                     #[allow(non_camel_case_types)]
                     struct GetDeviceStreamConfigurationsSvc<T: MediaService>(pub Arc<T>);
                     impl<
@@ -565,7 +561,7 @@ pub mod media_service_server {
                     };
                     Box::pin(fut)
                 }
-                "/media.pipewire.v1.MediaService/ListCameras" => {
+                "/cairn.media.v1.MediaService/ListCameras" => {
                     #[allow(non_camel_case_types)]
                     struct ListCamerasSvc<T: MediaService>(pub Arc<T>);
                     impl<T: MediaService> tonic::server::UnaryService<super::ListRequest>
@@ -608,7 +604,7 @@ pub mod media_service_server {
                     };
                     Box::pin(fut)
                 }
-                "/media.pipewire.v1.MediaService/get_stream_configurations" => {
+                "/cairn.media.v1.MediaService/get_stream_configurations" => {
                     #[allow(non_camel_case_types)]
                     struct get_stream_configurationsSvc<T: MediaService>(pub Arc<T>);
                     impl<
@@ -692,7 +688,7 @@ pub mod media_service_server {
         }
     }
     /// Generated gRPC service name
-    pub const SERVICE_NAME: &str = "media.pipewire.v1.MediaService";
+    pub const SERVICE_NAME: &str = "cairn.media.v1.MediaService";
     impl<T> tonic::server::NamedService for MediaServiceServer<T> {
         const NAME: &'static str = SERVICE_NAME;
     }

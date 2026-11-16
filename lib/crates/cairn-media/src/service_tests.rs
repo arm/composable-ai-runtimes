@@ -11,11 +11,11 @@ use tonic::transport::server::TcpIncoming;
 use tonic::{Response, Status};
 use tonic_health::ServingStatus;
 
-use super::service::pipewire;
-use super::service::pipewire::media_service_server::{
+use super::service::media;
+use super::service::media::media_service_server::{
     MediaService as ProtoMediaService, MediaServiceServer,
 };
-use super::service::pipewire::{Camera as ProtoCamera, ListCamerasResponse, ListRequest};
+use super::service::media::{Camera as ProtoCamera, ListCamerasResponse, ListRequest};
 use super::{
     DeviceSelector, DeviceType, FrameRate, MediaService, MediaServiceError, Resolution,
     StreamConfiguration, StreamFormat, StreamFormatFilter,
@@ -44,24 +44,24 @@ fn stream_configuration_new_preserves_supplied_fields() {
 
 #[test]
 fn absent_pixel_format_uses_the_protobuf_default() {
-    let format = pipewire::StreamFormat::from(StreamFormatFilter::default());
+    let format = media::StreamFormat::from(StreamFormatFilter::default());
 
     assert_eq!(format.pixel_format, "");
 }
 
 struct MockMediaService {
-    devices: Result<Vec<pipewire::Device>, Status>,
+    devices: Result<Vec<media::Device>, Status>,
 }
 
 #[tonic::async_trait]
 impl ProtoMediaService for MockMediaService {
     async fn list_devices(
         &self,
-        request: Request<pipewire::ListDevicesRequest>,
-    ) -> Result<Response<pipewire::ListDevicesResponse>, Status> {
+        request: Request<media::ListDevicesRequest>,
+    ) -> Result<Response<media::ListDevicesResponse>, Status> {
         let device_type = request.into_inner().device_type;
         let devices = self.devices.clone()?;
-        Ok(Response::new(pipewire::ListDevicesResponse {
+        Ok(Response::new(media::ListDevicesResponse {
             devices: devices
                 .into_iter()
                 .filter(|device| device_type.is_none_or(|value| device.device_type == value))
@@ -71,8 +71,8 @@ impl ProtoMediaService for MockMediaService {
 
     async fn get_device_stream_configurations(
         &self,
-        _request: Request<pipewire::DeviceStreamConfigurationRequest>,
-    ) -> Result<Response<pipewire::DeviceStreamConfigurationResponse>, Status> {
+        _request: Request<media::DeviceStreamConfigurationRequest>,
+    ) -> Result<Response<media::DeviceStreamConfigurationResponse>, Status> {
         Err(Status::unimplemented(
             "device configurations are not implemented",
         ))
@@ -80,8 +80,8 @@ impl ProtoMediaService for MockMediaService {
 
     async fn get_stream_configurations(
         &self,
-        request: Request<pipewire::StreamConfigurationRequest>,
-    ) -> Result<Response<pipewire::StreamConfigurationResponse>, Status> {
+        request: Request<media::StreamConfigurationRequest>,
+    ) -> Result<Response<media::StreamConfigurationResponse>, Status> {
         let request = request.into_inner();
         if request.camera_id == 0 {
             return Err(Status::invalid_argument(
@@ -95,8 +95,8 @@ impl ProtoMediaService for MockMediaService {
             return Err(Status::unavailable("PipeWire unavailable"));
         }
         if request.camera_id == 97 {
-            return Ok(Response::new(pipewire::StreamConfigurationResponse {
-                configurations: vec![pipewire::StreamConfiguration {
+            return Ok(Response::new(media::StreamConfigurationResponse {
+                configurations: vec![media::StreamConfiguration {
                     target: "7".into(),
                     camera_id: 7,
                     format: None,
@@ -112,37 +112,37 @@ impl ProtoMediaService for MockMediaService {
         }
         if let Some(filter) = request.format {
             if filter.pixel_format == "unsupported" {
-                return Ok(Response::new(pipewire::StreamConfigurationResponse {
+                return Ok(Response::new(media::StreamConfigurationResponse {
                     configurations: vec![],
                 }));
             }
             assert_eq!(filter.pixel_format, "RGB");
             assert_eq!(
                 filter.resolution,
-                Some(pipewire::Resolution {
+                Some(media::Resolution {
                     width: 640,
                     height: 480
                 })
             );
             assert_eq!(
                 filter.frame_rate,
-                Some(pipewire::FrameRate {
+                Some(media::FrameRate {
                     numerator: 30000,
                     denominator: 1001
                 })
             );
         }
-        Ok(Response::new(pipewire::StreamConfigurationResponse {
-            configurations: vec![pipewire::StreamConfiguration {
+        Ok(Response::new(media::StreamConfigurationResponse {
+            configurations: vec![media::StreamConfiguration {
                 target: "42".into(),
                 camera_id: 7,
-                format: Some(pipewire::StreamFormat {
-                    resolution: Some(pipewire::Resolution {
+                format: Some(media::StreamFormat {
+                    resolution: Some(media::Resolution {
                         width: 640,
                         height: 480,
                     }),
                     pixel_format: "RGB".into(),
-                    frame_rate: Some(pipewire::FrameRate {
+                    frame_rate: Some(media::FrameRate {
                         numerator: 30000,
                         denominator: 1001,
                     }),
@@ -160,7 +160,7 @@ impl ProtoMediaService for MockMediaService {
                 .devices
                 .clone()?
                 .into_iter()
-                .filter(|device| device.device_type == pipewire::DeviceType::Camera as i32)
+                .filter(|device| device.device_type == media::DeviceType::Camera as i32)
                 .map(|device| ProtoCamera {
                     id: device.id,
                     name: device.name,
@@ -191,22 +191,22 @@ impl MockServerHandle {
 
 async fn start_mock_server() -> MockServerHandle {
     start_mock_server_with_devices(Ok(vec![
-        pipewire::Device {
+        media::Device {
             id: 7,
             name: "front".to_string(),
             device_type: 0,
         },
-        pipewire::Device {
+        media::Device {
             id: 8,
             name: "microphone".to_string(),
             device_type: 1,
         },
-        pipewire::Device {
+        media::Device {
             id: 9,
             name: "speaker".to_string(),
             device_type: 2,
         },
-        pipewire::Device {
+        media::Device {
             id: 10,
             name: "rear".to_string(),
             device_type: 0,
@@ -216,7 +216,7 @@ async fn start_mock_server() -> MockServerHandle {
 }
 
 async fn start_mock_server_with_devices(
-    devices: Result<Vec<pipewire::Device>, Status>,
+    devices: Result<Vec<media::Device>, Status>,
 ) -> MockServerHandle {
     let addr = "127.0.0.1:0"
         .parse()
@@ -346,7 +346,7 @@ async fn get_device_selects_first_of_type() {
 async fn get_device_returns_none_when_no_devices_match() {
     for devices in [
         vec![],
-        vec![pipewire::Device {
+        vec![media::Device {
             id: 7,
             name: "front".into(),
             device_type: 0,

@@ -57,7 +57,7 @@ MEDIA_SERVICE_PROTO = (
     REPO_ROOT / "services" / "media" / "proto" / "media_service.proto"
 )
 MEDIA_SERVICE_PROTO_ARG = str(MEDIA_SERVICE_PROTO.relative_to(REPO_ROOT))
-LIST_CAMERAS_METHOD = "media.pipewire.v1.MediaService/ListCameras"
+LIST_CAMERAS_METHOD = "cairn.media.v1.MediaService/ListCameras"
 
 JsonObject = dict[str, object]
 

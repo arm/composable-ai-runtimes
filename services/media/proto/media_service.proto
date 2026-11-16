@@ -3,7 +3,7 @@
 
 syntax = "proto3";
 
-package media.pipewire.v1;
+package cairn.media.v1;
 
 service MediaService {
   rpc ListDevices (ListDevicesRequest) returns (ListDevicesResponse);

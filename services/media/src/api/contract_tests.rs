@@ -6,9 +6,9 @@ use super::snapshot::SnapshotError;
 use super::{
     server::serving_health_service,
     service::{
-        MediaApiService, MediaServiceProvider, pipewire,
-        pipewire::media_service_client::MediaServiceClient,
-        pipewire::media_service_server::MediaServiceServer,
+        MediaApiService, MediaServiceProvider, media,
+        media::media_service_client::MediaServiceClient,
+        media::media_service_server::MediaServiceServer,
     },
 };
 use crate::device::{Device, DeviceType};
@@ -183,7 +183,7 @@ async fn list_cameras_requests_camera_device_type() {
     })
     .await;
 
-    let response = server.client.list_cameras(pipewire::ListRequest {}).await;
+    let response = server.client.list_cameras(media::ListRequest {}).await;
 
     server.shutdown().await;
 
@@ -199,7 +199,7 @@ async fn list_cameras_returns_provider_camera_identities() {
     })
     .await;
 
-    let response = server.client.list_cameras(pipewire::ListRequest {}).await;
+    let response = server.client.list_cameras(media::ListRequest {}).await;
 
     server.shutdown().await;
 
@@ -229,7 +229,7 @@ async fn list_cameras_maps_provider_failure_to_unavailable() {
     })
     .await;
 
-    let err = server.client.list_cameras(pipewire::ListRequest {}).await;
+    let err = server.client.list_cameras(media::ListRequest {}).await;
 
     server.shutdown().await;
 
@@ -273,7 +273,7 @@ async fn get_stream_configurations_returns_provider_formats() {
 
     let response = server
         .client
-        .get_stream_configurations(pipewire::StreamConfigurationRequest {
+        .get_stream_configurations(media::StreamConfigurationRequest {
             camera_id: TEST_CAMERA_ID,
             format: None,
         })
@@ -286,16 +286,16 @@ async fn get_stream_configurations_returns_provider_formats() {
         .into_inner()
         .configurations;
 
-    let expected = vec![pipewire::StreamConfiguration {
+    let expected = vec![media::StreamConfiguration {
         target: TEST_CAMERA_TARGET.to_string(),
         camera_id: TEST_CAMERA_ID,
-        format: Some(pipewire::StreamFormat {
-            resolution: Some(pipewire::Resolution {
+        format: Some(media::StreamFormat {
+            resolution: Some(media::Resolution {
                 width: 1920,
                 height: 1080,
             }),
             pixel_format: "RGB".to_string(),
-            frame_rate: Some(pipewire::FrameRate {
+            frame_rate: Some(media::FrameRate {
                 numerator: 30,
                 denominator: 1,
             }),
@@ -312,13 +312,13 @@ async fn get_stream_configurations_passes_filter_to_provider() {
         ..Default::default()
     })
     .await;
-    let requested_format = pipewire::StreamFormat {
-        resolution: Some(pipewire::Resolution {
+    let requested_format = media::StreamFormat {
+        resolution: Some(media::Resolution {
             width: 1280,
             height: 720,
         }),
         pixel_format: "YUY2".to_string(),
-        frame_rate: Some(pipewire::FrameRate {
+        frame_rate: Some(media::FrameRate {
             numerator: 45,
             denominator: 1,
         }),
@@ -326,7 +326,7 @@ async fn get_stream_configurations_passes_filter_to_provider() {
 
     let response = server
         .client
-        .get_stream_configurations(pipewire::StreamConfigurationRequest {
+        .get_stream_configurations(media::StreamConfigurationRequest {
             camera_id: TEST_CAMERA_ID,
             format: Some(requested_format.clone()),
         })
@@ -340,7 +340,7 @@ async fn get_stream_configurations_passes_filter_to_provider() {
         .configurations;
     assert_eq!(
         configurations,
-        vec![pipewire::StreamConfiguration {
+        vec![media::StreamConfiguration {
             target: TEST_CAMERA_TARGET.to_string(),
             camera_id: TEST_CAMERA_ID,
             format: Some(requested_format),
@@ -358,7 +358,7 @@ async fn get_stream_configurations_returns_empty_response() {
 
     let response = server
         .client
-        .get_stream_configurations(pipewire::StreamConfigurationRequest {
+        .get_stream_configurations(media::StreamConfigurationRequest {
             camera_id: TEST_CAMERA_ID,
             format: None,
         })
@@ -384,7 +384,7 @@ async fn get_stream_configurations_maps_not_found() {
 
     let err = server
         .client
-        .get_stream_configurations(pipewire::StreamConfigurationRequest {
+        .get_stream_configurations(media::StreamConfigurationRequest {
             camera_id: TEST_CAMERA_ID,
             format: None,
         })
@@ -411,7 +411,7 @@ async fn get_stream_configurations_rejects_invalid_request() {
 
     let err = server
         .client
-        .get_stream_configurations(pipewire::StreamConfigurationRequest {
+        .get_stream_configurations(media::StreamConfigurationRequest {
             camera_id: 0,
             format: None,
         })
@@ -435,7 +435,7 @@ async fn get_stream_configurations_maps_provider_failure_to_unavailable() {
 
     let err = server
         .client
-        .get_stream_configurations(pipewire::StreamConfigurationRequest {
+        .get_stream_configurations(media::StreamConfigurationRequest {
             camera_id: TEST_CAMERA_ID,
             format: None,
         })

@@ -8,12 +8,12 @@ use tonic_health::pb::{
     HealthCheckRequest, health_check_response::ServingStatus, health_client::HealthClient,
 };
 
-pub(crate) mod pipewire {
-    include!("generated/media.pipewire.v1.rs");
+pub(crate) mod media {
+    include!("generated/cairn.media.v1.rs");
 }
 
-use pipewire::media_service_client::MediaServiceClient;
-use pipewire::{DeviceType as ProtoDeviceType, ListRequest};
+use media::media_service_client::MediaServiceClient;
+use media::{DeviceType as ProtoDeviceType, ListRequest};
 
 const DEFAULT_MEDIA_SERVICE_ENDPOINT: &str = "http://127.0.0.1:50051";
 
@@ -114,10 +114,10 @@ pub struct Device {
     pub device_type: DeviceType,
 }
 
-impl TryFrom<pipewire::Device> for Device {
+impl TryFrom<media::Device> for Device {
     type Error = MediaServiceError;
 
-    fn try_from(value: pipewire::Device) -> Result<Self, Self::Error> {
+    fn try_from(value: media::Device) -> Result<Self, Self::Error> {
         let device_type = match ProtoDeviceType::try_from(value.device_type) {
             Ok(ProtoDeviceType::Camera) => DeviceType::Camera,
             Ok(ProtoDeviceType::Microphone) => DeviceType::Microphone,
@@ -239,15 +239,15 @@ impl StreamConfiguration {
     }
 }
 
-impl From<StreamFormatFilter> for pipewire::StreamFormat {
+impl From<StreamFormatFilter> for media::StreamFormat {
     fn from(filter: StreamFormatFilter) -> Self {
         Self {
-            resolution: filter.resolution.map(|value| pipewire::Resolution {
+            resolution: filter.resolution.map(|value| media::Resolution {
                 width: value.width,
                 height: value.height,
             }),
             pixel_format: filter.pixel_format.unwrap_or_default(),
-            frame_rate: filter.frame_rate.map(|value| pipewire::FrameRate {
+            frame_rate: filter.frame_rate.map(|value| media::FrameRate {
                 numerator: value.numerator,
                 denominator: value.denominator,
             }),
@@ -255,10 +255,10 @@ impl From<StreamFormatFilter> for pipewire::StreamFormat {
     }
 }
 
-impl TryFrom<pipewire::StreamConfiguration> for StreamConfiguration {
+impl TryFrom<media::StreamConfiguration> for StreamConfiguration {
     type Error = MediaServiceError;
 
-    fn try_from(value: pipewire::StreamConfiguration) -> Result<Self, Self::Error> {
+    fn try_from(value: media::StreamConfiguration) -> Result<Self, Self::Error> {
         let format = value.format.ok_or_else(|| {
             MediaServiceError::InvalidResponse("stream configuration is missing its format".into())
         })?;
@@ -305,7 +305,7 @@ impl MediaService {
     ) -> Result<Vec<Device>, MediaServiceError> {
         let mut client = self.client.as_ref().clone();
         let response = client
-            .list_devices(Request::new(pipewire::ListDevicesRequest {
+            .list_devices(Request::new(media::ListDevicesRequest {
                 device_type: device_type.map(|value| ProtoDeviceType::from(value) as i32),
             }))
             .await
@@ -361,7 +361,7 @@ impl MediaService {
     ) -> Result<Vec<StreamConfiguration>, MediaServiceError> {
         let mut client = self.client.as_ref().clone();
         let response = client
-            .get_stream_configurations(Request::new(pipewire::StreamConfigurationRequest {
+            .get_stream_configurations(Request::new(media::StreamConfigurationRequest {
                 camera_id,
                 format: filter.map(Into::into),
             }))
