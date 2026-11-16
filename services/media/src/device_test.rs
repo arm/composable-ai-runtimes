@@ -51,6 +51,26 @@ fn test_device_try_from_global_object_accepts_microphone() {
     );
 }
 
+#[test]
+fn test_device_try_from_global_object_accepts_speaker() {
+    let props = pw::properties::properties! {
+        *pw::keys::MEDIA_CLASS => "Audio/Sink",
+        *pw::keys::OBJECT_SERIAL => "47",
+        *pw::keys::NODE_NICK => "front-speaker"
+    };
+    let global = node_global_factory(16, Some(props));
+
+    assert_eq!(
+        Device::try_from_global_object(&global),
+        Ok(Device {
+            node_id: 16,
+            object_serial: 47,
+            name: "front-speaker".to_string(),
+            device_type: DeviceType::Speaker,
+        })
+    );
+}
+
 fn node_global_factory(
     node_id: u32,
     props: Option<pw::properties::PropertiesBox>,

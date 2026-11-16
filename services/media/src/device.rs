@@ -10,6 +10,7 @@ use thiserror::Error;
 pub enum DeviceType {
     Camera,
     Microphone,
+    Speaker,
 }
 
 impl DeviceType {
@@ -17,6 +18,7 @@ impl DeviceType {
         match self {
             Self::Camera => "Video/Source",
             Self::Microphone => "Audio/Source",
+            Self::Speaker => "Audio/Sink",
         }
     }
 }
@@ -80,6 +82,7 @@ where
     match media_class {
         "Video/Source" => Ok(DeviceType::Camera),
         "Audio/Source" => Ok(DeviceType::Microphone),
+        "Audio/Sink" => Ok(DeviceType::Speaker),
         _ => Err(DeviceError::UnsupportedNode),
     }
 }
