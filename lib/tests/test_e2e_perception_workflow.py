@@ -25,7 +25,6 @@ from cairn.perception import (
     PerceptionService,
     PerceptionSession,
     PerceptionWorkflow,
-    ServiceInfo,
     SessionState,
     ValidationResult,
 )
@@ -61,7 +60,6 @@ def test_python_sdk_deploys_a_working_perception_workflow(
     workflow.infer("objects", "yolo26n-320")
 
     async def run() -> tuple[
-        ServiceInfo,
         PerceptionSession,
         Notification,
         PerceptionResult,
@@ -69,7 +67,6 @@ def test_python_sdk_deploys_a_working_perception_workflow(
         ValidationResult,
     ]:
         service = await PerceptionService.connect(perception_endpoint)
-        service_info = await service.get_service_info()
 
         validation = await service.validate(workflow)
 
@@ -94,7 +91,6 @@ def test_python_sdk_deploys_a_working_perception_workflow(
             )
 
         return (
-            service_info,
             session,
             notification,
             result,
@@ -103,7 +99,6 @@ def test_python_sdk_deploys_a_working_perception_workflow(
         )
 
     (
-        service_info,
         session,
         notification,
         result,
@@ -111,8 +106,6 @@ def test_python_sdk_deploys_a_working_perception_workflow(
         validation,
     ) = asyncio.run(run())
 
-    assert service_info.api_version == "v1"
-    assert service_info.service_version
     assert session.id
     assert validation.valid
     assert not validation.errors

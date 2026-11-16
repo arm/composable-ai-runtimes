@@ -364,23 +364,6 @@ async fn list_sessions_maps_unavailable_to_an_rpc_error() {
 }
 
 #[tokio::test]
-async fn get_service_info_maps_proto_to_library_type() {
-    let server = start_mock_server().await;
-    let mut service = connect_to_mock_server(&server).await;
-
-    let info = service
-        .get_service_info()
-        .await
-        .expect("get_service_info failed");
-
-    assert_eq!(info.api_version, "v1");
-    assert_eq!(info.service_version, "0.1.0");
-    assert!(!info.sessions_survive_restart);
-
-    server.stop().await;
-}
-
-#[tokio::test]
 async fn validate_maps_valid_response() {
     let server = start_mock_server().await;
     server.set_validation_response(MockValidationResponse::Success(ValidateWorkflowResponse {

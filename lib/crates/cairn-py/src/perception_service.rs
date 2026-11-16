@@ -9,11 +9,10 @@ use cairn::perception_service::{
     DebugPorts as RustDebugPorts, PerceptionService as RustPerceptionService,
     PerceptionServiceError as RustPerceptionServiceError,
     PerceptionSession as RustPerceptionSession, ResolvedStage as RustResolvedStage,
-    ResolvedStageRole, ServiceInfo as RustServiceInfo, SessionSnapshot as RustSessionSnapshot,
-    SessionState as RustSessionState, SessionStatus as RustSessionStatus,
-    SessionTopics as RustSessionTopics, StatusInfo as RustStatusInfo,
-    ValidationIssue as RustValidationIssue, ValidationResult as RustValidationResult,
-    ValidationSeverity,
+    ResolvedStageRole, SessionSnapshot as RustSessionSnapshot, SessionState as RustSessionState,
+    SessionStatus as RustSessionStatus, SessionTopics as RustSessionTopics,
+    StatusInfo as RustStatusInfo, ValidationIssue as RustValidationIssue,
+    ValidationResult as RustValidationResult, ValidationSeverity,
 };
 use pyo3::exceptions::{PyException, PyTypeError};
 use pyo3::types::{PyAnyMethods, PyDict, PyList, PyModule, PyModuleMethods, PyTuple};
@@ -144,35 +143,6 @@ pub struct PyStageHandle {
     id: String,
     /// User-facing stage name.
     name: String,
-}
-
-/// Version and capability information reported by the Perception service.
-#[gen_stub_pyclass]
-#[pyclass(
-    frozen,
-    get_all,
-    module = "cairn.perception",
-    name = "ServiceInfo",
-    skip_from_py_object
-)]
-#[derive(Clone)]
-pub struct PyServiceInfo {
-    /// API version implemented by the service.
-    api_version: String,
-    /// Version of the running service.
-    service_version: String,
-    /// Whether active sessions persist when the service restarts.
-    sessions_survive_restart: bool,
-}
-
-impl From<RustServiceInfo> for PyServiceInfo {
-    fn from(info: RustServiceInfo) -> Self {
-        Self {
-            api_version: info.api_version,
-            service_version: info.service_version,
-            sessions_survive_restart: info.sessions_survive_restart,
-        }
-    }
 }
 
 /// A problem found while validating a Perception workflow.
@@ -661,24 +631,6 @@ impl PyPerceptionService {
         })
     }
 
-    /// Return version and capability information from the connected service.
-    #[gen_stub(override_return_type(
-        type_repr = "collections.abc.Awaitable[ServiceInfo]",
-        imports = ("collections.abc",)
-    ))]
-    fn get_service_info<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let service = Arc::clone(&self.0);
-        tokio_runtime::future_into_py(py, async move {
-            let info = service
-                .lock()
-                .await
-                .get_service_info()
-                .await
-                .map_err(perception_error)?;
-            Python::attach(|py| Py::new(py, PyServiceInfo::from(info)))
-        })
-    }
-
     /// Return the session identified by ``session_id``. If the ID is unknown,
     /// awaiting this method raises ``PerceptionError`` with a ``NotFound`` service error.
     #[gen_stub(override_return_type(
@@ -819,7 +771,6 @@ pub(crate) fn register(parent: &Bound<'_, PyModule>) -> PyResult<()> {
 
     module.add_class::<PyDebugOutput>()?;
     module.add_class::<PyStageHandle>()?;
-    module.add_class::<PyServiceInfo>()?;
     module.add_class::<PyValidationIssue>()?;
     module.add_class::<PyResolvedStage>()?;
     module.add_class::<PyValidationResult>()?;

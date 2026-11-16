@@ -473,21 +473,6 @@ def expected_resolved_stages(
     return stages
 
 
-def test_get_service_info_returns_v1_metadata(
-    perception_stub: perception_pb2_grpc.PerceptionServiceStub,
-) -> None:
-    response = perception_stub.GetServiceInfo(
-        perception_pb2.GetServiceInfoRequest(),
-        timeout=1,
-    )
-
-    assert response == perception_pb2.GetServiceInfoResponse(
-        api_version="v1",
-        service_version="0.0.2",
-        sessions_survive_restart=False,
-    )
-
-
 def test_validate_workflow_returns_resolved_stages_without_starting_pipeline(
     perception_stub: perception_pb2_grpc.PerceptionServiceStub,
     pipeline_runtime: PipelineRuntimeStub,

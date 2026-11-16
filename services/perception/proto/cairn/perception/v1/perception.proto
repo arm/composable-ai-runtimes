@@ -6,7 +6,6 @@ syntax = "proto3";
 package cairn.perception.v1;
 
 service PerceptionService {
-  rpc GetServiceInfo(GetServiceInfoRequest) returns (GetServiceInfoResponse);
   rpc ValidateWorkflow(ValidateWorkflowRequest) returns (ValidateWorkflowResponse);
   rpc DeployWorkflow(DeployWorkflowRequest) returns (DeployWorkflowResponse);
   rpc GetSession(GetSessionRequest) returns (PerceptionSession);
@@ -15,14 +14,6 @@ service PerceptionService {
   rpc StopSession(StopSessionRequest) returns (PerceptionSession);
   rpc EnableStage(StageControlRequest) returns (PerceptionSession);
   rpc DisableStage(StageControlRequest) returns (PerceptionSession);
-}
-
-message GetServiceInfoRequest {}
-
-message GetServiceInfoResponse {
-  string api_version = 1;
-  string service_version = 2;
-  bool sessions_survive_restart = 4;
 }
 
 message DebugPorts {

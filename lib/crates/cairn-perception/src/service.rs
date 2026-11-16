@@ -3,9 +3,8 @@
 
 use crate::perception::perception_service_client::PerceptionServiceClient;
 use crate::perception::{
-    DeployWorkflowRequest, DeployWorkflowResponse, GetServiceInfoRequest, GetSessionRequest,
-    ListSessionsRequest, PerceptionSession as ProtoPerceptionSession, ValidateWorkflowRequest,
-    deploy_workflow_response,
+    DeployWorkflowRequest, DeployWorkflowResponse, GetSessionRequest, ListSessionsRequest,
+    PerceptionSession as ProtoPerceptionSession, ValidateWorkflowRequest, deploy_workflow_response,
 };
 use crate::session::PerceptionSession;
 use crate::validation_result::{ValidationIssue, ValidationResult};
@@ -79,16 +78,6 @@ impl std::fmt::Display for PerceptionServiceError {
 
 impl std::error::Error for PerceptionServiceError {}
 
-/// Version and capability information reported by the Perception service.
-pub struct ServiceInfo {
-    /// The API version implemented by the service.
-    pub api_version: String,
-    /// The version of the running service.
-    pub service_version: String,
-    /// Whether active sessions persist when the service restarts.
-    pub sessions_survive_restart: bool,
-}
-
 /// An asynchronous client for validating and deploying Perception workflows.
 pub struct PerceptionService {
     client: PerceptionServiceClient<Channel>,
@@ -112,31 +101,6 @@ impl PerceptionService {
         })?;
         Ok(Self {
             client: PerceptionServiceClient::new(channel),
-        })
-    }
-
-    /// Returns version and capability information for the connected service.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`PerceptionServiceError::Rpc`] when the request fails.
-    pub async fn get_service_info(&mut self) -> Result<ServiceInfo, PerceptionServiceError> {
-        let response = self
-            .client
-            .get_service_info(Request::new(GetServiceInfoRequest {}))
-            .await
-            .map_err(|error| {
-                PerceptionServiceError::Rpc(format!(
-                    "failed to get perception service info: {}: {}",
-                    error.code(),
-                    error.message()
-                ))
-            })?
-            .into_inner();
-        Ok(ServiceInfo {
-            api_version: response.api_version,
-            service_version: response.service_version,
-            sessions_survive_restart: response.sessions_survive_restart,
         })
     }
 

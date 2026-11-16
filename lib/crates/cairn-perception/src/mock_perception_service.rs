@@ -72,17 +72,6 @@ struct MockPerceptionService {
 
 #[tonic::async_trait]
 impl ProtoPerceptionService for MockPerceptionService {
-    async fn get_service_info(
-        &self,
-        _request: Request<perception::GetServiceInfoRequest>,
-    ) -> Result<Response<perception::GetServiceInfoResponse>, Status> {
-        Ok(Response::new(perception::GetServiceInfoResponse {
-            api_version: "v1".to_string(),
-            service_version: "0.1.0".to_string(),
-            sessions_survive_restart: false,
-        }))
-    }
-
     async fn validate_workflow(
         &self,
         _request: Request<perception::ValidateWorkflowRequest>,

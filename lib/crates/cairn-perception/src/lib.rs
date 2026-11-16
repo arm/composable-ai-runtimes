@@ -20,7 +20,7 @@ pub use result::{
     DecodedEnvelopeContext, ExternalPayload, MalformedKnownPayload, PerceptionPayload,
     PerceptionResult, PerceptionResultError, UnknownPayload,
 };
-pub use service::{PerceptionService, PerceptionServiceError, ServiceInfo};
+pub use service::{PerceptionService, PerceptionServiceError};
 pub use session::{
     DebugPorts, PerceptionSession, SessionSnapshot, SessionState, SessionStatus, SessionTopics,
     StatusInfo,

@@ -64,7 +64,6 @@ from perception_service.workflow.stages.output import OpkSinkStageDefinition
 from perception_service.workflow.validation import validate_pipeline, validate_workflow
 
 SERVER_SHUTDOWN_GRACE_SECONDS: Final = 5
-SERVICE_VERSION: Final = "0.0.2"
 PERCEPTION_SERVICE_NAME: Final = perception_pb2.DESCRIPTOR.services_by_name[
     "PerceptionService"
 ].full_name
@@ -195,18 +194,6 @@ class PerceptionService(perception_pb2_grpc.PerceptionServiceServicer):
         )
         self._lifecycle = lifecycle
         self._pipeline_manager.subscribe(self._on_pipeline_event)
-
-    @handle_rpc_errors
-    def GetServiceInfo(
-        self,
-        request: perception_pb2.GetServiceInfoRequest,
-        context: grpc.ServicerContext,
-    ) -> perception_pb2.GetServiceInfoResponse:
-        return perception_pb2.GetServiceInfoResponse(
-            api_version="v1",
-            service_version=SERVICE_VERSION,
-            sessions_survive_restart=False,
-        )
 
     @handle_rpc_errors
     def ValidateWorkflow(

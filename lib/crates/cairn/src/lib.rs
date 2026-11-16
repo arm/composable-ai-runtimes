@@ -15,7 +15,7 @@ pub mod media_service {
 pub mod notification_service {
     pub use cairn_notification::*;
 }
-/// Perception service client and service information types.
+/// Perception client and session types.
 pub mod perception_service {
     pub use cairn_perception::*;
 }

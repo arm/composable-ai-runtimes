@@ -56,7 +56,6 @@ __all__ = [
     "ResolvedStage",
     "SegmentationMask",
     "SegmentationMasks",
-    "ServiceInfo",
     "SessionSnapshot",
     "SessionState",
     "SessionStatus",
@@ -705,10 +704,6 @@ class PerceptionService:
         Await this method. ``None`` uses ``http://127.0.0.1:50053``.
         Connection failures raise ``PerceptionError``.
         """
-    def get_service_info(self) -> collections.abc.Awaitable[ServiceInfo]:
-        r"""
-        Return version and capability information from the connected service.
-        """
     def get_session(self, session_id: builtins.str) -> collections.abc.Awaitable[PerceptionSession]:
         r"""
         Return the session identified by ``session_id``. If the ID is unknown,
@@ -1037,27 +1032,6 @@ class SegmentationMasks:
     def masks(self) -> typing.Optional[builtins.list[SegmentationMask]]:
         r"""
         Object segmentation masks.
-        """
-
-@typing.final
-class ServiceInfo:
-    r"""
-    Version and capability information reported by the Perception service.
-    """
-    @property
-    def api_version(self) -> builtins.str:
-        r"""
-        API version implemented by the service.
-        """
-    @property
-    def service_version(self) -> builtins.str:
-        r"""
-        Version of the running service.
-        """
-    @property
-    def sessions_survive_restart(self) -> builtins.bool:
-        r"""
-        Whether active sessions persist when the service restarts.
         """
 
 @typing.final

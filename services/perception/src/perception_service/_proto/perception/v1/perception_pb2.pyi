@@ -42,20 +42,6 @@ SESSION_STATE_STOPPING: SessionState
 SESSION_STATE_STOPPED: SessionState
 SESSION_STATE_FAILED: SessionState
 
-class GetServiceInfoRequest(_message.Message):
-    __slots__ = ()
-    def __init__(self) -> None: ...
-
-class GetServiceInfoResponse(_message.Message):
-    __slots__ = ("api_version", "service_version", "sessions_survive_restart")
-    API_VERSION_FIELD_NUMBER: _ClassVar[int]
-    SERVICE_VERSION_FIELD_NUMBER: _ClassVar[int]
-    SESSIONS_SURVIVE_RESTART_FIELD_NUMBER: _ClassVar[int]
-    api_version: str
-    service_version: str
-    sessions_survive_restart: bool
-    def __init__(self, api_version: _Optional[str] = ..., service_version: _Optional[str] = ..., sessions_survive_restart: _Optional[bool] = ...) -> None: ...
-
 class DebugPorts(_message.Message):
     __slots__ = ("http_port", "ws_port", "ctrl_port")
     HTTP_PORT_FIELD_NUMBER: _ClassVar[int]
