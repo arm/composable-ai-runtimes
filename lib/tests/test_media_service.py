@@ -190,8 +190,8 @@ def test_get_camera_returns_none_when_no_cameras_are_available(
 @pytest.mark.parametrize(
     "media_service, camera_id, error_type, message",
     [
-        ("valid", 123, LookupError, "camera 123 was not found"),
-        ("no-cameras", 123, LookupError, "camera 123 was not found"),
+        ("valid", 123, LookupError, "device 123 was not found"),
+        ("no-cameras", 123, LookupError, "device 123 was not found"),
         ("unavailable-cameras", 123, RuntimeError, "PipeWire unavailable"),
         ("unavailable-cameras", None, RuntimeError, "PipeWire unavailable"),
     ],

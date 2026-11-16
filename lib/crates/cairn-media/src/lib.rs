@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #![warn(missing_docs)]
-//! Client types for discovering cameras exposed by the Cairn media service.
+//! Client types for discovering devices exposed by the Cairn media service.
 
 mod service;
 
@@ -10,6 +10,6 @@ mod service;
 mod service_tests;
 
 pub use service::{
-    Camera, FrameRate, MediaService, MediaServiceError, Resolution, StreamConfiguration,
-    StreamFormat, StreamFormatFilter,
+    Camera, Device, DeviceSelector, DeviceType, FrameRate, MediaService, MediaServiceError,
+    Resolution, StreamConfiguration, StreamFormat, StreamFormatFilter,
 };

@@ -7,7 +7,7 @@
 //! APIs are grouped by service. Each module re-exports the user-facing client, data, and error
 //! types provided by its corresponding service crate.
 
-/// Camera discovery client and metadata types.
+/// Media device discovery client and metadata types.
 pub mod media_service {
     pub use cairn_media::*;
 }

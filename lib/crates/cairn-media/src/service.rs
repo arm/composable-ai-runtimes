@@ -12,8 +12,8 @@ pub(crate) mod pipewire {
     include!("generated/media.pipewire.v1.rs");
 }
 
-use pipewire::ListRequest;
 use pipewire::media_service_client::MediaServiceClient;
+use pipewire::{DeviceType as ProtoDeviceType, ListRequest};
 
 const DEFAULT_MEDIA_SERVICE_ENDPOINT: &str = "http://127.0.0.1:50051";
 
@@ -45,7 +45,7 @@ pub(super) async fn wait_for_serving(endpoint: &str) -> Result<Channel, String> 
 /// An error returned by the media service client.
 #[derive(Debug)]
 pub enum MediaServiceError {
-    /// No camera with the requested ID is currently present.
+    /// No device with the requested ID is currently present.
     NotFound(u64),
     /// The client could not connect to the service or complete a request.
     Transport(String),
@@ -56,7 +56,7 @@ pub enum MediaServiceError {
 impl std::fmt::Display for MediaServiceError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::NotFound(camera_id) => write!(f, "camera {camera_id} was not found"),
+            Self::NotFound(device_id) => write!(f, "device {device_id} was not found"),
             Self::Transport(message) => f.write_str(message),
             Self::InvalidResponse(message) => f.write_str(message),
         }
@@ -71,6 +71,70 @@ fn transport_error(message: impl Into<String>) -> MediaServiceError {
 
 fn map_tonic_status(error: tonic::Status) -> MediaServiceError {
     transport_error(format!("{}: {}", error.code(), error.message()))
+}
+
+/// The kind of media device.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum DeviceType {
+    /// A video capture device.
+    Camera,
+    /// An audio capture device.
+    Microphone,
+    /// An audio playback device.
+    Speaker,
+}
+
+impl From<DeviceType> for ProtoDeviceType {
+    fn from(value: DeviceType) -> Self {
+        match value {
+            DeviceType::Camera => Self::Camera,
+            DeviceType::Microphone => Self::Microphone,
+            DeviceType::Speaker => Self::Speaker,
+        }
+    }
+}
+
+/// Selects a media device by ID or type.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum DeviceSelector {
+    /// ID of the device to select.
+    Id(u64),
+    /// Type of the device to select.
+    Type(DeviceType),
+}
+
+/// Describes a device reported by the media service.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Device {
+    /// The device identifier assigned by the service.
+    pub id: u64,
+    /// The human-readable device name.
+    pub name: String,
+    /// The kind of device.
+    pub device_type: DeviceType,
+}
+
+impl TryFrom<pipewire::Device> for Device {
+    type Error = MediaServiceError;
+
+    fn try_from(value: pipewire::Device) -> Result<Self, Self::Error> {
+        let device_type = match ProtoDeviceType::try_from(value.device_type) {
+            Ok(ProtoDeviceType::Camera) => DeviceType::Camera,
+            Ok(ProtoDeviceType::Microphone) => DeviceType::Microphone,
+            Ok(ProtoDeviceType::Speaker) => DeviceType::Speaker,
+            Err(_) => {
+                return Err(MediaServiceError::InvalidResponse(format!(
+                    "device {} has unknown device type {}",
+                    value.id, value.device_type
+                )));
+            }
+        };
+        Ok(Self {
+            id: value.id,
+            name: value.name,
+            device_type,
+        })
+    }
 }
 
 /// Describes a camera reported by the media service.
@@ -222,13 +286,67 @@ impl TryFrom<pipewire::StreamConfiguration> for StreamConfiguration {
     }
 }
 
-/// A client for discovering cameras exposed by the Cairn media service.
+/// A client for discovering devices exposed by the Cairn media service.
 #[derive(Clone)]
 pub struct MediaService {
     client: Arc<MediaServiceClient<Channel>>,
 }
 
 impl MediaService {
+    /// Returns all devices, optionally filtered by type.
+    /// Devices with unrecognized types are omitted.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`MediaServiceError::Transport`] when discovery fails.
+    pub async fn list_devices(
+        &self,
+        device_type: Option<DeviceType>,
+    ) -> Result<Vec<Device>, MediaServiceError> {
+        let mut client = self.client.as_ref().clone();
+        let response = client
+            .list_devices(Request::new(pipewire::ListDevicesRequest {
+                device_type: device_type.map(|value| ProtoDeviceType::from(value) as i32),
+            }))
+            .await
+            .map_err(map_tonic_status)?
+            .into_inner();
+        Ok(response
+            .devices
+            .into_iter()
+            .filter_map(|device| Device::try_from(device).ok())
+            .collect())
+    }
+
+    /// Selects by ID, or returns the first device of the requested type.
+    ///
+    /// Type selection returns `None` when no devices match.
+    /// IDs may change after a reconnect or restart.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`MediaServiceError::NotFound`] for an absent ID, or propagates
+    /// discovery errors from [`Self::list_devices`].
+    pub async fn get_device(
+        &self,
+        selector: DeviceSelector,
+    ) -> Result<Option<Device>, MediaServiceError> {
+        match selector {
+            DeviceSelector::Id(id) => self
+                .list_devices(None)
+                .await?
+                .into_iter()
+                .find(|device| device.id == id)
+                .map(Some)
+                .ok_or(MediaServiceError::NotFound(id)),
+            DeviceSelector::Type(device_type) => Ok(self
+                .list_devices(Some(device_type))
+                .await?
+                .into_iter()
+                .next()),
+        }
+    }
+
     /// Discover stream configurations for a camera, optionally filtered by format.
     ///
     /// # Errors

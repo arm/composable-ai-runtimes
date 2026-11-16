@@ -16,7 +16,10 @@ use super::service::pipewire::media_service_server::{
     MediaService as ProtoMediaService, MediaServiceServer,
 };
 use super::service::pipewire::{Camera as ProtoCamera, ListCamerasResponse, ListRequest};
-use super::*;
+use super::{
+    DeviceSelector, DeviceType, FrameRate, MediaService, MediaServiceError, Resolution,
+    StreamConfiguration, StreamFormat, StreamFormatFilter,
+};
 
 #[test]
 fn stream_configuration_new_preserves_supplied_fields() {
@@ -47,16 +50,23 @@ fn absent_pixel_format_uses_the_protobuf_default() {
 }
 
 struct MockMediaService {
-    cameras: Vec<ProtoCamera>,
+    devices: Result<Vec<pipewire::Device>, Status>,
 }
 
 #[tonic::async_trait]
 impl ProtoMediaService for MockMediaService {
     async fn list_devices(
         &self,
-        _request: Request<pipewire::ListDevicesRequest>,
+        request: Request<pipewire::ListDevicesRequest>,
     ) -> Result<Response<pipewire::ListDevicesResponse>, Status> {
-        Err(Status::unimplemented("device discovery is not implemented"))
+        let device_type = request.into_inner().device_type;
+        let devices = self.devices.clone()?;
+        Ok(Response::new(pipewire::ListDevicesResponse {
+            devices: devices
+                .into_iter()
+                .filter(|device| device_type.is_none_or(|value| device.device_type == value))
+                .collect(),
+        }))
     }
 
     async fn get_device_stream_configurations(
@@ -146,7 +156,16 @@ impl ProtoMediaService for MockMediaService {
         _request: Request<ListRequest>,
     ) -> Result<Response<ListCamerasResponse>, Status> {
         Ok(Response::new(ListCamerasResponse {
-            cameras: self.cameras.clone(),
+            cameras: self
+                .devices
+                .clone()?
+                .into_iter()
+                .filter(|device| device.device_type == pipewire::DeviceType::Camera as i32)
+                .map(|device| ProtoCamera {
+                    id: device.id,
+                    name: device.name,
+                })
+                .collect(),
         }))
     }
 }
@@ -171,20 +190,34 @@ impl MockServerHandle {
 }
 
 async fn start_mock_server() -> MockServerHandle {
-    start_mock_server_with_cameras(vec![
-        ProtoCamera {
+    start_mock_server_with_devices(Ok(vec![
+        pipewire::Device {
             id: 7,
             name: "front".to_string(),
+            device_type: 0,
         },
-        ProtoCamera {
-            id: 99,
+        pipewire::Device {
+            id: 8,
+            name: "microphone".to_string(),
+            device_type: 1,
+        },
+        pipewire::Device {
+            id: 9,
+            name: "speaker".to_string(),
+            device_type: 2,
+        },
+        pipewire::Device {
+            id: 10,
             name: "rear".to_string(),
+            device_type: 0,
         },
-    ])
+    ]))
     .await
 }
 
-async fn start_mock_server_with_cameras(cameras: Vec<ProtoCamera>) -> MockServerHandle {
+async fn start_mock_server_with_devices(
+    devices: Result<Vec<pipewire::Device>, Status>,
+) -> MockServerHandle {
     let addr = "127.0.0.1:0"
         .parse()
         .expect("invalid test listener address");
@@ -198,7 +231,7 @@ async fn start_mock_server_with_cameras(cameras: Vec<ProtoCamera>) -> MockServer
     let task = tokio::spawn(async move {
         Server::builder()
             .add_service(health_service)
-            .add_service(MediaServiceServer::new(MockMediaService { cameras }))
+            .add_service(MediaServiceServer::new(MockMediaService { devices }))
             .serve_with_incoming_shutdown(incoming, async move {
                 let _ = shutdown_receiver.await;
             })
@@ -214,93 +247,196 @@ async fn start_mock_server_with_cameras(cameras: Vec<ProtoCamera>) -> MockServer
 }
 
 #[tokio::test]
-async fn list_cameras_maps_proto_to_library_type() {
+async fn device_discovery_propagates_rpc_errors() {
+    for status in [
+        Status::unavailable("PipeWire unavailable"),
+        Status::unimplemented("device discovery is not implemented"),
+    ] {
+        let message = status.message().to_owned();
+        let server = start_mock_server_with_devices(Err(status)).await;
+        let service = MediaService::connect(Some(server.endpoint().to_owned()))
+            .await
+            .unwrap();
+        for result in [
+            service.list_devices(None).await.map(|_| ()),
+            service.get_device(DeviceSelector::Id(7)).await.map(|_| ()),
+            service
+                .get_device(DeviceSelector::Type(DeviceType::Camera))
+                .await
+                .map(|_| ()),
+        ] {
+            let error = result.unwrap_err();
+            assert!(matches!(error, MediaServiceError::Transport(_)));
+            assert!(error.to_string().contains(&message));
+        }
+        server.stop_server().await;
+    }
+}
+
+#[tokio::test]
+async fn list_devices_maps_metadata_and_preserves_optional_type_filter() {
     let server = start_mock_server().await;
-    let mut service = MediaService::connect(Some(server.endpoint().to_string()))
+    let service = MediaService::connect(Some(server.endpoint().to_string()))
         .await
         .expect("failed to create client");
 
-    let cameras = service.list_cameras().await.expect("list_cameras failed");
-    assert_eq!(cameras.len(), 2);
-    assert_eq!(cameras[0].id, 7);
-    assert_eq!(cameras[0].name, "front");
-    assert_eq!(cameras[1].id, 99);
-    assert_eq!(cameras[1].name, "rear");
-
-    server.stop_server().await;
-}
-
-#[tokio::test]
-async fn get_camera_selects_first_when_id_is_omitted() {
-    let server = start_mock_server().await;
-    let mut service = MediaService::connect(Some(server.endpoint().to_owned()))
+    let devices = service
+        .list_devices(None)
         .await
-        .unwrap();
-
-    let camera = service.get_camera(None).await.unwrap().unwrap();
-    assert_eq!((camera.id, camera.name.as_str()), (7, "front"));
-
-    server.stop_server().await;
-}
-
-#[tokio::test]
-async fn get_camera_returns_none_when_no_cameras_are_available() {
-    let server = start_mock_server_with_cameras(vec![]).await;
-    let mut service = MediaService::connect(Some(server.endpoint().to_owned()))
-        .await
-        .unwrap();
-
-    assert!(matches!(service.get_camera(None).await, Ok(None)));
-
-    server.stop_server().await;
-}
-
-#[tokio::test]
-async fn get_camera_selects_by_id() {
-    let server = start_mock_server().await;
-    let mut service = MediaService::connect(Some(server.endpoint().to_owned()))
-        .await
-        .unwrap();
-
-    for (id, name) in [(99, "rear"), (7, "front")] {
-        let camera = service.get_camera(Some(&id)).await.unwrap().unwrap();
-        assert_eq!((camera.id, camera.name.as_str()), (id, name));
+        .expect("list_devices failed");
+    assert_eq!(
+        devices
+            .iter()
+            .map(|device| (device.id, device.name.as_str(), device.device_type))
+            .collect::<Vec<_>>(),
+        vec![
+            (7, "front", DeviceType::Camera),
+            (8, "microphone", DeviceType::Microphone),
+            (9, "speaker", DeviceType::Speaker),
+            (10, "rear", DeviceType::Camera),
+        ]
+    );
+    for (device_type, ids) in [
+        (DeviceType::Camera, vec![7, 10]),
+        (DeviceType::Microphone, vec![8]),
+        (DeviceType::Speaker, vec![9]),
+    ] {
+        let devices = service.list_devices(Some(device_type)).await.unwrap();
+        assert_eq!(
+            devices.iter().map(|device| device.id).collect::<Vec<_>>(),
+            ids
+        );
+        assert!(
+            devices
+                .iter()
+                .all(|device| device.device_type == device_type)
+        );
     }
 
     server.stop_server().await;
 }
 
 #[tokio::test]
-async fn get_camera_errors_when_id_is_missing() {
+async fn get_device_selects_first_of_type() {
     let server = start_mock_server().await;
-    let mut service = MediaService::connect(Some(server.endpoint().to_owned()))
+    let service = MediaService::connect(Some(server.endpoint().to_owned()))
         .await
         .unwrap();
 
-    assert!(matches!(
-        service.get_camera(Some(&123)).await,
-        Err(MediaServiceError::NotFound(123))
-    ));
+    for (device_type, id, name) in [
+        (DeviceType::Camera, 7, "front"),
+        (DeviceType::Microphone, 8, "microphone"),
+        (DeviceType::Speaker, 9, "speaker"),
+    ] {
+        let device = service
+            .get_device(DeviceSelector::Type(device_type))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            (device.id, device.name.as_str(), device.device_type),
+            (id, name, device_type)
+        );
+    }
 
     server.stop_server().await;
 }
 
 #[tokio::test]
-async fn get_camera_propagates_transport_failure() {
+async fn get_device_returns_none_when_no_devices_match() {
+    for devices in [
+        vec![],
+        vec![pipewire::Device {
+            id: 7,
+            name: "front".into(),
+            device_type: 0,
+        }],
+    ] {
+        let server = start_mock_server_with_devices(Ok(devices)).await;
+        let service = MediaService::connect(Some(server.endpoint().to_owned()))
+            .await
+            .unwrap();
+
+        assert!(
+            service
+                .list_devices(Some(DeviceType::Microphone))
+                .await
+                .unwrap()
+                .is_empty()
+        );
+        assert_eq!(
+            service
+                .get_device(DeviceSelector::Type(DeviceType::Microphone))
+                .await
+                .unwrap(),
+            None
+        );
+        assert!(matches!(
+            service.get_device(DeviceSelector::Id(8)).await,
+            Err(MediaServiceError::NotFound(8))
+        ));
+
+        server.stop_server().await;
+    }
+}
+
+#[tokio::test]
+async fn get_device_selects_by_id() {
     let server = start_mock_server().await;
-    let mut service = MediaService::connect(Some(server.endpoint().to_owned()))
+    let service = MediaService::connect(Some(server.endpoint().to_owned()))
+        .await
+        .unwrap();
+
+    for (id, name) in [
+        (10, "rear"),
+        (7, "front"),
+        (8, "microphone"),
+        (9, "speaker"),
+    ] {
+        let device = service
+            .get_device(DeviceSelector::Id(id))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!((device.id, device.name.as_str()), (id, name));
+    }
+
+    server.stop_server().await;
+}
+
+#[tokio::test]
+async fn get_device_errors_when_id_is_missing() {
+    let server = start_mock_server().await;
+    let service = MediaService::connect(Some(server.endpoint().to_owned()))
+        .await
+        .unwrap();
+
+    let error = service
+        .get_device(DeviceSelector::Id(123))
+        .await
+        .unwrap_err();
+    assert!(matches!(error, MediaServiceError::NotFound(123)));
+    assert_eq!(error.to_string(), "device 123 was not found");
+
+    server.stop_server().await;
+}
+
+#[tokio::test]
+async fn get_device_propagates_transport_failure() {
+    let server = start_mock_server().await;
+    let service = MediaService::connect(Some(server.endpoint().to_owned()))
         .await
         .unwrap();
     server.stop_server().await;
 
-    for camera_id in [None, Some(7)] {
+    for selector in [
+        DeviceSelector::Type(DeviceType::Camera),
+        DeviceSelector::Id(7),
+    ] {
         assert!(matches!(
-            timeout(
-                Duration::from_secs(2),
-                service.get_camera(camera_id.as_ref())
-            )
-            .await
-            .unwrap(),
+            timeout(Duration::from_secs(2), service.get_device(selector))
+                .await
+                .unwrap(),
             Err(MediaServiceError::Transport(_))
         ));
     }
