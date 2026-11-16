@@ -18,10 +18,20 @@ pub struct Device {
     #[prost(enumeration = "DeviceType", tag = "3")]
     pub device_type: i32,
 }
-#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct DeviceStreamConfigurationRequest {
     #[prost(uint64, tag = "1")]
     pub device_id: u64,
+    #[prost(oneof = "device_stream_configuration_request::Filter", tags = "2")]
+    pub filter: ::core::option::Option<device_stream_configuration_request::Filter>,
+}
+/// Nested message and enum types in `DeviceStreamConfigurationRequest`.
+pub mod device_stream_configuration_request {
+    #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
+    pub enum Filter {
+        #[prost(message, tag = "2")]
+        VideoFormat(super::StreamFormat),
+    }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DeviceStreamConfigurationResponse {

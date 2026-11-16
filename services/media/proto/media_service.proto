@@ -35,6 +35,9 @@ message Device {
 
 message DeviceStreamConfigurationRequest {
   uint64 device_id = 1;
+  oneof filter {
+    StreamFormat video_format = 2;
+  }
 }
 
 message DeviceStreamConfigurationResponse {

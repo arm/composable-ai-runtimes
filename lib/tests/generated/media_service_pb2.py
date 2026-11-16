@@ -28,15 +28,15 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13media_service.proto\x12\x0e\x63\x61irn.media.v1\"Z\n\x12ListDevicesRequest\x12\x34\n\x0b\x64\x65vice_type\x18\x01 \x01(\x0e\x32\x1a.cairn.media.v1.DeviceTypeH\x00\x88\x01\x01\x42\x0e\n\x0c_device_type\">\n\x13ListDevicesResponse\x12\'\n\x07\x64\x65vices\x18\x01 \x03(\x0b\x32\x16.cairn.media.v1.Device\"S\n\x06\x44\x65vice\x12\n\n\x02id\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\t\x12/\n\x0b\x64\x65vice_type\x18\x03 \x01(\x0e\x32\x1a.cairn.media.v1.DeviceType\"5\n DeviceStreamConfigurationRequest\x12\x11\n\tdevice_id\x18\x01 \x01(\x04\"f\n!DeviceStreamConfigurationResponse\x12\x41\n\x0e\x63onfigurations\x18\x01 \x03(\x0b\x32).cairn.media.v1.DeviceStreamConfiguration\"\xb3\x01\n\x19\x44\x65viceStreamConfiguration\x12\x0e\n\x06target\x18\x01 \x01(\t\x12\x11\n\tdevice_id\x18\x02 \x01(\x04\x12\x34\n\x0cvideo_format\x18\x03 \x01(\x0b\x32\x1c.cairn.media.v1.StreamFormatH\x00\x12\x33\n\x0c\x61udio_format\x18\x04 \x01(\x0b\x32\x1b.cairn.media.v1.AudioFormatH\x00\x42\x08\n\x06\x66ormat\"x\n\x0b\x41udioFormat\x12\x13\n\x0bsample_rate\x18\x01 \x01(\r\x12\x10\n\x08\x63hannels\x18\x02 \x01(\r\x12\x15\n\rsample_format\x18\x03 \x01(\t\x12\x16\n\x0e\x63hannel_layout\x18\x04 \x03(\t\x12\x13\n\x0binterleaved\x18\x05 \x01(\x08\"\r\n\x0bListRequest\">\n\x13ListCamerasResponse\x12\'\n\x07\x63\x61meras\x18\x01 \x03(\x0b\x32\x16.cairn.media.v1.Camera\"\"\n\x06\x43\x61mera\x12\n\n\x02id\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\t\"\x83\x01\n\x0cStreamFormat\x12.\n\nresolution\x18\x01 \x01(\x0b\x32\x1a.cairn.media.v1.Resolution\x12\x14\n\x0cpixel_format\x18\x02 \x01(\t\x12-\n\nframe_rate\x18\x03 \x01(\x0b\x32\x19.cairn.media.v1.FrameRate\"]\n\x1aStreamConfigurationRequest\x12\x11\n\tcamera_id\x18\x01 \x01(\x04\x12,\n\x06\x66ormat\x18\x02 \x01(\x0b\x32\x1c.cairn.media.v1.StreamFormat\"f\n\x13StreamConfiguration\x12\x0e\n\x06target\x18\x01 \x01(\t\x12\x11\n\tcamera_id\x18\x02 \x01(\x04\x12,\n\x06\x66ormat\x18\x03 \x01(\x0b\x32\x1c.cairn.media.v1.StreamFormat\"Z\n\x1bStreamConfigurationResponse\x12;\n\x0e\x63onfigurations\x18\x01 \x03(\x0b\x32#.cairn.media.v1.StreamConfiguration\"+\n\nResolution\x12\r\n\x05width\x18\x01 \x01(\r\x12\x0e\n\x06height\x18\x02 \x01(\r\"3\n\tFrameRate\x12\x11\n\tnumerator\x18\x01 \x01(\r\x12\x13\n\x0b\x64\x65nominator\x18\x02 \x01(\r*Y\n\nDeviceType\x12\x16\n\x12\x44\x45VICE_TYPE_CAMERA\x10\x00\x12\x1a\n\x16\x44\x45VICE_TYPE_MICROPHONE\x10\x01\x12\x17\n\x13\x44\x45VICE_TYPE_SPEAKER\x10\x02\x32\xb4\x03\n\x0cMediaService\x12V\n\x0bListDevices\x12\".cairn.media.v1.ListDevicesRequest\x1a#.cairn.media.v1.ListDevicesResponse\x12\x84\x01\n\x1dGetDeviceStreamConfigurations\x12\x30.cairn.media.v1.DeviceStreamConfigurationRequest\x1a\x31.cairn.media.v1.DeviceStreamConfigurationResponse\x12O\n\x0bListCameras\x12\x1b.cairn.media.v1.ListRequest\x1a#.cairn.media.v1.ListCamerasResponse\x12t\n\x19get_stream_configurations\x12*.cairn.media.v1.StreamConfigurationRequest\x1a+.cairn.media.v1.StreamConfigurationResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13media_service.proto\x12\x0e\x63\x61irn.media.v1\"Z\n\x12ListDevicesRequest\x12\x34\n\x0b\x64\x65vice_type\x18\x01 \x01(\x0e\x32\x1a.cairn.media.v1.DeviceTypeH\x00\x88\x01\x01\x42\x0e\n\x0c_device_type\">\n\x13ListDevicesResponse\x12\'\n\x07\x64\x65vices\x18\x01 \x03(\x0b\x32\x16.cairn.media.v1.Device\"S\n\x06\x44\x65vice\x12\n\n\x02id\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\t\x12/\n\x0b\x64\x65vice_type\x18\x03 \x01(\x0e\x32\x1a.cairn.media.v1.DeviceType\"u\n DeviceStreamConfigurationRequest\x12\x11\n\tdevice_id\x18\x01 \x01(\x04\x12\x34\n\x0cvideo_format\x18\x02 \x01(\x0b\x32\x1c.cairn.media.v1.StreamFormatH\x00\x42\x08\n\x06\x66ilter\"f\n!DeviceStreamConfigurationResponse\x12\x41\n\x0e\x63onfigurations\x18\x01 \x03(\x0b\x32).cairn.media.v1.DeviceStreamConfiguration\"\xb3\x01\n\x19\x44\x65viceStreamConfiguration\x12\x0e\n\x06target\x18\x01 \x01(\t\x12\x11\n\tdevice_id\x18\x02 \x01(\x04\x12\x34\n\x0cvideo_format\x18\x03 \x01(\x0b\x32\x1c.cairn.media.v1.StreamFormatH\x00\x12\x33\n\x0c\x61udio_format\x18\x04 \x01(\x0b\x32\x1b.cairn.media.v1.AudioFormatH\x00\x42\x08\n\x06\x66ormat\"x\n\x0b\x41udioFormat\x12\x13\n\x0bsample_rate\x18\x01 \x01(\r\x12\x10\n\x08\x63hannels\x18\x02 \x01(\r\x12\x15\n\rsample_format\x18\x03 \x01(\t\x12\x16\n\x0e\x63hannel_layout\x18\x04 \x03(\t\x12\x13\n\x0binterleaved\x18\x05 \x01(\x08\"\r\n\x0bListRequest\">\n\x13ListCamerasResponse\x12\'\n\x07\x63\x61meras\x18\x01 \x03(\x0b\x32\x16.cairn.media.v1.Camera\"\"\n\x06\x43\x61mera\x12\n\n\x02id\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\t\"\x83\x01\n\x0cStreamFormat\x12.\n\nresolution\x18\x01 \x01(\x0b\x32\x1a.cairn.media.v1.Resolution\x12\x14\n\x0cpixel_format\x18\x02 \x01(\t\x12-\n\nframe_rate\x18\x03 \x01(\x0b\x32\x19.cairn.media.v1.FrameRate\"]\n\x1aStreamConfigurationRequest\x12\x11\n\tcamera_id\x18\x01 \x01(\x04\x12,\n\x06\x66ormat\x18\x02 \x01(\x0b\x32\x1c.cairn.media.v1.StreamFormat\"f\n\x13StreamConfiguration\x12\x0e\n\x06target\x18\x01 \x01(\t\x12\x11\n\tcamera_id\x18\x02 \x01(\x04\x12,\n\x06\x66ormat\x18\x03 \x01(\x0b\x32\x1c.cairn.media.v1.StreamFormat\"Z\n\x1bStreamConfigurationResponse\x12;\n\x0e\x63onfigurations\x18\x01 \x03(\x0b\x32#.cairn.media.v1.StreamConfiguration\"+\n\nResolution\x12\r\n\x05width\x18\x01 \x01(\r\x12\x0e\n\x06height\x18\x02 \x01(\r\"3\n\tFrameRate\x12\x11\n\tnumerator\x18\x01 \x01(\r\x12\x13\n\x0b\x64\x65nominator\x18\x02 \x01(\r*Y\n\nDeviceType\x12\x16\n\x12\x44\x45VICE_TYPE_CAMERA\x10\x00\x12\x1a\n\x16\x44\x45VICE_TYPE_MICROPHONE\x10\x01\x12\x17\n\x13\x44\x45VICE_TYPE_SPEAKER\x10\x02\x32\xb4\x03\n\x0cMediaService\x12V\n\x0bListDevices\x12\".cairn.media.v1.ListDevicesRequest\x1a#.cairn.media.v1.ListDevicesResponse\x12\x84\x01\n\x1dGetDeviceStreamConfigurations\x12\x30.cairn.media.v1.DeviceStreamConfigurationRequest\x1a\x31.cairn.media.v1.DeviceStreamConfigurationResponse\x12O\n\x0bListCameras\x12\x1b.cairn.media.v1.ListRequest\x1a#.cairn.media.v1.ListCamerasResponse\x12t\n\x19get_stream_configurations\x12*.cairn.media.v1.StreamConfigurationRequest\x1a+.cairn.media.v1.StreamConfigurationResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'media_service_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_DEVICETYPE']._serialized_start=1381
-  _globals['_DEVICETYPE']._serialized_end=1470
+  _globals['_DEVICETYPE']._serialized_start=1445
+  _globals['_DEVICETYPE']._serialized_end=1534
   _globals['_LISTDEVICESREQUEST']._serialized_start=39
   _globals['_LISTDEVICESREQUEST']._serialized_end=129
   _globals['_LISTDEVICESRESPONSE']._serialized_start=131
@@ -44,31 +44,31 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_DEVICE']._serialized_start=195
   _globals['_DEVICE']._serialized_end=278
   _globals['_DEVICESTREAMCONFIGURATIONREQUEST']._serialized_start=280
-  _globals['_DEVICESTREAMCONFIGURATIONREQUEST']._serialized_end=333
-  _globals['_DEVICESTREAMCONFIGURATIONRESPONSE']._serialized_start=335
-  _globals['_DEVICESTREAMCONFIGURATIONRESPONSE']._serialized_end=437
-  _globals['_DEVICESTREAMCONFIGURATION']._serialized_start=440
-  _globals['_DEVICESTREAMCONFIGURATION']._serialized_end=619
-  _globals['_AUDIOFORMAT']._serialized_start=621
-  _globals['_AUDIOFORMAT']._serialized_end=741
-  _globals['_LISTREQUEST']._serialized_start=743
-  _globals['_LISTREQUEST']._serialized_end=756
-  _globals['_LISTCAMERASRESPONSE']._serialized_start=758
-  _globals['_LISTCAMERASRESPONSE']._serialized_end=820
-  _globals['_CAMERA']._serialized_start=822
-  _globals['_CAMERA']._serialized_end=856
-  _globals['_STREAMFORMAT']._serialized_start=859
-  _globals['_STREAMFORMAT']._serialized_end=990
-  _globals['_STREAMCONFIGURATIONREQUEST']._serialized_start=992
-  _globals['_STREAMCONFIGURATIONREQUEST']._serialized_end=1085
-  _globals['_STREAMCONFIGURATION']._serialized_start=1087
-  _globals['_STREAMCONFIGURATION']._serialized_end=1189
-  _globals['_STREAMCONFIGURATIONRESPONSE']._serialized_start=1191
-  _globals['_STREAMCONFIGURATIONRESPONSE']._serialized_end=1281
-  _globals['_RESOLUTION']._serialized_start=1283
-  _globals['_RESOLUTION']._serialized_end=1326
-  _globals['_FRAMERATE']._serialized_start=1328
-  _globals['_FRAMERATE']._serialized_end=1379
-  _globals['_MEDIASERVICE']._serialized_start=1473
-  _globals['_MEDIASERVICE']._serialized_end=1909
+  _globals['_DEVICESTREAMCONFIGURATIONREQUEST']._serialized_end=397
+  _globals['_DEVICESTREAMCONFIGURATIONRESPONSE']._serialized_start=399
+  _globals['_DEVICESTREAMCONFIGURATIONRESPONSE']._serialized_end=501
+  _globals['_DEVICESTREAMCONFIGURATION']._serialized_start=504
+  _globals['_DEVICESTREAMCONFIGURATION']._serialized_end=683
+  _globals['_AUDIOFORMAT']._serialized_start=685
+  _globals['_AUDIOFORMAT']._serialized_end=805
+  _globals['_LISTREQUEST']._serialized_start=807
+  _globals['_LISTREQUEST']._serialized_end=820
+  _globals['_LISTCAMERASRESPONSE']._serialized_start=822
+  _globals['_LISTCAMERASRESPONSE']._serialized_end=884
+  _globals['_CAMERA']._serialized_start=886
+  _globals['_CAMERA']._serialized_end=920
+  _globals['_STREAMFORMAT']._serialized_start=923
+  _globals['_STREAMFORMAT']._serialized_end=1054
+  _globals['_STREAMCONFIGURATIONREQUEST']._serialized_start=1056
+  _globals['_STREAMCONFIGURATIONREQUEST']._serialized_end=1149
+  _globals['_STREAMCONFIGURATION']._serialized_start=1151
+  _globals['_STREAMCONFIGURATION']._serialized_end=1253
+  _globals['_STREAMCONFIGURATIONRESPONSE']._serialized_start=1255
+  _globals['_STREAMCONFIGURATIONRESPONSE']._serialized_end=1345
+  _globals['_RESOLUTION']._serialized_start=1347
+  _globals['_RESOLUTION']._serialized_end=1390
+  _globals['_FRAMERATE']._serialized_start=1392
+  _globals['_FRAMERATE']._serialized_end=1443
+  _globals['_MEDIASERVICE']._serialized_start=1537
+  _globals['_MEDIASERVICE']._serialized_end=1973
 # @@protoc_insertion_point(module_scope)
