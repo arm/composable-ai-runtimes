@@ -14,7 +14,7 @@ fn test_device_try_from_global_object_rejects_unsupported_nodes() {
     non_node.type_ = pw::types::ObjectType::Link;
     let unsupported_props = pw::properties::properties! {
         *pw::keys::OBJECT_SERIAL => "42",
-        *pw::keys::MEDIA_CLASS => "Audio/Source"
+        *pw::keys::MEDIA_CLASS => "Unknown/Source"
     };
     let missing_class_props = pw::properties::properties! { *pw::keys::OBJECT_SERIAL => "42" };
 
@@ -29,6 +29,26 @@ fn test_device_try_from_global_object_rejects_unsupported_nodes() {
             Err(DeviceError::UnsupportedNode)
         );
     }
+}
+
+#[test]
+fn test_device_try_from_global_object_accepts_microphone() {
+    let props = pw::properties::properties! {
+        *pw::keys::MEDIA_CLASS => "Audio/Source",
+        *pw::keys::OBJECT_SERIAL => "46",
+        *pw::keys::NODE_NICK => "front-microphone"
+    };
+    let global = node_global_factory(15, Some(props));
+
+    assert_eq!(
+        Device::try_from_global_object(&global),
+        Ok(Device {
+            node_id: 15,
+            object_serial: 46,
+            name: "front-microphone".to_string(),
+            device_type: DeviceType::Microphone,
+        })
+    );
 }
 
 fn node_global_factory(

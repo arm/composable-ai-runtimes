@@ -9,7 +9,7 @@ use std::{
 };
 
 use crate::messaging::CairnEvent;
-use media::device::Device;
+use media::device::{Device, DeviceType};
 use prost::Message;
 use prost_types::Timestamp;
 use redis::{
@@ -25,7 +25,7 @@ const REDIS_PASSWORD_ENV: &str = "PWC_REDIS_PASSWORD";
 const REDIS_CHANNEL_EVENTS_ENV: &str = "PWC_REDIS_CHANNEL_EVENTS";
 const DEFAULT_REDIS_HOST: &str = "127.0.0.1";
 const DEFAULT_REDIS_PORT: &str = "6379";
-const MEDIA_EVENTS_CHANNEL: &str = "camera.events";
+const MEDIA_EVENTS_CHANNEL: &str = "device.events";
 const MEDIA_SERVICE_CAIRN_ID: &str = "cairn.media-service";
 const REDIS_RECONNECT_MAX_DELAY: Duration = Duration::from_secs(30);
 
@@ -57,40 +57,41 @@ impl FibonacciBackoff {
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "lowercase")]
-pub enum CameraEventType {
+pub enum DeviceEventType {
     Connected,
     Disconnected,
 }
 
-impl fmt::Display for CameraEventType {
+impl fmt::Display for DeviceEventType {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str(match self {
-            Self::Connected => "cairn.camera.connected",
-            Self::Disconnected => "cairn.camera.disconnected",
+            Self::Connected => "cairn.device.connected",
+            Self::Disconnected => "cairn.device.disconnected",
         })
     }
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub struct EventCamera {
+pub struct EventDevice {
     pub id: u64,
     pub name: String,
 }
 
-impl From<&Device> for EventCamera {
-    fn from(camera: &Device) -> Self {
+impl From<&Device> for EventDevice {
+    fn from(device: &Device) -> Self {
         Self {
-            id: camera.object_serial,
-            name: camera.name.clone(),
+            id: device.object_serial,
+            name: device.name.clone(),
         }
     }
 }
 
 #[derive(Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub(crate) struct CameraEvent {
-    pub(crate) event_type: CameraEventType,
+pub(crate) struct DeviceEvent {
+    pub(crate) event_type: DeviceEventType,
     #[serde(flatten)]
-    pub(crate) camera: EventCamera,
+    pub(crate) device: EventDevice,
+    pub(crate) device_type: DeviceType,
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -178,26 +179,27 @@ where
     }
 }
 
-pub fn send_camera_event(
+pub fn send_device_event(
     redis_conn: &mut Connection,
-    event_type: CameraEventType,
-    camera: &Device,
+    event_type: DeviceEventType,
+    device: &Device,
     events_channel: &str,
 ) -> Result<(), Box<dyn Error>> {
-    let encoded_event = encode_camera_event(event_type, camera, events_channel)?;
+    let encoded_event = encode_device_event(event_type, device, events_channel)?;
     let _: usize = redis_conn.publish(events_channel, encoded_event)?;
 
     Ok(())
 }
 
-pub(crate) fn encode_camera_event(
-    event_type: CameraEventType,
-    camera: &Device,
+pub(crate) fn encode_device_event(
+    event_type: DeviceEventType,
+    device: &Device,
     events_channel: &str,
 ) -> Result<Vec<u8>, Box<dyn Error>> {
-    let payload = serde_json::to_vec(&CameraEvent {
+    let payload = serde_json::to_vec(&DeviceEvent {
         event_type,
-        camera: EventCamera::from(camera),
+        device: EventDevice::from(device),
+        device_type: device.device_type,
     })?;
     let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?;
     let event = CairnEvent {

@@ -55,9 +55,9 @@ timestamp {
   seconds: 1735689600
 }
 origin: "cairn.media-service"
-event_type: "cairn.camera.connected"
-topic: "camera.events"
-payload: "{\"event_type\":\"connected\",\"id\":42,\"name\":\"front-door\"}"
+event_type: "cairn.device.connected"
+topic: "device.events"
+payload: "{\"event_type\":\"connected\",\"id\":42,\"name\":\"front-door\",\"device_type\":\"camera\"}"
 ```
 
 The `payload` value above is shown as UTF-8 JSON bytes for readability. The

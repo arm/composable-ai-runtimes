@@ -27,12 +27,17 @@ fn node_global_factory(
 
 #[test]
 fn is_device_type_matches_requested_media_class() {
-    for (media_class, expected) in [("Video/Source", true), ("Audio/Source", false)] {
+    for (media_class, device_type, expected) in [
+        ("Video/Source", DeviceType::Camera, true),
+        ("Audio/Source", DeviceType::Camera, false),
+        ("Audio/Source", DeviceType::Microphone, true),
+        ("Video/Source", DeviceType::Microphone, false),
+    ] {
         let global = node_global_factory(10, pw::types::ObjectType::Node, Some(media_class));
         assert_eq!(
-            is_device_type(&global, &DeviceType::Camera),
+            is_device_type(&global, &device_type),
             expected,
-            "media class: {media_class}"
+            "media class: {media_class}, device type: {device_type:?}"
         );
     }
 }

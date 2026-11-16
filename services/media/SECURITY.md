@@ -44,9 +44,10 @@ Mounting `/dev` from the host exposes the full host device tree inside the conta
 - Replace the broad rule with explicit character-device allowlists for the specific major/minor combinations the service needs.
 - Keep `mknod` disallowed unless a concrete runtime need appears.
 
-### Video group membership
+### Audio and video group membership
 
-Adding the container to the host `video` group increases access to V4L2 and DRM nodes that rely on group permissions.
+The `audio` and `video` groups increase access to sound, V4L2, and DRM nodes
+that rely on group permissions.
 
 #### Impact
 
@@ -55,7 +56,7 @@ Adding the container to the host `video` group increases access to V4L2 and DRM 
 
 #### Potential mitigations
 
-- Check whether direct device ownership, ACLs, or narrower group-based permissions can replace broad `video` group membership.
+- Check whether direct device ownership, ACLs, or narrower group-based permissions can replace broad `audio` and `video` group membership.
 
 ### Udev state exposure
 

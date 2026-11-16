@@ -7,7 +7,7 @@ use std::time::Duration;
 
 use crate::{
     messaging::CairnEvent,
-    redis::{CameraEvent, CameraEventType, EventCamera, encode_camera_event},
+    redis::{DeviceEvent, DeviceEventType, EventDevice, encode_device_event},
 };
 
 use media::device::{Device, DeviceType};
@@ -16,7 +16,7 @@ use redis::{ConnectionAddr, ErrorKind, IntoConnectionInfo, RedisError, RedisResu
 
 use super::redis::{RedisConfig, retry_with_fibonacci};
 
-const MEDIA_EVENTS_CHANNEL: &str = "camera.events";
+const MEDIA_EVENTS_CHANNEL: &str = "device.events";
 
 #[test]
 fn test_redis_connection_info_uses_host_and_port() {
@@ -152,7 +152,7 @@ fn test_retry_with_fibonacci_does_not_retry_non_io_errors() {
 }
 
 #[test]
-fn test_camera_event_payload_from_camera_exposes_object_serial() {
+fn test_device_event_payload_from_camera_exposes_object_serial() {
     let camera = Device {
         node_id: 7,
         object_serial: 42,
@@ -161,8 +161,8 @@ fn test_camera_event_payload_from_camera_exposes_object_serial() {
     };
 
     assert_eq!(
-        EventCamera::from(&camera),
-        EventCamera {
+        EventDevice::from(&camera),
+        EventDevice {
             id: 42,
             name: "front-camera".to_string(),
         }
@@ -170,19 +170,19 @@ fn test_camera_event_payload_from_camera_exposes_object_serial() {
 }
 
 #[test]
-fn test_camera_event_type_to_string_returns_event_identifier() {
+fn test_device_event_type_to_string_returns_event_identifier() {
     assert_eq!(
-        CameraEventType::Connected.to_string(),
-        "cairn.camera.connected"
+        DeviceEventType::Connected.to_string(),
+        "cairn.device.connected"
     );
     assert_eq!(
-        CameraEventType::Disconnected.to_string(),
-        "cairn.camera.disconnected"
+        DeviceEventType::Disconnected.to_string(),
+        "cairn.device.disconnected"
     );
 }
 
 #[test]
-fn test_camera_event_encoding_uses_messaging_envelope() {
+fn test_device_event_encoding_uses_messaging_envelope() {
     let camera = Device {
         node_id: 7,
         object_serial: 42,
@@ -191,20 +191,21 @@ fn test_camera_event_encoding_uses_messaging_envelope() {
     };
 
     let encoded_event =
-        encode_camera_event(CameraEventType::Connected, &camera, MEDIA_EVENTS_CHANNEL).unwrap();
+        encode_device_event(DeviceEventType::Connected, &camera, MEDIA_EVENTS_CHANNEL).unwrap();
     let envelope = CairnEvent::decode(encoded_event.as_slice()).unwrap();
     let timestamp = envelope.timestamp.unwrap();
-    let payload: CameraEvent = serde_json::from_slice(&envelope.payload).unwrap();
+    let payload: DeviceEvent = serde_json::from_slice(&envelope.payload).unwrap();
 
     assert!(timestamp.seconds > 0);
     assert_eq!(envelope.origin, "cairn.media-service");
-    assert_eq!(envelope.event_type, "cairn.camera.connected");
+    assert_eq!(envelope.event_type, "cairn.device.connected");
     assert_eq!(envelope.topic, MEDIA_EVENTS_CHANNEL);
     assert_eq!(
         payload,
-        CameraEvent {
-            event_type: CameraEventType::Connected,
-            camera: EventCamera::from(&camera),
+        DeviceEvent {
+            event_type: DeviceEventType::Connected,
+            device: EventDevice::from(&camera),
+            device_type: DeviceType::Camera,
         }
     );
 }

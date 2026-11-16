@@ -77,7 +77,9 @@ To run the notifications binary locally with the default Redis settings:
 cargo run --bin notifications
 ```
 
-By default it connects to Redis at `127.0.0.1:6379` and publishes camera events to `camera.events`. These Redis environment variables are optional overrides:
+By default it connects to Redis at `127.0.0.1:6379` and publishes camera and
+microphone events to `device.events`. These Redis environment variables are
+optional overrides:
 
 - `PWC_REDIS_HOST`
 - `PWC_REDIS_PORT`

@@ -37,7 +37,7 @@ from media_smoke.hotplug import (
 )
 from media_smoke.notifications import (
     DEFAULT_REDIS_CHANNEL,
-    CameraEventPayload,
+    DeviceEventPayload,
     get_configured_camera_events_channel,
     redis_client,
     subscribe_to_camera_events,
@@ -213,7 +213,7 @@ def test_usb_camera_unbind_rebind_publishes_disconnect_and_connect_events(
     metadata = compose_stack
     events_channel = get_metadata_redis_channel(metadata)
     target = usb_camera_target
-    observed_payloads: list[CameraEventPayload] = []
+    observed_payloads: list[DeviceEventPayload] = []
 
     with redis_client() as client, client.pubsub() as subscription:
         subscribe_to_camera_events(subscription, events_channel)
@@ -241,6 +241,13 @@ def test_usb_camera_unbind_rebind_publishes_disconnect_and_connect_events(
             events_channel=events_channel,
         )
 
-    assert disconnected_payload["event_type"] == "disconnected"
-    assert connected_payload["event_type"] == "connected"
+    for event_type, payload in (
+        ("disconnected", disconnected_payload),
+        ("connected", connected_payload),
+    ):
+        assert payload["event_type"] == event_type
+        assert payload["device_type"] == "camera"
+        assert type(payload["id"]) is int
+        assert 0 <= payload["id"] <= 2**64 - 1
+        assert isinstance(payload["name"], str)
     metadata.result = "passed"

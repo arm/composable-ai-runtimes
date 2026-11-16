@@ -5,9 +5,9 @@ use std::{cell::RefCell, env, error::Error, ffi::OsString, io, rc::Rc, time::Dur
 
 use super::{
     messaging::CairnEvent,
-    publish_camera_event,
+    publish_device_event,
     redis::{
-        CameraEvent, CameraEventType, EventCamera, RedisConfig, configure_redis_conn_with_retry,
+        DeviceEvent, DeviceEventType, EventDevice, RedisConfig, configure_redis_conn_with_retry,
     },
 };
 use media::device::{Device, DeviceType};
@@ -22,8 +22,8 @@ use tokio::sync::Mutex;
 
 const REDIS_PORT: u16 = 6379;
 const REDIS_VERSION: &str = "8.4.7";
-const MEDIA_EVENTS_CHANNEL: &str = "camera.events";
-const CUSTOM_MEDIA_EVENTS_CHANNEL: &str = "custom.camera.events";
+const MEDIA_EVENTS_CHANNEL: &str = "device.events";
+const CUSTOM_MEDIA_EVENTS_CHANNEL: &str = "custom.device.events";
 const REDIS_HOST_ENV: &str = "PWC_REDIS_HOST";
 const REDIS_PORT_ENV: &str = "PWC_REDIS_PORT";
 const REDIS_PASSWORD_ENV: &str = "PWC_REDIS_PASSWORD";
@@ -127,9 +127,9 @@ fn receive_message(
     Ok(message.get_payload()?)
 }
 
-fn assert_camera_event_envelope(
+fn assert_device_event_envelope(
     payload: &[u8],
-    event_type: CameraEventType,
+    event_type: DeviceEventType,
     cam_id: u64,
     name: &str,
     topic: &str,
@@ -144,16 +144,17 @@ fn assert_camera_event_envelope(
     assert_eq!(envelope.event_type, event_type.to_string());
     assert_eq!(envelope.topic, topic);
 
-    let payload: CameraEvent = serde_json::from_slice(&envelope.payload)?;
+    let payload: DeviceEvent = serde_json::from_slice(&envelope.payload)?;
 
     assert_eq!(
         payload,
-        CameraEvent {
+        DeviceEvent {
             event_type,
-            camera: EventCamera {
+            device: EventDevice {
                 id: cam_id,
                 name: name.to_owned(),
             },
+            device_type: DeviceType::Camera,
         }
     );
 
@@ -181,7 +182,7 @@ fn kill_redis_client(redis_config: &RedisConfig, client_id: u64) -> Result<(), B
 }
 
 #[tokio::test]
-async fn test_default_channel_from_env_publishes_to_camera_events() -> Result<(), Box<dyn Error>> {
+async fn test_default_channel_from_env_publishes_to_device_events() -> Result<(), Box<dyn Error>> {
     let redis_container = start_redis_contract_test_container().await?;
     let port = redis_container.port.to_string();
 
@@ -207,10 +208,10 @@ async fn test_default_channel_from_env_publishes_to_camera_events() -> Result<()
         &redis_config,
     )?));
 
-    publish_camera_event(
+    publish_device_event(
         &publisher,
         &redis_config,
-        CameraEventType::Connected,
+        DeviceEventType::Connected,
         &camera,
         redis_config.events_channel.as_str(),
     );
@@ -249,10 +250,10 @@ async fn test_configured_channel_override_publishes_to_configured_channel()
         &redis_config,
     )?));
 
-    publish_camera_event(
+    publish_device_event(
         &publisher,
         &redis_config,
-        CameraEventType::Connected,
+        DeviceEventType::Connected,
         &camera,
         redis_config.events_channel.as_str(),
     );
@@ -289,18 +290,18 @@ async fn test_connected_payload_contains_expected_fields() -> Result<(), Box<dyn
         &redis_config,
     )?));
 
-    publish_camera_event(
+    publish_device_event(
         &publisher,
         &redis_config,
-        CameraEventType::Connected,
+        DeviceEventType::Connected,
         &camera,
         CUSTOM_MEDIA_EVENTS_CHANNEL,
     );
 
     let payload = receive_message(&mut subscriber, CUSTOM_MEDIA_EVENTS_CHANNEL)?;
-    assert_camera_event_envelope(
+    assert_device_event_envelope(
         &payload,
-        CameraEventType::Connected,
+        DeviceEventType::Connected,
         cam_id,
         "configured-channel-camera",
         CUSTOM_MEDIA_EVENTS_CHANNEL,
@@ -336,18 +337,18 @@ async fn test_disconnected_payload_contains_expected_fields() -> Result<(), Box<
         &redis_config,
     )?));
 
-    publish_camera_event(
+    publish_device_event(
         &publisher,
         &redis_config,
-        CameraEventType::Disconnected,
+        DeviceEventType::Disconnected,
         &camera,
         CUSTOM_MEDIA_EVENTS_CHANNEL,
     );
 
     let payload = receive_message(&mut subscriber, CUSTOM_MEDIA_EVENTS_CHANNEL)?;
-    assert_camera_event_envelope(
+    assert_device_event_envelope(
         &payload,
-        CameraEventType::Disconnected,
+        DeviceEventType::Disconnected,
         cam_id,
         "configured-channel-camera",
         CUSTOM_MEDIA_EVENTS_CHANNEL,
@@ -390,10 +391,10 @@ async fn test_publish_failure_reconnects_and_replaces_redis_connection()
 
     kill_redis_client(&redis_config, original_client_id)?;
 
-    publish_camera_event(
+    publish_device_event(
         &publisher,
         &redis_config,
-        CameraEventType::Connected,
+        DeviceEventType::Connected,
         &camera,
         redis_config.events_channel.as_str(),
     );
@@ -407,18 +408,18 @@ async fn test_publish_failure_reconnects_and_replaces_redis_connection()
         "a new Redis connection should have been established after the original connection was killed"
     );
 
-    publish_camera_event(
+    publish_device_event(
         &publisher,
         &redis_config,
-        CameraEventType::Disconnected,
+        DeviceEventType::Disconnected,
         &camera,
         redis_config.events_channel.as_str(),
     );
 
     let payload = receive_message(&mut subscriber, MEDIA_EVENTS_CHANNEL)?;
-    assert_camera_event_envelope(
+    assert_device_event_envelope(
         &payload,
-        CameraEventType::Disconnected,
+        DeviceEventType::Disconnected,
         cam_id,
         "reconnected-camera",
         MEDIA_EVENTS_CHANNEL,

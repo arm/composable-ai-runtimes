@@ -29,7 +29,7 @@ services:
       format_version: "0.1"
       service_version: 0.0.2
       name: Media Service
-      description: Provides camera discovery and media lifecycle notifications.
+      description: Provides device discovery and media lifecycle notifications.
       id: cairn.media-service
       role: core
       api:
@@ -39,12 +39,12 @@ services:
             - proto/media_service.proto
       messaging:
         publishes:
-          - topic: camera.events
-            description: Camera connection lifecycle events.
+          - topic: device.events
+            description: Device connection lifecycle events.
             events:
-              - event_type: cairn.camera.connected
+              - event_type: cairn.device.connected
                 content_type: application/json
-              - event_type: cairn.camera.disconnected
+              - event_type: cairn.device.disconnected
                 content_type: application/json
       dependencies:
         cairn.messaging-service: required

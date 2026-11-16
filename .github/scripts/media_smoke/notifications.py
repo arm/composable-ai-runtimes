@@ -6,7 +6,7 @@ from __future__ import annotations
 import json
 import time
 from pathlib import Path
-from typing import TypedDict, cast
+from typing import Literal, TypedDict, cast
 
 import redis
 from google.protobuf.message import DecodeError
@@ -25,18 +25,19 @@ from media_smoke.network import can_connect_to_tcp
 REDIS_HOST = "127.0.0.1"
 REDIS_PORT = 6379
 REDIS_CHANNEL_EVENTS_ENV = "PWC_REDIS_CHANNEL_EVENTS"
-DEFAULT_REDIS_CHANNEL = "camera.events"
+DEFAULT_REDIS_CHANNEL = "device.events"
 STARTUP_TIMEOUT_SECONDS = 90
 EVENT_TIMEOUT_SECONDS = 30
 POLL_INTERVAL_SECONDS = 1
-INITIAL_CONNECTED_NOTIFICATION_LOG = "published connected camera notification"
+INITIAL_CONNECTED_NOTIFICATION_LOG = "published connected device event"
 CONNECTED_REDIS_CLIENT_LOG = "connected notifications Redis client"
 
 
-class CameraEventPayload(TypedDict):
+class DeviceEventPayload(TypedDict):
     event_type: str
     id: int
     name: str
+    device_type: Literal["camera", "microphone"]
 
 
 class NotificationSmokeError(Exception):
@@ -110,7 +111,10 @@ def wait_for_notification_stack_ready(
             messaging_service_name,
             cwd=cwd,
         ):
-            return False, "Media Service notification Compose stack exited during startup"
+            return (
+                False,
+                "Media Service notification Compose stack exited during startup",
+            )
         if (
             is_compose_service_running(compose_file, media_service_name, cwd=cwd)
             and is_compose_service_running(
@@ -123,16 +127,16 @@ def wait_for_notification_stack_ready(
             and INITIAL_CONNECTED_NOTIFICATION_LOG in logs
         ):
             time.sleep(2)
-            return True, "camera notifications observed initial connected camera notification"
+            return True, "camera notifications observed initial connected device event"
         time.sleep(poll_interval_seconds)
 
     return False, (
         "timed out waiting for camera notifications to publish initial connected "
-        "camera notification"
+        "device event"
     )
 
 
-def parse_camera_event_payload(payload: str) -> CameraEventPayload | None:
+def parse_device_event_payload(payload: str) -> DeviceEventPayload | None:
     try:
         decoded_payload = json.loads(payload)
     except json.JSONDecodeError:
@@ -143,23 +147,27 @@ def parse_camera_event_payload(payload: str) -> CameraEventPayload | None:
 
     decoded_payload = cast(dict[str, object], decoded_payload)
     event_type = decoded_payload.get("event_type")
-    camera_id = decoded_payload.get("id")
+    device_id = decoded_payload.get("id")
     name = decoded_payload.get("name")
+    device_type = decoded_payload.get("device_type")
     if not isinstance(event_type, str):
         return None
-    if not isinstance(camera_id, int):
+    if not isinstance(device_id, int):
         return None
     if not isinstance(name, str):
+        return None
+    if device_type != "camera" and device_type != "microphone":
         return None
 
     return {
         "event_type": event_type,
-        "id": camera_id,
+        "id": device_id,
         "name": name,
+        "device_type": device_type,
     }
 
 
-def decode_camera_event_payload(raw_data: bytes) -> CameraEventPayload | None:
+def decode_device_event_payload(raw_data: bytes) -> DeviceEventPayload | None:
     event = CairnEvent()
     try:
         event.ParseFromString(raw_data)
@@ -167,13 +175,13 @@ def decode_camera_event_payload(raw_data: bytes) -> CameraEventPayload | None:
     except (DecodeError, UnicodeDecodeError):
         return None
 
-    return parse_camera_event_payload(payload)
+    return parse_device_event_payload(payload)
 
 
-def get_camera_event_payload(
+def get_device_event_payload(
     pubsub: redis.client.PubSub,
     timeout_seconds: float,
-) -> CameraEventPayload | None:
+) -> DeviceEventPayload | None:
     message = pubsub.get_message(
         ignore_subscribe_messages=True,
         timeout=timeout_seconds,
@@ -185,25 +193,28 @@ def get_camera_event_payload(
     if not isinstance(raw_data, bytes):
         return None
 
-    return decode_camera_event_payload(raw_data)
+    return decode_device_event_payload(raw_data)
 
 
 def wait_for_camera_event(
     pubsub: redis.client.PubSub,
-    observed_payloads: list[CameraEventPayload],
+    observed_payloads: list[DeviceEventPayload],
     expected_event_type: str,
     *,
     events_channel: str,
     timeout_seconds: float = EVENT_TIMEOUT_SECONDS,
     poll_interval_seconds: float = POLL_INTERVAL_SECONDS,
-) -> CameraEventPayload:
+) -> DeviceEventPayload:
     deadline = time.monotonic() + timeout_seconds
 
     while time.monotonic() < deadline:
-        payload = get_camera_event_payload(pubsub, poll_interval_seconds)
+        payload = get_device_event_payload(pubsub, poll_interval_seconds)
         if payload is not None:
             observed_payloads.append(payload)
-            if payload["event_type"] == expected_event_type:
+            if (
+                payload["event_type"] == expected_event_type
+                and payload["device_type"] == "camera"
+            ):
                 return payload
 
     raise NotificationSmokeError(

@@ -153,7 +153,7 @@ COPY --from=pipewire-build \
 COPY licenses/pipewire.cdx.json /usr/share/doc/pipewire/pipewire.cdx.json
 
 RUN groupadd --system --gid "${MEDIA_SERVICE_GID}" media-service \
-  && useradd --system --uid "${MEDIA_SERVICE_UID}" --gid media-service --groups video \
+  && useradd --system --uid "${MEDIA_SERVICE_UID}" --gid media-service --groups audio,video \
       --create-home --home-dir /home/media-service --shell /usr/sbin/nologin media-service \
   && mkdir -p /run/pipewire \
   && chown -R media-service:media-service /home/media-service /run/pipewire \

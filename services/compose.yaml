@@ -26,7 +26,7 @@ services:
       PWC_REDIS_ENABLED: 1
       PWC_REDIS_HOST: 127.0.0.1
       PWC_REDIS_PORT: *redis_port
-      PWC_REDIS_CHANNEL_EVENTS: camera.events
+      PWC_REDIS_CHANNEL_EVENTS: device.events
       # PWC_REDIS_PASSWORD is optional, only set if your Redis server requires authentication
       # PWC_REDIS_PASSWORD:
 

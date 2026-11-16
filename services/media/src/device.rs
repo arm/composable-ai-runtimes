@@ -2,17 +2,21 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use pipewire::{self as pw, registry::GlobalObject, spa::utils::dict::DictRef};
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "lowercase")]
 pub enum DeviceType {
     Camera,
+    Microphone,
 }
 
 impl DeviceType {
     pub(crate) fn media_class(self) -> &'static str {
         match self {
             Self::Camera => "Video/Source",
+            Self::Microphone => "Audio/Source",
         }
     }
 }
@@ -75,6 +79,7 @@ where
 
     match media_class {
         "Video/Source" => Ok(DeviceType::Camera),
+        "Audio/Source" => Ok(DeviceType::Microphone),
         _ => Err(DeviceError::UnsupportedNode),
     }
 }

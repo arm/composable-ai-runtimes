@@ -41,7 +41,7 @@ from media_smoke.notifications import (
     POLL_INTERVAL_SECONDS,
     REDIS_HOST,
     REDIS_PORT,
-    CameraEventPayload,
+    DeviceEventPayload,
     get_configured_camera_events_channel,
     redis_client,
     subscribe_to_camera_events,
@@ -57,9 +57,7 @@ TEST_RESULTS_DIR = (
 )
 SERVICE_NAME = "media-service"
 MESSAGING_SERVICE_NAME = "messaging-service"
-PUBLISH_DISCONNECTED_FAILURE_LOG = (
-    "failed to publish disconnected camera notification"
-)
+PUBLISH_DISCONNECTED_FAILURE_LOG = "failed to publish disconnected device event"
 RECONNECTING_REDIS_LOG = "reconnecting notifications Redis client"
 RECONNECTED_REDIS_LOG = "reconnected notifications Redis client"
 write_hotplug_command_transcript: CommandTranscriptWriter = partial(
@@ -315,7 +313,7 @@ def verify_later_connected_event_is_published(
     target: UsbCameraTarget,
     events_channel: str,
 ) -> None:
-    observed_payloads: list[CameraEventPayload] = []
+    observed_payloads: list[DeviceEventPayload] = []
 
     with redis_client() as client, client.pubsub() as subscription:
         subscribe_to_camera_events(subscription, events_channel)
@@ -339,7 +337,12 @@ def verify_later_connected_event_is_published(
             "observed connected Redis event after Redis reconnect"
         )
 
+    assert connected_payload.keys() >= {"event_type", "id", "name", "device_type"}
     assert connected_payload["event_type"] == "connected"
+    assert connected_payload["device_type"] == "camera"
+    assert type(connected_payload["id"]) is int
+    assert 0 <= connected_payload["id"] <= 2**64 - 1
+    assert isinstance(connected_payload["name"], str)
 
 
 @pytest.fixture(scope="module")
