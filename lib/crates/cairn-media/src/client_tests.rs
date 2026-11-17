@@ -12,16 +12,18 @@ use tonic::{Response, Status};
 use tonic_health::ServingStatus;
 
 use super::media;
+use super::media::device_stream_configuration::Format;
 use super::media::media_service_server::{MediaService as ProtoMediaService, MediaServiceServer};
 use super::media::{Camera as ProtoCamera, ListCamerasResponse, ListRequest};
 use super::{
-    DeviceSelector, DeviceType, FrameRate, Media, MediaError, Resolution, StreamConfiguration,
-    StreamFormat, StreamFormatFilter,
+    AudioFormat, DeviceSelector, DeviceStreamConfiguration, DeviceStreamFormat,
+    DeviceStreamFormatFilter, DeviceType, FrameRate, Media, MediaError, Resolution, StreamFormat,
+    StreamFormatFilter,
 };
 
 #[test]
 fn stream_configuration_new_preserves_supplied_fields() {
-    let format = StreamFormat {
+    let format = DeviceStreamFormat::Video(StreamFormat {
         resolution: Resolution {
             width: 1920,
             height: 1080,
@@ -31,20 +33,25 @@ fn stream_configuration_new_preserves_supplied_fields() {
             numerator: 30_000,
             denominator: 1_001,
         },
-    };
+    });
 
-    let configuration = StreamConfiguration::new("opaque/pipewire:target", 7, format.clone());
+    let configuration = DeviceStreamConfiguration::new("opaque/pipewire:target", 7, format.clone());
 
     assert_eq!(configuration.target(), "opaque/pipewire:target");
-    assert_eq!(configuration.camera_id(), 7);
+    assert_eq!(configuration.device_id(), 7);
     assert_eq!(configuration.format(), &format);
 }
 
 #[test]
-fn absent_pixel_format_uses_the_protobuf_default() {
-    let format = media::StreamFormat::from(StreamFormatFilter::default());
+fn video_device_filter_preserves_unspecified_constraints() {
+    let filter = media::device_stream_configuration_request::Filter::from(
+        DeviceStreamFormatFilter::Video(StreamFormatFilter::default()),
+    );
+    let media::device_stream_configuration_request::Filter::VideoFormat(format) = filter;
 
     assert_eq!(format.pixel_format, "");
+    assert!(format.resolution.is_none());
+    assert!(format.frame_rate.is_none());
 }
 
 struct MockMediaService {
@@ -69,51 +76,14 @@ impl ProtoMediaService for MockMediaService {
 
     async fn get_device_stream_configurations(
         &self,
-        _request: Request<media::DeviceStreamConfigurationRequest>,
+        request: Request<media::DeviceStreamConfigurationRequest>,
     ) -> Result<Response<media::DeviceStreamConfigurationResponse>, Status> {
-        Err(Status::unimplemented(
-            "device configurations are not implemented",
-        ))
-    }
-
-    async fn get_stream_configurations(
-        &self,
-        request: Request<media::StreamConfigurationRequest>,
-    ) -> Result<Response<media::StreamConfigurationResponse>, Status> {
         let request = request.into_inner();
-        if request.camera_id == 0 {
-            return Err(Status::invalid_argument(
-                "camera_id must be greater than zero",
-            ));
-        }
-        if request.camera_id == 99 {
-            return Err(Status::not_found("camera not found"));
-        }
-        if request.camera_id == 98 {
-            return Err(Status::unavailable("PipeWire unavailable"));
-        }
-        if request.camera_id == 97 {
-            return Ok(Response::new(media::StreamConfigurationResponse {
-                configurations: vec![media::StreamConfiguration {
-                    target: "7".into(),
-                    camera_id: 7,
-                    format: None,
-                }],
-            }));
-        }
-        assert!(matches!(request.camera_id, 7 | 8));
-        if request.camera_id == 8 {
-            assert!(
-                request.format.is_some(),
-                "the client dropped the requested filter"
-            );
-        }
-        if let Some(filter) = request.format {
-            if filter.pixel_format == "unsupported" {
-                return Ok(Response::new(media::StreamConfigurationResponse {
-                    configurations: vec![],
-                }));
-            }
+        let device_id = request.device_id;
+        assert_eq!(request.filter.is_some(), matches!(device_id, 10 | 11));
+        if let Some(media::device_stream_configuration_request::Filter::VideoFormat(filter)) =
+            request.filter
+        {
             assert_eq!(filter.pixel_format, "RGB");
             assert_eq!(
                 filter.resolution,
@@ -130,23 +100,50 @@ impl ProtoMediaService for MockMediaService {
                 })
             );
         }
-        Ok(Response::new(media::StreamConfigurationResponse {
-            configurations: vec![media::StreamConfiguration {
-                target: "42".into(),
-                camera_id: 7,
-                format: Some(media::StreamFormat {
-                    resolution: Some(media::Resolution {
-                        width: 640,
-                        height: 480,
-                    }),
-                    pixel_format: "RGB".into(),
-                    frame_rate: Some(media::FrameRate {
-                        numerator: 30000,
-                        denominator: 1001,
-                    }),
+        let format = match device_id {
+            7 | 11 | 95 | 96 => Some(Format::VideoFormat(media::StreamFormat {
+                resolution: (device_id != 96).then_some(media::Resolution {
+                    width: 640,
+                    height: 480,
                 }),
+                pixel_format: "RGB".into(),
+                frame_rate: (device_id != 95).then_some(media::FrameRate {
+                    numerator: 30_000,
+                    denominator: 1_001,
+                }),
+            })),
+            8 | 9 => Some(Format::AudioFormat(media::AudioFormat {
+                sample_rate: 48_000,
+                channels: 2,
+                sample_format: if device_id == 8 { "F32LE" } else { "F32P" }.into(),
+                channel_layout: vec!["FL".into(), "FR".into()],
+                interleaved: device_id == 8,
+            })),
+            10 => {
+                return Ok(Response::new(media::DeviceStreamConfigurationResponse {
+                    configurations: vec![],
+                }));
+            }
+            94 => return Err(Status::invalid_argument("invalid device filter")),
+            97 => None,
+            98 => return Err(Status::unavailable("PipeWire unavailable")),
+            99 => return Err(Status::not_found("device not found")),
+            _ => return Err(Status::invalid_argument("unexpected device ID")),
+        };
+        Ok(Response::new(media::DeviceStreamConfigurationResponse {
+            configurations: vec![media::DeviceStreamConfiguration {
+                target: format!("opaque:{device_id}"),
+                device_id,
+                format,
             }],
         }))
+    }
+
+    async fn get_stream_configurations(
+        &self,
+        _request: Request<media::StreamConfigurationRequest>,
+    ) -> Result<Response<media::StreamConfigurationResponse>, Status> {
+        Err(Status::unimplemented("tests use device configurations"))
     }
 
     async fn list_cameras(
@@ -458,10 +455,10 @@ async fn connect_returns_unavailable_for_unreachable_endpoint() {
 #[tokio::test]
 async fn configurations_preserve_filters_and_map_response_fields() {
     let server = start_mock_server().await;
-    let mut service = Media::connect(Some(server.endpoint().to_owned()))
+    let service = Media::connect(Some(server.endpoint().to_owned()))
         .await
         .unwrap();
-    let filter = StreamFormatFilter {
+    let filter = DeviceStreamFormatFilter::Video(StreamFormatFilter {
         resolution: Some(Resolution {
             width: 640,
             height: 480,
@@ -471,25 +468,28 @@ async fn configurations_preserve_filters_and_map_response_fields() {
             numerator: 30000,
             denominator: 1001,
         }),
-    };
-    let mut camera = service.list_cameras().await.unwrap().remove(0);
-    for filter in [None, Some(filter)] {
-        let camera_id = if filter.is_some() { 8 } else { 7 };
+    });
+    let mut device = service
+        .list_devices(Some(DeviceType::Camera))
+        .await
+        .unwrap()
+        .remove(0);
+    for filter in [None, Some(filter.clone())] {
+        device.id = if filter.is_some() { 11 } else { 7 };
         let configurations = service
-            .get_stream_configurations(camera_id, filter.clone())
+            .get_device_stream_configurations(device.id, filter.clone())
             .await
             .unwrap();
-        camera.id = camera_id;
         assert_eq!(
-            camera.get_stream_configurations(filter).await.unwrap(),
+            device.get_stream_configurations(filter).await.unwrap(),
             configurations
         );
         assert_eq!(configurations.len(), 1);
-        assert_eq!(configurations[0].target(), "42");
-        assert_eq!(configurations[0].camera_id(), 7);
+        assert_eq!(configurations[0].target(), format!("opaque:{}", device.id));
+        assert_eq!(configurations[0].device_id(), device.id);
         assert_eq!(
             configurations[0].format(),
-            &StreamFormat {
+            &DeviceStreamFormat::Video(StreamFormat {
                 resolution: Resolution {
                     width: 640,
                     height: 480
@@ -499,18 +499,12 @@ async fn configurations_preserve_filters_and_map_response_fields() {
                     numerator: 30000,
                     denominator: 1001
                 },
-            }
+            })
         );
     }
     assert!(
         service
-            .get_stream_configurations(
-                7,
-                Some(StreamFormatFilter {
-                    pixel_format: Some("unsupported".into()),
-                    ..Default::default()
-                })
-            )
+            .get_device_stream_configurations(10, Some(filter))
             .await
             .unwrap()
             .is_empty()
@@ -521,25 +515,62 @@ async fn configurations_preserve_filters_and_map_response_fields() {
 #[tokio::test]
 async fn configurations_report_status_and_malformed_response_errors() {
     let server = start_mock_server().await;
-    let mut service = Media::connect(Some(server.endpoint().to_owned()))
+    let service = Media::connect(Some(server.endpoint().to_owned()))
         .await
         .unwrap();
-    for (camera_id, expected) in [
-        (0, "camera_id must be greater than zero"),
-        (99, "camera not found"),
-        (98, "PipeWire unavailable"),
+    for (device_id, expected) in [
+        (94, "invalid device filter"),
+        (95, "missing its frame rate"),
+        (96, "missing its resolution"),
         (97, "missing its format"),
+        (98, "PipeWire unavailable"),
+        (99, "device not found"),
     ] {
         let error = service
-            .get_stream_configurations(camera_id, None)
+            .get_device_stream_configurations(device_id, None)
             .await
             .unwrap_err();
-        if camera_id == 97 {
+        if (95..=97).contains(&device_id) {
             assert!(matches!(error, MediaError::InvalidResponse(_)));
         } else {
             assert!(matches!(error, MediaError::Transport(_)));
         }
         assert!(error.to_string().contains(expected), "{error}");
+    }
+    server.stop_server().await;
+}
+
+#[tokio::test]
+async fn audio_device_configurations_preserve_fields_and_connection() {
+    let server = start_mock_server().await;
+    let service = Media::connect(Some(server.endpoint().to_owned()))
+        .await
+        .unwrap();
+    let mut devices = service.list_devices(None).await.unwrap();
+    devices.retain(|device| device.device_type != DeviceType::Camera);
+    assert_eq!(devices.len(), 2);
+    drop(service);
+    for device in devices {
+        let configurations = device.get_stream_configurations(None).await.unwrap();
+        assert_eq!(
+            configurations,
+            [DeviceStreamConfiguration::new(
+                format!("opaque:{}", device.id),
+                device.id,
+                DeviceStreamFormat::Audio(AudioFormat {
+                    sample_rate: 48_000,
+                    channels: 2,
+                    sample_format: if device.device_type == DeviceType::Microphone {
+                        "F32LE"
+                    } else {
+                        "F32P"
+                    }
+                    .into(),
+                    channel_layout: vec!["FL".into(), "FR".into()],
+                    interleaved: device.device_type == DeviceType::Microphone,
+                }),
+            )]
+        );
     }
     server.stop_server().await;
 }
