@@ -4,7 +4,7 @@
 use crate::api::parameters::{StreamFormat, StreamFormatFilter};
 use crate::api::stream_format_collector::StreamFormatCollector;
 use crate::device::{Device, DeviceType};
-use crate::helpers::is_device_type;
+use crate::helpers::{is_device_type, should_include_device};
 use pipewire as pw;
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
@@ -37,7 +37,7 @@ impl std::fmt::Display for SnapshotError {
 
 impl std::error::Error for SnapshotError {}
 
-pub(crate) fn list_devices(device_type: DeviceType) -> Result<Vec<Device>, SnapshotError> {
+pub(crate) fn list_devices(device_type: Option<DeviceType>) -> Result<Vec<Device>, SnapshotError> {
     let PipeWireClient {
         mainloop,
         core,
@@ -50,10 +50,9 @@ pub(crate) fn list_devices(device_type: DeviceType) -> Result<Vec<Device>, Snaps
     let _registry_listener = registry
         .add_listener_local()
         .global(move |global| {
-            if !is_device_type(global, &device_type) {
-                return;
+            if should_include_device(global, device_type) {
+                append_device(&mut registry_state.borrow_mut().devices, global);
             }
-            append_device(&mut registry_state.borrow_mut().devices, global);
         })
         .global_remove(move |node_id| {
             remove_state.borrow_mut().devices.remove(&node_id);

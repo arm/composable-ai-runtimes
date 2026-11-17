@@ -19,7 +19,7 @@ use tracing::{debug, warn};
 
 #[derive(Clone, Copy)]
 pub(crate) struct MediaServiceProvider {
-    pub(crate) list_devices: fn(DeviceType) -> Result<Vec<Device>, SnapshotError>,
+    pub(crate) list_devices: fn(Option<DeviceType>) -> Result<Vec<Device>, SnapshotError>,
     pub(crate) list_camera_formats:
         fn(u64, Option<StreamFormatFilter>) -> Result<(u64, Vec<StreamFormat>), SnapshotError>,
 }
@@ -43,6 +43,21 @@ impl From<Device> for media::Camera {
         Self {
             id: camera.object_serial,
             name: camera.name,
+        }
+    }
+}
+
+impl From<Device> for media::Device {
+    fn from(device: Device) -> Self {
+        let device_type = match device.device_type {
+            DeviceType::Camera => media::DeviceType::Camera,
+            DeviceType::Microphone => media::DeviceType::Microphone,
+            DeviceType::Speaker => media::DeviceType::Speaker,
+        };
+        Self {
+            id: device.object_serial,
+            name: device.name,
+            device_type: device_type.into(),
         }
     }
 }
@@ -137,9 +152,38 @@ pub(super) fn validate_stream_configuration_request(
 impl MediaService for MediaApiService {
     async fn list_devices(
         &self,
-        _request: Request<media::ListDevicesRequest>,
+        request: Request<media::ListDevicesRequest>,
     ) -> Result<Response<media::ListDevicesResponse>, Status> {
-        Err(Status::unimplemented("device discovery is not implemented"))
+        let remote_addr = request.remote_addr();
+        let device_type = request
+            .into_inner()
+            .device_type
+            .map(|value| match media::DeviceType::try_from(value) {
+                Ok(media::DeviceType::Camera) => Ok(DeviceType::Camera),
+                Ok(media::DeviceType::Microphone) => Ok(DeviceType::Microphone),
+                Ok(media::DeviceType::Speaker) => Ok(DeviceType::Speaker),
+                Err(_) => Err(Status::invalid_argument(format!(
+                    "unknown device_type: {value}"
+                ))),
+            })
+            .transpose()?;
+        debug!(?remote_addr, ?device_type, "listing devices");
+        let list_devices = self.provider.list_devices;
+        let devices = task::spawn_blocking(move || list_devices(device_type))
+            .await
+            .map_err(|err| {
+                warn!(?remote_addr, ?device_type, error = %err, "device listing task failed");
+                Status::unavailable(format!("device listing task failed: {err}"))
+            })?
+            .map_err(|err| {
+                warn!(?remote_addr, ?device_type, error = %err, "failed to list devices");
+                map_snapshot_error(err)
+            })?;
+        let devices = devices.into_iter().map(media::Device::from).collect();
+
+        debug!(?remote_addr, ?device_type, "listed devices");
+
+        Ok(Response::new(media::ListDevicesResponse { devices }))
     }
 
     async fn get_device_stream_configurations(
@@ -159,7 +203,7 @@ impl MediaService for MediaApiService {
         debug!(?remote_addr, "listing cameras");
 
         let list_devices = self.provider.list_devices;
-        let cameras = task::spawn_blocking(move || list_devices(DeviceType::Camera))
+        let cameras = task::spawn_blocking(move || list_devices(Some(DeviceType::Camera)))
             .await
             .map_err(|err| {
                 warn!(?remote_addr, error = %err, "camera listing task failed");

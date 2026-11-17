@@ -40,7 +40,7 @@ impl RunningServer {
     }
 }
 
-fn listed_devices(_device_type: DeviceType) -> Result<Vec<Device>, SnapshotError> {
+fn listed_devices(_device_type: Option<DeviceType>) -> Result<Vec<Device>, SnapshotError> {
     Ok(vec![
         Device {
             node_id: 7,
@@ -127,7 +127,7 @@ fn unavailable_camera_formats(
     ))
 }
 
-fn unavailable_devices(_device_type: DeviceType) -> Result<Vec<Device>, SnapshotError> {
+fn unavailable_devices(_device_type: Option<DeviceType>) -> Result<Vec<Device>, SnapshotError> {
     Err(SnapshotError::Unavailable(
         "fake provider unavailable".to_string(),
     ))
@@ -176,7 +176,7 @@ async fn start_server(provider: MediaServiceProvider) -> RunningServer {
 async fn list_cameras_requests_camera_device_type() {
     let mut server = start_server(MediaServiceProvider {
         list_devices: |device_type| {
-            assert_eq!(device_type, DeviceType::Camera);
+            assert_eq!(device_type, Some(DeviceType::Camera));
             Ok(Vec::new())
         },
         ..Default::default()

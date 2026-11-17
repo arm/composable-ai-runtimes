@@ -4,6 +4,22 @@
 use crate::device::DeviceType;
 use pipewire as pw;
 
+pub(crate) fn should_include_device<P>(
+    global: &pw::registry::GlobalObject<P>,
+    device_type: Option<DeviceType>,
+) -> bool
+where
+    P: AsRef<pw::spa::utils::dict::DictRef>,
+{
+    if let Some(device_type) = device_type {
+        is_device_type(global, &device_type)
+    } else {
+        is_device_type(global, &DeviceType::Camera)
+            || is_device_type(global, &DeviceType::Microphone)
+            || is_device_type(global, &DeviceType::Speaker)
+    }
+}
+
 pub fn is_device_type<P>(global: &pw::registry::GlobalObject<P>, device_type: &DeviceType) -> bool
 where
     P: AsRef<pw::spa::utils::dict::DictRef>,

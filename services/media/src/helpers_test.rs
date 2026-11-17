@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use super::device::DeviceType;
-use super::helpers::is_device_type;
+use super::helpers::{is_device_type, should_include_device};
 use pipewire as pw;
 
 fn node_global_factory(
@@ -22,6 +22,56 @@ fn node_global_factory(
         type_,
         version: 0,
         props,
+    }
+}
+
+#[test]
+fn should_include_device_selects_only_requested_type() {
+    for requested in [
+        DeviceType::Camera,
+        DeviceType::Microphone,
+        DeviceType::Speaker,
+    ] {
+        for (media_class, actual) in [
+            ("Video/Source", DeviceType::Camera),
+            ("Audio/Source", DeviceType::Microphone),
+            ("Audio/Sink", DeviceType::Speaker),
+        ] {
+            let global = node_global_factory(10, pw::types::ObjectType::Node, Some(media_class));
+            assert_eq!(
+                should_include_device(&global, Some(requested)),
+                actual == requested,
+                "media class: {media_class}, filter: {requested:?}"
+            );
+        }
+    }
+}
+
+#[test]
+fn should_include_device_without_type_accepts_all_supported_types() {
+    for media_class in ["Video/Source", "Audio/Source", "Audio/Sink"] {
+        let global = node_global_factory(10, pw::types::ObjectType::Node, Some(media_class));
+        assert!(
+            should_include_device(&global, None),
+            "media class: {media_class}"
+        );
+    }
+}
+
+#[test]
+fn should_include_device_without_type_rejects_unsupported_globals() {
+    for (object_type, media_class) in [
+        (pw::types::ObjectType::Node, Some("Stream/Output/Video")),
+        (pw::types::ObjectType::Node, None),
+        (pw::types::ObjectType::Link, Some("Video/Source")),
+        (pw::types::ObjectType::Link, Some("Audio/Source")),
+        (pw::types::ObjectType::Link, Some("Audio/Sink")),
+    ] {
+        let global = node_global_factory(10, object_type, media_class);
+        assert!(
+            !should_include_device(&global, None),
+            "media class: {media_class:?}"
+        );
     }
 }
 

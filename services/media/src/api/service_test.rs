@@ -2,10 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use super::parameters::{FrameRate, Resolution, StreamFormat};
-use super::service::{map_snapshot_error, media, validate_stream_configuration_request};
+use super::service::media::media_service_server::MediaService;
+use super::service::{
+    MediaApiService, MediaServiceProvider, map_snapshot_error, media,
+    validate_stream_configuration_request,
+};
 use super::snapshot::SnapshotError;
 use crate::device::{Device, DeviceType};
-use tonic::Code;
+use tonic::{Code, Request};
 
 #[test]
 fn map_snapshot_error_returns_unavailable_status() {
@@ -15,12 +19,106 @@ fn map_snapshot_error_returns_unavailable_status() {
     assert_eq!(status.message(), "pipewire unavailable");
 }
 
+#[tokio::test]
+async fn list_devices_forwards_each_filter_and_returns_empty_results() {
+    let camera = MediaServiceProvider {
+        list_devices: |filter| {
+            assert_eq!(filter, Some(DeviceType::Camera));
+            Ok(Vec::new())
+        },
+        ..Default::default()
+    };
+    let microphone = MediaServiceProvider {
+        list_devices: |filter| {
+            assert_eq!(filter, Some(DeviceType::Microphone));
+            Ok(Vec::new())
+        },
+        ..Default::default()
+    };
+    let speaker = MediaServiceProvider {
+        list_devices: |filter| {
+            assert_eq!(filter, Some(DeviceType::Speaker));
+            Ok(Vec::new())
+        },
+        ..Default::default()
+    };
+    for (device_type, provider) in [
+        (media::DeviceType::Camera, camera),
+        (media::DeviceType::Microphone, microphone),
+        (media::DeviceType::Speaker, speaker),
+    ] {
+        let service = MediaApiService { provider };
+        let response = service
+            .list_devices(Request::new(media::ListDevicesRequest {
+                device_type: Some(device_type.into()),
+            }))
+            .await
+            .expect("listing should succeed");
+        assert!(response.into_inner().devices.is_empty());
+    }
+}
+
 #[test]
 fn map_snapshot_error_returns_not_found_status() {
     let status = map_snapshot_error(SnapshotError::NotFound(52));
 
     assert_eq!(status.code(), Code::NotFound);
     assert_eq!(status.message(), "camera 52 was not found");
+}
+
+#[tokio::test]
+async fn list_devices_with_empty_request_returns_all_device_identities_and_types() {
+    let service = MediaApiService {
+        provider: MediaServiceProvider {
+            list_devices: |filter| {
+                assert_eq!(filter, None);
+                Ok([
+                    (1, "camera", DeviceType::Camera),
+                    (2, "microphone", DeviceType::Microphone),
+                    (3, "speaker", DeviceType::Speaker),
+                ]
+                .into_iter()
+                .map(|(node_id, name, device_type)| Device {
+                    node_id,
+                    object_serial: u64::from(u32::MAX) + u64::from(node_id),
+                    name: name.to_string(),
+                    device_type,
+                })
+                .collect())
+            },
+            ..Default::default()
+        },
+    };
+    let devices = service
+        .list_devices(Request::new(media::ListDevicesRequest::default()))
+        .await
+        .expect("listing should succeed")
+        .into_inner()
+        .devices;
+    let identities = devices
+        .into_iter()
+        .map(|device| (device.id, device.name, device.device_type))
+        .collect::<Vec<_>>();
+    assert_eq!(
+        identities,
+        vec![
+            (
+                4_294_967_296,
+                "camera".to_string(),
+                i32::from(media::DeviceType::Camera)
+            ),
+            (
+                4_294_967_297,
+                "microphone".to_string(),
+                i32::from(media::DeviceType::Microphone)
+            ),
+            (
+                4_294_967_298,
+                "speaker".to_string(),
+                i32::from(media::DeviceType::Speaker)
+            ),
+        ]
+    );
 }
 
 #[test]
@@ -34,6 +132,61 @@ fn validate_stream_configuration_request_rejects_zero_camera_id() {
 
     assert_eq!(error.code(), Code::InvalidArgument);
     assert_eq!(error.message(), "camera_id must be greater than zero");
+}
+
+#[tokio::test]
+async fn list_devices_rejects_unknown_types_before_querying_provider() {
+    let service = MediaApiService {
+        provider: MediaServiceProvider {
+            list_devices: |_| panic!("invalid requests must not query PipeWire"),
+            ..Default::default()
+        },
+    };
+    for device_type in [-1, 3] {
+        let error = service
+            .list_devices(Request::new(media::ListDevicesRequest {
+                device_type: Some(device_type),
+            }))
+            .await
+            .expect_err("unknown type should fail");
+        assert_eq!(error.code(), Code::InvalidArgument);
+        assert_eq!(
+            error.message(),
+            format!("unknown device_type: {device_type}")
+        );
+    }
+}
+
+#[tokio::test]
+async fn list_devices_maps_snapshot_error_to_unavailable() {
+    let service = MediaApiService {
+        provider: MediaServiceProvider {
+            list_devices: |_| Err(SnapshotError::Unavailable("PipeWire disconnected".into())),
+            ..Default::default()
+        },
+    };
+    let error = service
+        .list_devices(Request::new(media::ListDevicesRequest::default()))
+        .await
+        .expect_err("provider failure should reach the caller");
+    assert_eq!(error.code(), Code::Unavailable);
+    assert_eq!(error.message(), "PipeWire disconnected");
+}
+
+#[tokio::test]
+async fn list_devices_maps_snapshot_panic_to_unavailable() {
+    let service = MediaApiService {
+        provider: MediaServiceProvider {
+            list_devices: |_| panic!("snapshot task panicked"),
+            ..Default::default()
+        },
+    };
+    let error = service
+        .list_devices(Request::new(media::ListDevicesRequest::default()))
+        .await
+        .expect_err("task failure should reach the caller");
+    assert_eq!(error.code(), Code::Unavailable);
+    assert!(error.message().starts_with("device listing task failed:"));
 }
 
 #[test]
