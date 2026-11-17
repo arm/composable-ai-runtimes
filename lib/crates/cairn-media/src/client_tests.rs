@@ -364,12 +364,12 @@ async fn get_device_returns_none_when_no_devices_match() {
                 .unwrap()
                 .is_empty()
         );
-        assert_eq!(
+        assert!(
             service
                 .get_device(DeviceSelector::Type(DeviceType::Microphone))
                 .await
-                .unwrap(),
-            None
+                .unwrap()
+                .is_none()
         );
         assert!(matches!(
             service.get_device(DeviceSelector::Id(8)).await,
@@ -414,6 +414,7 @@ async fn get_device_errors_when_id_is_missing() {
     let error = service
         .get_device(DeviceSelector::Id(123))
         .await
+        .map(|_| ())
         .unwrap_err();
     assert!(matches!(error, MediaError::NotFound(123)));
     assert_eq!(error.to_string(), "device 123 was not found");

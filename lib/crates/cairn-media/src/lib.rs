@@ -10,6 +10,7 @@ mod client;
 mod client_tests;
 
 pub use client::{
-    Camera, Device, DeviceSelector, DeviceType, FrameRate, Media, MediaError, Resolution,
+    AudioFormat, Camera, Device, DeviceSelector, DeviceStreamConfiguration, DeviceStreamFormat,
+    DeviceStreamFormatFilter, DeviceType, FrameRate, Media, MediaError, Resolution,
     StreamConfiguration, StreamFormat, StreamFormatFilter,
 };
