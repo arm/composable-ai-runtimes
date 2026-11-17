@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
 // SPDX-License-Identifier: Apache-2.0
 
-use cairn::media_service;
+use cairn::media;
 use pyo3::prelude::*;
 use pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pymethods};
 
@@ -87,24 +87,18 @@ impl PyStreamFormatFilter {
     }
 }
 
-impl From<&PyStreamFormatFilter> for media_service::StreamFormatFilter {
+impl From<&PyStreamFormatFilter> for media::StreamFormatFilter {
     fn from(value: &PyStreamFormatFilter) -> Self {
         Self {
-            resolution: value
-                .resolution
-                .as_ref()
-                .map(|value| media_service::Resolution {
-                    width: value.width,
-                    height: value.height,
-                }),
+            resolution: value.resolution.as_ref().map(|value| media::Resolution {
+                width: value.width,
+                height: value.height,
+            }),
             pixel_format: value.pixel_format.clone(),
-            frame_rate: value
-                .frame_rate
-                .as_ref()
-                .map(|value| media_service::FrameRate {
-                    numerator: value.numerator,
-                    denominator: value.denominator,
-                }),
+            frame_rate: value.frame_rate.as_ref().map(|value| media::FrameRate {
+                numerator: value.numerator,
+                denominator: value.denominator,
+            }),
         }
     }
 }
@@ -144,25 +138,25 @@ impl PyStreamFormat {
 #[gen_stub_pyclass(module = "cairn.media")]
 #[pyclass(skip_from_py_object, module = "cairn", name = "StreamConfiguration")]
 #[derive(Clone)]
-pub struct PyStreamConfiguration(pub(crate) media_service::StreamConfiguration);
+pub struct PyStreamConfiguration(pub(crate) media::StreamConfiguration);
 
 #[gen_stub_pymethods]
 #[pymethods]
 impl PyStreamConfiguration {
     /// Create a camera stream configuration from caller-supplied values.
-    /// Prefer MediaService.get_stream_configurations() to obtain configurations advertised by a camera. This constructor does not query the camera or validate format support.
+    /// Prefer Media.get_stream_configurations() to obtain configurations advertised by a camera. This constructor does not query the camera or validate format support.
     #[new]
     fn new(target: String, camera_id: u64, format: PyRef<'_, PyStreamFormat>) -> Self {
-        Self(media_service::StreamConfiguration::new(
+        Self(media::StreamConfiguration::new(
             target,
             camera_id,
-            media_service::StreamFormat {
-                resolution: media_service::Resolution {
+            media::StreamFormat {
+                resolution: media::Resolution {
                     width: format.resolution.width,
                     height: format.resolution.height,
                 },
                 pixel_format: format.pixel_format.clone(),
-                frame_rate: media_service::FrameRate {
+                frame_rate: media::FrameRate {
                     numerator: format.frame_rate.numerator,
                     denominator: format.frame_rate.denominator,
                 },
@@ -200,8 +194,8 @@ impl PyStreamConfiguration {
     }
 }
 
-impl From<media_service::StreamConfiguration> for PyStreamConfiguration {
-    fn from(value: media_service::StreamConfiguration) -> Self {
+impl From<media::StreamConfiguration> for PyStreamConfiguration {
+    fn from(value: media::StreamConfiguration) -> Self {
         Self(value)
     }
 }

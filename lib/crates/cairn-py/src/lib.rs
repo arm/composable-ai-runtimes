@@ -3,11 +3,11 @@
 
 mod camera;
 mod camera_types;
-mod media_service;
-mod notification_service;
+mod media;
+mod notifications;
+mod perception;
 mod perception_result;
 mod perception_result_models;
-mod perception_service;
 
 use pyo3::prelude::{Bound, PyResult};
 use pyo3::pymodule;
@@ -21,9 +21,9 @@ use std::path::Path;
 #[pymodule]
 fn _bindings(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add("__doc__", "Python bindings for the Cairn library.")?;
-    media_service::register(module)?;
-    notification_service::register(module)?;
-    perception_service::register(module)?;
+    media::register(module)?;
+    notifications::register(module)?;
+    perception::register(module)?;
     Ok(())
 }
 
@@ -34,12 +34,12 @@ pyo3_stub_gen::module_doc!(
 
 pyo3_stub_gen::reexport_module_members!(
     "cairn" from "cairn.media";
-    "Camera", "MediaService", "FrameRate", "Resolution", "StreamConfiguration",
+    "Camera", "Media", "FrameRate", "Resolution", "StreamConfiguration",
     "StreamFormat", "StreamFormatFilter"
 );
 pyo3_stub_gen::reexport_module_members!(
-    "cairn" from "cairn.notification";
-    "Notification", "NotificationService", "NotificationSubscription"
+    "cairn" from "cairn.notifications";
+    "Notification", "Notifications", "NotificationSubscription"
 );
 
 pub fn stub_info() -> StubResult<StubInfo> {

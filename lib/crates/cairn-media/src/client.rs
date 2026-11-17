@@ -44,7 +44,7 @@ pub(super) async fn wait_for_serving(endpoint: &str) -> Result<Channel, String> 
 
 /// An error returned by the media service client.
 #[derive(Debug)]
-pub enum MediaServiceError {
+pub enum MediaError {
     /// No device with the requested ID is currently present.
     NotFound(u64),
     /// The client could not connect to the service or complete a request.
@@ -53,7 +53,7 @@ pub enum MediaServiceError {
     InvalidResponse(String),
 }
 
-impl std::fmt::Display for MediaServiceError {
+impl std::fmt::Display for MediaError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::NotFound(device_id) => write!(f, "device {device_id} was not found"),
@@ -63,13 +63,13 @@ impl std::fmt::Display for MediaServiceError {
     }
 }
 
-impl std::error::Error for MediaServiceError {}
+impl std::error::Error for MediaError {}
 
-fn transport_error(message: impl Into<String>) -> MediaServiceError {
-    MediaServiceError::Transport(message.into())
+fn transport_error(message: impl Into<String>) -> MediaError {
+    MediaError::Transport(message.into())
 }
 
-fn map_tonic_status(error: tonic::Status) -> MediaServiceError {
+fn map_tonic_status(error: tonic::Status) -> MediaError {
     transport_error(format!("{}: {}", error.code(), error.message()))
 }
 
@@ -115,7 +115,7 @@ pub struct Device {
 }
 
 impl TryFrom<media::Device> for Device {
-    type Error = MediaServiceError;
+    type Error = MediaError;
 
     fn try_from(value: media::Device) -> Result<Self, Self::Error> {
         let device_type = match ProtoDeviceType::try_from(value.device_type) {
@@ -123,7 +123,7 @@ impl TryFrom<media::Device> for Device {
             Ok(ProtoDeviceType::Microphone) => DeviceType::Microphone,
             Ok(ProtoDeviceType::Speaker) => DeviceType::Speaker,
             Err(_) => {
-                return Err(MediaServiceError::InvalidResponse(format!(
+                return Err(MediaError::InvalidResponse(format!(
                     "device {} has unknown device type {}",
                     value.id, value.device_type
                 )));
@@ -143,7 +143,7 @@ pub struct Camera {
     pub id: u64,
     /// The human-readable camera name.
     pub name: String,
-    service: MediaService,
+    service: Media,
 }
 
 impl Camera {
@@ -151,12 +151,12 @@ impl Camera {
     ///
     /// # Errors
     ///
-    /// Returns [`MediaServiceError::Transport`] if discovery fails, or
-    /// [`MediaServiceError::InvalidResponse`] if the response is incomplete.
+    /// Returns [`MediaError::Transport`] if discovery fails, or
+    /// [`MediaError::InvalidResponse`] if the response is incomplete.
     pub async fn get_stream_configurations(
         &self,
         filter: Option<StreamFormatFilter>,
-    ) -> Result<Vec<StreamConfiguration>, MediaServiceError> {
+    ) -> Result<Vec<StreamConfiguration>, MediaError> {
         let mut service = self.service.clone();
         service.get_stream_configurations(self.id, filter).await
     }
@@ -256,17 +256,17 @@ impl From<StreamFormatFilter> for media::StreamFormat {
 }
 
 impl TryFrom<media::StreamConfiguration> for StreamConfiguration {
-    type Error = MediaServiceError;
+    type Error = MediaError;
 
     fn try_from(value: media::StreamConfiguration) -> Result<Self, Self::Error> {
         let format = value.format.ok_or_else(|| {
-            MediaServiceError::InvalidResponse("stream configuration is missing its format".into())
+            MediaError::InvalidResponse("stream configuration is missing its format".into())
         })?;
         let resolution = format.resolution.ok_or_else(|| {
-            MediaServiceError::InvalidResponse("stream format is missing its resolution".into())
+            MediaError::InvalidResponse("stream format is missing its resolution".into())
         })?;
         let frame_rate = format.frame_rate.ok_or_else(|| {
-            MediaServiceError::InvalidResponse("stream format is missing its frame rate".into())
+            MediaError::InvalidResponse("stream format is missing its frame rate".into())
         })?;
         Ok(Self::new(
             value.target,
@@ -288,21 +288,21 @@ impl TryFrom<media::StreamConfiguration> for StreamConfiguration {
 
 /// A client for discovering devices exposed by the Cairn media service.
 #[derive(Clone)]
-pub struct MediaService {
+pub struct Media {
     client: Arc<MediaServiceClient<Channel>>,
 }
 
-impl MediaService {
+impl Media {
     /// Returns all devices, optionally filtered by type.
     /// Devices with unrecognized types are omitted.
     ///
     /// # Errors
     ///
-    /// Returns [`MediaServiceError::Transport`] when discovery fails.
+    /// Returns [`MediaError::Transport`] when discovery fails.
     pub async fn list_devices(
         &self,
         device_type: Option<DeviceType>,
-    ) -> Result<Vec<Device>, MediaServiceError> {
+    ) -> Result<Vec<Device>, MediaError> {
         let mut client = self.client.as_ref().clone();
         let response = client
             .list_devices(Request::new(media::ListDevicesRequest {
@@ -325,12 +325,9 @@ impl MediaService {
     ///
     /// # Errors
     ///
-    /// Returns [`MediaServiceError::NotFound`] for an absent ID, or propagates
+    /// Returns [`MediaError::NotFound`] for an absent ID, or propagates
     /// discovery errors from [`Self::list_devices`].
-    pub async fn get_device(
-        &self,
-        selector: DeviceSelector,
-    ) -> Result<Option<Device>, MediaServiceError> {
+    pub async fn get_device(&self, selector: DeviceSelector) -> Result<Option<Device>, MediaError> {
         match selector {
             DeviceSelector::Id(id) => self
                 .list_devices(None)
@@ -338,7 +335,7 @@ impl MediaService {
                 .into_iter()
                 .find(|device| device.id == id)
                 .map(Some)
-                .ok_or(MediaServiceError::NotFound(id)),
+                .ok_or(MediaError::NotFound(id)),
             DeviceSelector::Type(device_type) => Ok(self
                 .list_devices(Some(device_type))
                 .await?
@@ -351,14 +348,14 @@ impl MediaService {
     ///
     /// # Errors
     ///
-    /// Returns [`MediaServiceError::Transport`] if the request fails, or
-    /// [`MediaServiceError::InvalidResponse`] if the response omits a required
+    /// Returns [`MediaError::Transport`] if the request fails, or
+    /// [`MediaError::InvalidResponse`] if the response omits a required
     /// format, resolution, or frame rate.
     pub async fn get_stream_configurations(
         &mut self,
         camera_id: u64,
         filter: Option<StreamFormatFilter>,
-    ) -> Result<Vec<StreamConfiguration>, MediaServiceError> {
+    ) -> Result<Vec<StreamConfiguration>, MediaError> {
         let mut client = self.client.as_ref().clone();
         let response = client
             .get_stream_configurations(Request::new(media::StreamConfigurationRequest {
@@ -381,12 +378,12 @@ impl MediaService {
     ///
     /// # Errors
     ///
-    /// Returns [`MediaServiceError::Transport`] when the client cannot connect to the endpoint.
-    pub async fn connect(endpoint: Option<String>) -> Result<Self, MediaServiceError> {
+    /// Returns [`MediaError::Transport`] when the client cannot connect to the endpoint.
+    pub async fn connect(endpoint: Option<String>) -> Result<Self, MediaError> {
         let endpoint = endpoint.unwrap_or_else(|| DEFAULT_MEDIA_SERVICE_ENDPOINT.to_string());
         let channel = wait_for_serving(&endpoint)
             .await
-            .map_err(MediaServiceError::Transport)?;
+            .map_err(MediaError::Transport)?;
         Ok(Self {
             client: Arc::new(MediaServiceClient::new(channel)),
         })
@@ -399,18 +396,18 @@ impl MediaService {
     ///
     /// # Errors
     ///
-    /// Returns [`MediaServiceError::NotFound`] if the requested ID is not present,
-    /// or [`MediaServiceError::Transport`] when discovery fails.
+    /// Returns [`MediaError::NotFound`] if the requested ID is not present,
+    /// or [`MediaError::Transport`] when discovery fails.
     pub async fn get_camera(
         &mut self,
         camera_id: Option<&u64>,
-    ) -> Result<Option<Camera>, MediaServiceError> {
+    ) -> Result<Option<Camera>, MediaError> {
         let mut cameras = self.list_cameras().await?.into_iter();
         match camera_id {
             Some(&id) => cameras
                 .find(|camera| camera.id == id)
                 .map(Some)
-                .ok_or(MediaServiceError::NotFound(id)),
+                .ok_or(MediaError::NotFound(id)),
             None => Ok(cameras.next()),
         }
     }
@@ -419,8 +416,8 @@ impl MediaService {
     ///
     /// # Errors
     ///
-    /// Returns [`MediaServiceError::Transport`] when the request fails.
-    pub async fn list_cameras(&mut self) -> Result<Vec<Camera>, MediaServiceError> {
+    /// Returns [`MediaError::Transport`] when the request fails.
+    pub async fn list_cameras(&mut self) -> Result<Vec<Camera>, MediaError> {
         let mut client = self.client.as_ref().clone();
         let response = client
             .list_cameras(Request::new(ListRequest {}))

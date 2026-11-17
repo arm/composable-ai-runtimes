@@ -10,7 +10,7 @@ license.workspace = true
 include = [
   "src/generated/**",
   "src/lib.rs",
-  "src/service.rs",
+  "src/client.rs",
   "README.md",
   "bom.json",
   "SBOM-DISCLAIMER.txt",

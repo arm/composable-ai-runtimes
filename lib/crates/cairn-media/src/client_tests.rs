@@ -11,14 +11,14 @@ use tonic::transport::server::TcpIncoming;
 use tonic::{Response, Status};
 use tonic_health::ServingStatus;
 
-use super::service::media;
-use super::service::media::media_service_server::{
+use super::client::media;
+use super::client::media::media_service_server::{
     MediaService as ProtoMediaService, MediaServiceServer,
 };
-use super::service::media::{Camera as ProtoCamera, ListCamerasResponse, ListRequest};
+use super::client::media::{Camera as ProtoCamera, ListCamerasResponse, ListRequest};
 use super::{
-    DeviceSelector, DeviceType, FrameRate, MediaService, MediaServiceError, Resolution,
-    StreamConfiguration, StreamFormat, StreamFormatFilter,
+    DeviceSelector, DeviceType, FrameRate, Media, MediaError, Resolution, StreamConfiguration,
+    StreamFormat, StreamFormatFilter,
 };
 
 #[test]
@@ -254,7 +254,7 @@ async fn device_discovery_propagates_rpc_errors() {
     ] {
         let message = status.message().to_owned();
         let server = start_mock_server_with_devices(Err(status)).await;
-        let service = MediaService::connect(Some(server.endpoint().to_owned()))
+        let service = Media::connect(Some(server.endpoint().to_owned()))
             .await
             .unwrap();
         for result in [
@@ -266,7 +266,7 @@ async fn device_discovery_propagates_rpc_errors() {
                 .map(|_| ()),
         ] {
             let error = result.unwrap_err();
-            assert!(matches!(error, MediaServiceError::Transport(_)));
+            assert!(matches!(error, MediaError::Transport(_)));
             assert!(error.to_string().contains(&message));
         }
         server.stop_server().await;
@@ -276,7 +276,7 @@ async fn device_discovery_propagates_rpc_errors() {
 #[tokio::test]
 async fn list_devices_maps_metadata_and_preserves_optional_type_filter() {
     let server = start_mock_server().await;
-    let service = MediaService::connect(Some(server.endpoint().to_string()))
+    let service = Media::connect(Some(server.endpoint().to_string()))
         .await
         .expect("failed to create client");
 
@@ -319,7 +319,7 @@ async fn list_devices_maps_metadata_and_preserves_optional_type_filter() {
 #[tokio::test]
 async fn get_device_selects_first_of_type() {
     let server = start_mock_server().await;
-    let service = MediaService::connect(Some(server.endpoint().to_owned()))
+    let service = Media::connect(Some(server.endpoint().to_owned()))
         .await
         .unwrap();
 
@@ -353,7 +353,7 @@ async fn get_device_returns_none_when_no_devices_match() {
         }],
     ] {
         let server = start_mock_server_with_devices(Ok(devices)).await;
-        let service = MediaService::connect(Some(server.endpoint().to_owned()))
+        let service = Media::connect(Some(server.endpoint().to_owned()))
             .await
             .unwrap();
 
@@ -373,7 +373,7 @@ async fn get_device_returns_none_when_no_devices_match() {
         );
         assert!(matches!(
             service.get_device(DeviceSelector::Id(8)).await,
-            Err(MediaServiceError::NotFound(8))
+            Err(MediaError::NotFound(8))
         ));
 
         server.stop_server().await;
@@ -383,7 +383,7 @@ async fn get_device_returns_none_when_no_devices_match() {
 #[tokio::test]
 async fn get_device_selects_by_id() {
     let server = start_mock_server().await;
-    let service = MediaService::connect(Some(server.endpoint().to_owned()))
+    let service = Media::connect(Some(server.endpoint().to_owned()))
         .await
         .unwrap();
 
@@ -407,7 +407,7 @@ async fn get_device_selects_by_id() {
 #[tokio::test]
 async fn get_device_errors_when_id_is_missing() {
     let server = start_mock_server().await;
-    let service = MediaService::connect(Some(server.endpoint().to_owned()))
+    let service = Media::connect(Some(server.endpoint().to_owned()))
         .await
         .unwrap();
 
@@ -415,7 +415,7 @@ async fn get_device_errors_when_id_is_missing() {
         .get_device(DeviceSelector::Id(123))
         .await
         .unwrap_err();
-    assert!(matches!(error, MediaServiceError::NotFound(123)));
+    assert!(matches!(error, MediaError::NotFound(123)));
     assert_eq!(error.to_string(), "device 123 was not found");
 
     server.stop_server().await;
@@ -424,7 +424,7 @@ async fn get_device_errors_when_id_is_missing() {
 #[tokio::test]
 async fn get_device_propagates_transport_failure() {
     let server = start_mock_server().await;
-    let service = MediaService::connect(Some(server.endpoint().to_owned()))
+    let service = Media::connect(Some(server.endpoint().to_owned()))
         .await
         .unwrap();
     server.stop_server().await;
@@ -437,16 +437,16 @@ async fn get_device_propagates_transport_failure() {
             timeout(Duration::from_secs(2), service.get_device(selector))
                 .await
                 .unwrap(),
-            Err(MediaServiceError::Transport(_))
+            Err(MediaError::Transport(_))
         ));
     }
 }
 
 #[tokio::test]
 async fn connect_returns_unavailable_for_unreachable_endpoint() {
-    match MediaService::connect(Some("http://127.0.0.1:1".to_string())).await {
+    match Media::connect(Some("http://127.0.0.1:1".to_string())).await {
         Ok(_) => panic!("expected client creation to fail"),
-        Err(MediaServiceError::Transport(message)) => {
+        Err(MediaError::Transport(message)) => {
             assert!(
                 !message.is_empty(),
                 "expected unreachable endpoint to produce a transport message"
@@ -459,7 +459,7 @@ async fn connect_returns_unavailable_for_unreachable_endpoint() {
 #[tokio::test]
 async fn configurations_preserve_filters_and_map_response_fields() {
     let server = start_mock_server().await;
-    let mut service = MediaService::connect(Some(server.endpoint().to_owned()))
+    let mut service = Media::connect(Some(server.endpoint().to_owned()))
         .await
         .unwrap();
     let filter = StreamFormatFilter {
@@ -522,7 +522,7 @@ async fn configurations_preserve_filters_and_map_response_fields() {
 #[tokio::test]
 async fn configurations_report_status_and_malformed_response_errors() {
     let server = start_mock_server().await;
-    let mut service = MediaService::connect(Some(server.endpoint().to_owned()))
+    let mut service = Media::connect(Some(server.endpoint().to_owned()))
         .await
         .unwrap();
     for (camera_id, expected) in [
@@ -536,9 +536,9 @@ async fn configurations_report_status_and_malformed_response_errors() {
             .await
             .unwrap_err();
         if camera_id == 97 {
-            assert!(matches!(error, MediaServiceError::InvalidResponse(_)));
+            assert!(matches!(error, MediaError::InvalidResponse(_)));
         } else {
-            assert!(matches!(error, MediaServiceError::Transport(_)));
+            assert!(matches!(error, MediaError::Transport(_)));
         }
         assert!(error.to_string().contains(expected), "{error}");
     }
@@ -570,7 +570,7 @@ async fn start_health_server(
 #[tokio::test]
 async fn waits_for_serving() {
     let (endpoint, reporter, server) = start_health_server(ServingStatus::NotServing).await;
-    let readiness = MediaService::connect(Some(endpoint.clone()));
+    let readiness = Media::connect(Some(endpoint.clone()));
     tokio::pin!(readiness);
     assert!(
         timeout(Duration::from_millis(100), &mut readiness)
@@ -596,7 +596,7 @@ async fn accepts_already_serving() {
     let (endpoint, _reporter, server) = start_health_server(ServingStatus::Serving).await;
     timeout(
         Duration::from_secs(2),
-        MediaService::connect(Some(endpoint.clone())),
+        Media::connect(Some(endpoint.clone())),
     )
     .await
     .expect("already-serving health did not complete readiness")

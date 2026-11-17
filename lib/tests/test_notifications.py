@@ -17,7 +17,7 @@ from typing import Protocol
 import grpc
 import pytest
 import redis
-from cairn import Notification, NotificationService, NotificationSubscription
+from cairn import Notification, Notifications, NotificationSubscription
 from generated.messaging_pb2 import CairnEvent
 from grpc_health.v1 import health, health_pb2, health_pb2_grpc
 
@@ -121,7 +121,7 @@ async def _ignore_notification(_notification: Notification) -> None:
 
 def test_subscribe_returns_notification_subscription(messaging_endpoint: str) -> None:
     async def exercise() -> None:
-        async with await NotificationService.connect(messaging_endpoint) as service:
+        async with await Notifications.connect(messaging_endpoint) as service:
             subscription = await service.subscribe(
                 "test.notifications", _ignore_notification
             )
@@ -143,7 +143,7 @@ def test_synchronous_callback_can_return_awaitable(
         def receive(notification: Notification) -> Awaitable[None]:
             return process(notification)
 
-        async with await NotificationService.connect(messaging_endpoint) as service:
+        async with await Notifications.connect(messaging_endpoint) as service:
             await service.subscribe("test.notifications", receive)
             await asyncio.to_thread(
                 _publish, endpoint, "test.notifications", b"wrapped"
@@ -165,7 +165,7 @@ def test_callback_receives_notification_with_preserved_fields(
         async def receive(notification: Notification) -> None:
             await received.put(notification)
 
-        async with await NotificationService.connect(messaging_endpoint) as service:
+        async with await Notifications.connect(messaging_endpoint) as service:
             await service.subscribe("test.notifications", receive)
             payload = b"\x00\xffbinding payload"
             await asyncio.to_thread(_publish, endpoint, "test.notifications", payload)
@@ -182,7 +182,7 @@ def test_unsubscribe_removes_redis_subscription(
     redis_endpoint: str, messaging_endpoint: str
 ) -> None:
     async def exercise(endpoint: str) -> None:
-        async with await NotificationService.connect(messaging_endpoint) as service:
+        async with await Notifications.connect(messaging_endpoint) as service:
             subscription = await service.subscribe(
                 "test.notifications", _ignore_notification
             )
@@ -209,7 +209,7 @@ def test_callback_failure_uses_unraisablehook(
         raise RuntimeError("callback failed")
 
     async def exercise(endpoint: str) -> None:
-        async with await NotificationService.connect(messaging_endpoint) as service:
+        async with await Notifications.connect(messaging_endpoint) as service:
             await service.subscribe("test.notifications", failing_handler)
             await asyncio.to_thread(
                 _publish, endpoint, "test.notifications", b"failure"
@@ -227,7 +227,7 @@ def test_subscribe_rejects_non_callable(
     redis_endpoint: str, messaging_endpoint: str
 ) -> None:
     async def exercise(endpoint: str) -> None:
-        async with await NotificationService.connect(messaging_endpoint) as service:
+        async with await Notifications.connect(messaging_endpoint) as service:
             with pytest.raises(
                 TypeError, match="notification handler must be callable"
             ):
@@ -259,7 +259,7 @@ def test_non_awaitable_callback_result_is_reported_and_delivery_continues(
         async def valid_handler(notification: Notification) -> None:
             await received.put(notification)
 
-        async with await NotificationService.connect(messaging_endpoint) as service:
+        async with await Notifications.connect(messaging_endpoint) as service:
             invalid_subscription = await service.subscribe(  # type: ignore[arg-type]
                 "test.notifications", invalid_handler
             )
@@ -283,13 +283,13 @@ def test_non_awaitable_callback_result_is_reported_and_delivery_continues(
 
 def test_direct_construction_is_not_supported() -> None:
     with pytest.raises(TypeError):
-        NotificationService()
+        Notifications()
 
 
 def test_connect_rejects_invalid_endpoint() -> None:
     async def connect() -> None:
         with pytest.raises(RuntimeError, match="health watch"):
-            await NotificationService.connect("http://[::1")
+            await Notifications.connect("http://[::1")
 
     asyncio.run(connect())
 
@@ -297,7 +297,7 @@ def test_connect_rejects_invalid_endpoint() -> None:
 def test_connect_rejects_redis_url() -> None:
     async def connect() -> None:
         with pytest.raises(RuntimeError, match="health watch"):
-            await NotificationService.connect("redis://127.0.0.1:6379/0")
+            await Notifications.connect("redis://127.0.0.1:6379/0")
 
     asyncio.run(connect())
 
@@ -311,7 +311,7 @@ def test_connect_waits_for_serving(
     async def connect() -> None:
         with redis.Redis.from_url(redis_endpoint) as inspector:
             initial_clients = len(inspector.client_list())
-            connection = asyncio.ensure_future(NotificationService.connect(endpoint))
+            connection = asyncio.ensure_future(Notifications.connect(endpoint))
             done, _ = await asyncio.wait([connection], timeout=0.1)
             assert not done
             assert len(inspector.client_list()) == initial_clients

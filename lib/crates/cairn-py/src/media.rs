@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
 // SPDX-License-Identifier: Apache-2.0
 
-use cairn::media_service;
+use cairn::media;
 use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::{Bound, PyResult};
 use pyo3::types::{PyAnyMethods, PyDict, PyModule, PyModuleMethods, PyTuple};
@@ -18,14 +18,14 @@ use crate::camera_types::{
 ///
 /// Connects over gRPC to discover cameras and their stream configurations.
 #[gen_stub_pyclass(module = "cairn.media")]
-#[pyclass(module = "cairn", name = "MediaService")]
-pub struct PyMediaService {
-    inner: media_service::MediaService,
+#[pyclass(module = "cairn", name = "Media")]
+pub struct PyMedia {
+    inner: media::Media,
 }
 
 #[gen_stub_pymethods]
 #[pymethods]
-impl PyMediaService {
+impl PyMedia {
     /// Discover stream configurations for a camera, optionally filtered by format.
     #[pyo3(signature = (camera_id, filter=None))]
     fn get_stream_configurations(
@@ -33,9 +33,7 @@ impl PyMediaService {
         camera_id: u64,
         filter: Option<pyo3::PyRef<'_, PyStreamFormatFilter>>,
     ) -> PyResult<Vec<PyStreamConfiguration>> {
-        let filter = filter
-            .as_deref()
-            .map(media_service::StreamFormatFilter::from);
+        let filter = filter.as_deref().map(media::StreamFormatFilter::from);
         tokio_runtime::get_runtime()
             .block_on(self.inner.get_stream_configurations(camera_id, filter))
             .map(|values| {
@@ -52,8 +50,8 @@ impl PyMediaService {
     #[pyo3(signature = (*_args, **_kwargs))]
     fn new(_args: &Bound<'_, PyTuple>, _kwargs: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
         Err(PyTypeError::new_err(
-            "MediaService cannot be constructed directly. \
-             Use 'await MediaService.connect(endpoint)' inside an async function.",
+            "Media cannot be constructed directly. \
+             Use 'await Media.connect(endpoint)' inside an async function.",
         ))
     }
 
@@ -65,12 +63,12 @@ impl PyMediaService {
     #[staticmethod]
     #[pyo3(signature = (endpoint=None))]
     #[gen_stub(override_return_type(
-        type_repr = "collections.abc.Awaitable[MediaService]",
+        type_repr = "collections.abc.Awaitable[Media]",
         imports = ("collections.abc",)
     ))]
     fn connect<'py>(py: Python<'py>, endpoint: Option<String>) -> PyResult<Bound<'py, PyAny>> {
         tokio_runtime::future_into_py(py, async move {
-            let inner = media_service::MediaService::connect(endpoint)
+            let inner = media::Media::connect(endpoint)
                 .await
                 .map_err(map_media_error)?;
             Python::attach(|py| Py::new(py, Self { inner }))
@@ -118,7 +116,7 @@ pub(crate) fn register(parent: &Bound<'_, PyModule>) -> PyResult<()> {
     let module = PyModule::new(parent.py(), "cairn.media")?;
     add_camera_bindings(&module)?;
     add_stream_configuration_bindings(&module)?;
-    module.add_class::<PyMediaService>()?;
+    module.add_class::<PyMedia>()?;
     parent.add_submodule(&module)?;
     parent
         .py()

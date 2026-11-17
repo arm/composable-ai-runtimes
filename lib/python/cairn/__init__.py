@@ -1,34 +1,34 @@
 # SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
 # SPDX-License-Identifier: Apache-2.0
 
-from ._bindings import media, notification, perception
+from ._bindings import media, notifications, perception
 from .media import (
     Camera,
     FrameRate,
-    MediaService,
+    Media,
     Resolution,
     StreamConfiguration,
     StreamFormat,
     StreamFormatFilter,
 )
-from .notification import (
+from .notifications import (
     Notification,
-    NotificationService,
+    Notifications,
     NotificationSubscription,
 )
 
 __all__ = [
     "Camera",
     "FrameRate",
-    "MediaService",
+    "Media",
     "Notification",
-    "NotificationService",
     "NotificationSubscription",
+    "Notifications",
     "Resolution",
     "StreamConfiguration",
     "StreamFormat",
     "StreamFormatFilter",
     "media",
-    "notification",
+    "notifications",
     "perception",
 ]

@@ -4,23 +4,23 @@
 #![warn(missing_docs)]
 //! Client types for querying the Cairn Perception service.
 
+mod client;
 /// Debug output configuration.
 pub mod output;
 /// Perception result payload decoding.
 pub mod result;
 mod result_model;
-mod service;
 mod session;
 mod source_configuration;
 mod validation_result;
 /// Perception workflow construction.
 pub mod workflow;
 
+pub use client::{Perception, PerceptionError};
 pub use result::{
     DecodedEnvelopeContext, ExternalPayload, MalformedKnownPayload, PerceptionPayload,
     PerceptionResult, PerceptionResultError, UnknownPayload,
 };
-pub use service::{PerceptionService, PerceptionServiceError};
 pub use session::{
     DebugPorts, PerceptionSession, SessionSnapshot, SessionState, SessionStatus, SessionTopics,
     StatusInfo,
@@ -34,11 +34,11 @@ pub(crate) mod perception {
 }
 
 #[cfg(test)]
+mod client_tests;
+#[cfg(test)]
 mod mock_perception_service;
 #[cfg(test)]
 mod result_tests;
-#[cfg(test)]
-mod service_tests;
 #[cfg(test)]
 mod session_tests;
 #[cfg(test)]

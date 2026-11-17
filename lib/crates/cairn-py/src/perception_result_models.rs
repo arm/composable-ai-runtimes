@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
 // SPDX-License-Identifier: Apache-2.0
 
-use cairn::perception_service::result as model;
+use cairn::perception::result as model;
 use pyo3::types::{PyBytes, PyModule, PyModuleMethods};
 use pyo3::{Bound, Py, PyResult, Python, pyclass, pymethods};
 use pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pymethods};

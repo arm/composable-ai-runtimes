@@ -15,8 +15,8 @@ use tonic::transport::Server;
 use tonic::transport::server::TcpIncoming;
 use tonic_health::ServingStatus;
 
-use super::service::wait_for_serving;
-use super::{Notification, NotificationService, NotificationServiceError, envelope};
+use super::client::wait_for_serving;
+use super::{Notification, Notifications, NotificationsError, envelope};
 
 const REDIS_STARTUP_TIMEOUT: Duration = Duration::from_secs(5);
 const OPERATION_TIMEOUT: Duration = Duration::from_secs(2);
@@ -100,7 +100,7 @@ async fn connect_redis_opens_a_subscriber_connection() {
     let initial_connection_count = connected_client_count(&mut inspection_connection).await;
     assert_eq!(initial_connection_count, 1, "unexpected test setup clients");
 
-    let result = NotificationService::connect_redis(&endpoint).await;
+    let result = Notifications::connect_redis(&endpoint).await;
 
     let _service = result.expect("failed to construct notification service");
     let connection_count = connected_client_count(&mut inspection_connection).await;
@@ -114,12 +114,12 @@ async fn connect_redis_opens_a_subscriber_connection() {
 async fn connect_rejects_invalid_grpc_endpoint() {
     let endpoint = "not-a-grpc-endpoint".to_string();
 
-    let result = NotificationService::connect(Some(endpoint)).await;
+    let result = Notifications::connect(Some(endpoint)).await;
 
     let error = result
         .err()
         .expect("invalid endpoint should not create a notification service");
-    assert!(matches!(error, NotificationServiceError::Connection(_)));
+    assert!(matches!(error, NotificationsError::Connection(_)));
     assert!(
         !error.to_string().is_empty(),
         "invalid endpoint error should include a message"
@@ -132,17 +132,14 @@ async fn connect_redis_returns_connection_error_when_redis_is_unavailable() {
     let endpoint = redis_endpoint(&server);
     server.stop();
 
-    let result = timeout(
-        OPERATION_TIMEOUT,
-        NotificationService::connect_redis(&endpoint),
-    )
-    .await
-    .expect("timed out waiting for constructor to fail");
+    let result = timeout(OPERATION_TIMEOUT, Notifications::connect_redis(&endpoint))
+        .await
+        .expect("timed out waiting for constructor to fail");
 
     let error = result
         .err()
         .expect("unavailable Redis should not create a notification service");
-    assert!(matches!(error, NotificationServiceError::Connection(_)));
+    assert!(matches!(error, NotificationsError::Connection(_)));
     assert!(
         !error.to_string().is_empty(),
         "connection error should include a message"
@@ -161,7 +158,7 @@ async fn subscribe_delivers_channel_and_envelope_payload() {
         .get_multiplexed_async_connection()
         .await
         .expect("failed to connect test Redis publisher");
-    let mut service = NotificationService::connect_redis(&endpoint)
+    let mut service = Notifications::connect_redis(&endpoint)
         .await
         .expect("failed to connect notification service to test Redis");
     let (handler, mut handler_receiver) = handler_factory();
@@ -196,7 +193,7 @@ async fn handler_panic_does_not_stop_notification_delivery() {
         .get_multiplexed_async_connection()
         .await
         .expect("failed to connect test Redis publisher");
-    let mut service = NotificationService::connect_redis(&endpoint)
+    let mut service = Notifications::connect_redis(&endpoint)
         .await
         .expect("failed to connect notification service to test Redis");
     let (handler, mut handler_receiver) = handler_factory();
@@ -240,7 +237,7 @@ async fn invalid_envelopes_do_not_stop_notification_delivery() {
         .get_multiplexed_async_connection()
         .await
         .expect("failed to connect test Redis publisher");
-    let mut service = NotificationService::connect_redis(&endpoint)
+    let mut service = Notifications::connect_redis(&endpoint)
         .await
         .expect("failed to connect notification service to test Redis");
     let (handler, mut handler_receiver) = handler_factory();
@@ -278,7 +275,7 @@ async fn subscribe_delivers_to_each_subscription_on_same_channel() {
         .get_multiplexed_async_connection()
         .await
         .expect("failed to connect test Redis publisher");
-    let mut service = NotificationService::connect_redis(&endpoint)
+    let mut service = Notifications::connect_redis(&endpoint)
         .await
         .expect("failed to connect notification service to test Redis");
     let (first_handler, mut first_handler_receiver) = handler_factory();
@@ -327,7 +324,7 @@ async fn unsubscribe_one_subscription_keeps_other_subscription_active() {
         .get_multiplexed_async_connection()
         .await
         .expect("failed to connect test Redis publisher");
-    let mut service = NotificationService::connect_redis(&endpoint)
+    let mut service = Notifications::connect_redis(&endpoint)
         .await
         .expect("failed to connect notification service to test Redis");
     let (first_handler, _first_handler_receiver) = handler_factory();
@@ -361,7 +358,7 @@ async fn unsubscribe_one_subscription_keeps_other_subscription_active() {
 #[tokio::test]
 async fn subscribe_returns_closed_after_close() {
     let server = start_redis_server().await;
-    let mut service = NotificationService::connect_redis(&redis_endpoint(&server))
+    let mut service = Notifications::connect_redis(&redis_endpoint(&server))
         .await
         .expect("failed to connect notification service to test Redis");
     service.close().await.expect("failed to close service");
@@ -369,13 +366,13 @@ async fn subscribe_returns_closed_after_close() {
 
     let result = service.subscribe("rebel.alliance.broadcast", handler).await;
 
-    assert_eq!(result, Err(NotificationServiceError::Closed));
+    assert_eq!(result, Err(NotificationsError::Closed));
 }
 
 #[tokio::test]
 async fn subscribe_maps_redis_disconnect_to_connection_error() {
     let mut server = start_redis_server().await;
-    let mut service = NotificationService::connect_redis(&redis_endpoint(&server))
+    let mut service = Notifications::connect_redis(&redis_endpoint(&server))
         .await
         .expect("failed to connect notification service to test Redis");
     server.stop();
@@ -389,7 +386,7 @@ async fn subscribe_maps_redis_disconnect_to_connection_error() {
     .expect("timed out waiting for subscribe to fail")
     .expect_err("subscribe should fail after Redis disconnects");
 
-    assert!(matches!(error, NotificationServiceError::Connection(_)));
+    assert!(matches!(error, NotificationsError::Connection(_)));
     assert!(
         !error.to_string().is_empty(),
         "connection error should include a message"
@@ -408,7 +405,7 @@ async fn unsubscribe_removes_redis_subscription() {
         .get_multiplexed_async_connection()
         .await
         .expect("failed to connect test Redis publisher");
-    let mut service = NotificationService::connect_redis(&endpoint)
+    let mut service = Notifications::connect_redis(&endpoint)
         .await
         .expect("failed to connect notification service to test Redis");
     let (handler, _handler_receiver) = handler_factory();
@@ -446,7 +443,7 @@ async fn unsubscribe_stops_handler_delivery() {
         .get_multiplexed_async_connection()
         .await
         .expect("failed to connect test Redis publisher");
-    let mut service = NotificationService::connect_redis(&endpoint)
+    let mut service = Notifications::connect_redis(&endpoint)
         .await
         .expect("failed to connect notification service to test Redis");
     let (handler, mut handler_receiver) = handler_factory();
@@ -475,7 +472,7 @@ async fn unsubscribe_returns_error_for_unknown_subscription() {
     let server = start_redis_server().await;
     let endpoint = redis_endpoint(&server);
     let channel_name = "rebel.alliance.broadcast";
-    let mut service = NotificationService::connect_redis(&endpoint)
+    let mut service = Notifications::connect_redis(&endpoint)
         .await
         .expect("failed to connect notification service to test Redis");
     let (handler, _handler_receiver) = handler_factory();
@@ -490,16 +487,14 @@ async fn unsubscribe_returns_error_for_unknown_subscription() {
     assert_eq!(first_result, Ok(()));
     assert_eq!(
         second_result,
-        Err(NotificationServiceError::SubscriptionNotFound(
-            subscription_id
-        ))
+        Err(NotificationsError::SubscriptionNotFound(subscription_id))
     );
 }
 
 #[tokio::test]
 async fn unsubscribe_returns_closed_after_close() {
     let server = start_redis_server().await;
-    let mut service = NotificationService::connect_redis(&redis_endpoint(&server))
+    let mut service = Notifications::connect_redis(&redis_endpoint(&server))
         .await
         .expect("failed to connect notification service to test Redis");
     let (handler, _handler_receiver) = handler_factory();
@@ -511,13 +506,13 @@ async fn unsubscribe_returns_closed_after_close() {
 
     let result = service.unsubscribe(subscription_id).await;
 
-    assert_eq!(result, Err(NotificationServiceError::Closed));
+    assert_eq!(result, Err(NotificationsError::Closed));
 }
 
 #[tokio::test]
 async fn unsubscribe_maps_redis_disconnect_to_connection_error() {
     let mut server = start_redis_server().await;
-    let mut service = NotificationService::connect_redis(&redis_endpoint(&server))
+    let mut service = Notifications::connect_redis(&redis_endpoint(&server))
         .await
         .expect("failed to connect notification service to test Redis");
     let (handler, _handler_receiver) = handler_factory();
@@ -532,7 +527,7 @@ async fn unsubscribe_maps_redis_disconnect_to_connection_error() {
         .expect("timed out waiting for unsubscribe to fail")
         .expect_err("unsubscribe should fail after Redis disconnects");
 
-    assert!(matches!(error, NotificationServiceError::Connection(_)));
+    assert!(matches!(error, NotificationsError::Connection(_)));
     assert!(
         !error.to_string().is_empty(),
         "connection error should include a message"
@@ -542,7 +537,7 @@ async fn unsubscribe_maps_redis_disconnect_to_connection_error() {
 #[tokio::test]
 async fn unsubscribe_retains_subscription_when_redis_unsubscribe_fails() {
     let mut server = start_redis_server().await;
-    let mut service = NotificationService::connect_redis(&redis_endpoint(&server))
+    let mut service = Notifications::connect_redis(&redis_endpoint(&server))
         .await
         .expect("failed to connect notification service to test Redis");
     let (handler, _handler_receiver) = handler_factory();
@@ -559,7 +554,7 @@ async fn unsubscribe_retains_subscription_when_redis_unsubscribe_fails() {
 
     assert!(matches!(
         unsubscribe_error,
-        NotificationServiceError::Connection(_)
+        NotificationsError::Connection(_)
     ));
     assert!(
         service.has_subscription(subscription_id).await,
@@ -571,17 +566,14 @@ async fn unsubscribe_retains_subscription_when_redis_unsubscribe_fails() {
         .await
         .expect_err("retrying unsubscribe should not lose the subscription ID");
 
-    assert!(matches!(
-        retry_error,
-        NotificationServiceError::Connection(_)
-    ));
+    assert!(matches!(retry_error, NotificationsError::Connection(_)));
 }
 
 #[tokio::test]
 async fn close_is_idempotent() {
     let server = start_redis_server().await;
     let endpoint = redis_endpoint(&server);
-    let mut service = NotificationService::connect_redis(&endpoint)
+    let mut service = Notifications::connect_redis(&endpoint)
         .await
         .expect("failed to connect notification service to test Redis");
 
@@ -595,7 +587,7 @@ async fn close_is_idempotent() {
 #[tokio::test]
 async fn close_succeeds_after_listener_terminates() {
     let mut server = start_redis_server().await;
-    let mut service = NotificationService::connect_redis(&redis_endpoint(&server))
+    let mut service = Notifications::connect_redis(&redis_endpoint(&server))
         .await
         .expect("failed to connect notification service to test Redis");
     server.stop();
@@ -606,7 +598,7 @@ async fn close_succeeds_after_listener_terminates() {
                 .subscribe("rebel.alliance.broadcast", |_| async {})
                 .await
             {
-                Err(NotificationServiceError::Connection(message))
+                Err(NotificationsError::Connection(message))
                     if message == "notification listener terminated" =>
                 {
                     break;

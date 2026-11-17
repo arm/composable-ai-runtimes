@@ -44,7 +44,7 @@ pub(super) async fn wait_for_serving(endpoint: &str) -> Result<Channel, String> 
 
 /// An error returned by the Perception service client.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub enum PerceptionServiceError {
+pub enum PerceptionError {
     /// The client could not connect to the service.
     Transport(String),
     /// The service returned a response that cannot be represented by the library.
@@ -55,7 +55,7 @@ pub enum PerceptionServiceError {
     Workflow(Vec<ValidationIssue>),
 }
 
-impl std::fmt::Display for PerceptionServiceError {
+impl std::fmt::Display for PerceptionError {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Transport(message) => formatter.write_str(message),
@@ -76,26 +76,26 @@ impl std::fmt::Display for PerceptionServiceError {
     }
 }
 
-impl std::error::Error for PerceptionServiceError {}
+impl std::error::Error for PerceptionError {}
 
 /// An asynchronous client for validating and deploying Perception workflows.
-pub struct PerceptionService {
+pub struct Perception {
     client: PerceptionServiceClient<Channel>,
 }
 
-impl PerceptionService {
+impl Perception {
     /// Connects to the Perception service.
     ///
     /// Pass `None` to use the default endpoint, `http://127.0.0.1:50053`.
     ///
     /// # Errors
     ///
-    /// Returns [`PerceptionServiceError::Transport`] when the client cannot connect to the
+    /// Returns [`PerceptionError::Transport`] when the client cannot connect to the
     /// endpoint.
-    pub async fn connect(endpoint: Option<String>) -> Result<Self, PerceptionServiceError> {
+    pub async fn connect(endpoint: Option<String>) -> Result<Self, PerceptionError> {
         let endpoint = endpoint.unwrap_or_else(|| DEFAULT_PERCEPTION_SERVICE_ENDPOINT.to_string());
         let channel = wait_for_serving(&endpoint).await.map_err(|error| {
-            PerceptionServiceError::Transport(format!(
+            PerceptionError::Transport(format!(
                 "failed to connect to perception service at {endpoint}: {error}"
             ))
         })?;
@@ -111,11 +111,11 @@ impl PerceptionService {
     ///
     /// # Errors
     ///
-    /// Returns [`PerceptionServiceError::Rpc`] when the validation RPC fails.
+    /// Returns [`PerceptionError::Rpc`] when the validation RPC fails.
     pub async fn validate(
         &mut self,
         workflow: &PerceptionWorkflow,
-    ) -> Result<ValidationResult, PerceptionServiceError> {
+    ) -> Result<ValidationResult, PerceptionError> {
         let response = self
             .client
             .validate_workflow(Request::new(ValidateWorkflowRequest {
@@ -123,7 +123,7 @@ impl PerceptionService {
             }))
             .await
             .map_err(|error| {
-                PerceptionServiceError::Rpc(format!(
+                PerceptionError::Rpc(format!(
                     "failed to validate perception workflow: {:?}: {}",
                     error.code(),
                     error.message()
@@ -136,7 +136,7 @@ impl PerceptionService {
 
     /// Deploys a workflow and returns its session handle.
     ///
-    /// Workflow rejection returns [`PerceptionServiceError::Workflow`] with validation issues.
+    /// Workflow rejection returns [`PerceptionError::Workflow`] with validation issues.
     /// A successful response provides a session handle, not a guarantee of ongoing health.
     ///
     /// # Errors
@@ -145,7 +145,7 @@ impl PerceptionService {
     pub async fn deploy(
         &mut self,
         workflow: &PerceptionWorkflow,
-    ) -> Result<PerceptionSession, PerceptionServiceError> {
+    ) -> Result<PerceptionSession, PerceptionError> {
         let request = DeployWorkflowRequest {
             workflow: Some(workflow.into()),
         };
@@ -154,7 +154,7 @@ impl PerceptionService {
             .deploy_workflow(Request::new(request))
             .await
             .map_err(|error| {
-                PerceptionServiceError::Rpc(format!(
+                PerceptionError::Rpc(format!(
                     "failed to deploy perception workflow: {:?}: {}",
                     error.code(),
                     error.message()
@@ -170,13 +170,13 @@ impl PerceptionService {
     ///
     /// # Errors
     ///
-    /// Returns [`PerceptionServiceError::InvalidResponse`] if the returned session has an empty
+    /// Returns [`PerceptionError::InvalidResponse`] if the returned session has an empty
     /// ID.
-    /// Returns [`PerceptionServiceError::Rpc`] if the RPC fails.
+    /// Returns [`PerceptionError::Rpc`] if the RPC fails.
     pub async fn get_session(
         &mut self,
         session_id: impl Into<String>,
-    ) -> Result<PerceptionSession, PerceptionServiceError> {
+    ) -> Result<PerceptionSession, PerceptionError> {
         let session = self
             .client
             .get_session(Request::new(GetSessionRequest {
@@ -184,7 +184,7 @@ impl PerceptionService {
             }))
             .await
             .map_err(|error| {
-                PerceptionServiceError::Rpc(format!(
+                PerceptionError::Rpc(format!(
                     "failed to get perception session: {:?}: {}",
                     error.code(),
                     error.message()
@@ -201,18 +201,16 @@ impl PerceptionService {
     ///
     /// # Errors
     ///
-    /// Returns [`PerceptionServiceError::InvalidResponse`] if any returned session has an empty
-    /// ID. Returns [`PerceptionServiceError::Rpc`] if the RPC fails.
+    /// Returns [`PerceptionError::InvalidResponse`] if any returned session has an empty
+    /// ID. Returns [`PerceptionError::Rpc`] if the RPC fails.
     /// Servers without `ListSessions` support return an `UNIMPLEMENTED` RPC error.
-    pub async fn list_sessions(
-        &mut self,
-    ) -> Result<Vec<PerceptionSession>, PerceptionServiceError> {
+    pub async fn list_sessions(&mut self) -> Result<Vec<PerceptionSession>, PerceptionError> {
         let response = self
             .client
             .list_sessions(Request::new(ListSessionsRequest {}))
             .await
             .map_err(|error| {
-                PerceptionServiceError::Rpc(format!(
+                PerceptionError::Rpc(format!(
                     "failed to list perception sessions: {:?}: {}",
                     error.code(),
                     error.message()
@@ -230,20 +228,20 @@ impl PerceptionService {
 
 fn proto_session_from_response(
     response: DeployWorkflowResponse,
-) -> Result<ProtoPerceptionSession, PerceptionServiceError> {
+) -> Result<ProtoPerceptionSession, PerceptionError> {
     match response.outcome {
         Some(deploy_workflow_response::Outcome::Accepted(accepted)) => accepted
             .session
             .ok_or_else(|| {
-                PerceptionServiceError::Rpc(
+                PerceptionError::Rpc(
                     "invalid perception service response: accepted deployment response is missing a session"
                         .to_string(),
                 )
             }),
         Some(deploy_workflow_response::Outcome::Rejected(rejected)) => Err(
-            PerceptionServiceError::Workflow(rejected.issues.into_iter().map(Into::into).collect()),
+            PerceptionError::Workflow(rejected.issues.into_iter().map(Into::into).collect()),
         ),
-        None => Err(PerceptionServiceError::Rpc(
+        None => Err(PerceptionError::Rpc(
             "invalid perception service response: deployment response is missing an outcome"
                 .to_string(),
         )),

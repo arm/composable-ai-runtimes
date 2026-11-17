@@ -9,18 +9,16 @@ use bytes::Bytes;
 #[cfg(test)]
 use prost::Message;
 
-mod service;
+mod client;
 
 mod messaging {
     include!("generated/cairn.messaging.v1.rs");
 }
 
 #[cfg(test)]
-mod service_test;
+mod client_test;
 
-pub use service::{
-    Notification, NotificationService, NotificationServiceError, NotificationSubscription,
-};
+pub use client::{Notification, NotificationSubscription, Notifications, NotificationsError};
 
 #[cfg(test)]
 fn envelope(payload: impl AsRef<[u8]>) -> Vec<u8> {

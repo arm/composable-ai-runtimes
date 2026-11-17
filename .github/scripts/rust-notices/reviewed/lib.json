@@ -7,7 +7,7 @@
     "lib/Cargo.lock": "11de151fbe305b27e4c2adfeb9481023324ab1b4857610576942732e161bff11",
     "lib/Cargo.toml": "8256295a62c8d67ceb7c4bc08ab8bb7e1b8c76bb01780178f09931a449b338b9",
     "lib/crates/cairn-media/Cargo.toml": "7f408bf0937eb6c8a896209085e0b9b3d9a7bf3ae3e1a2c8f2daad9af7f5784c",
-    "lib/crates/cairn-notification/Cargo.toml": "1a7aac2fd89d7341859d65191b7aad34b3313bb59a94dc2cfadac7e9467a1d4d",
+    "lib/crates/cairn-notification/Cargo.toml": "cac7f548a993a70399b699b0aeeb7bba0a4033361f6a5a681626f75311156450",
     "lib/crates/cairn-perception/Cargo.toml": "8dca11a0d4b45f32bde0005e364a73fda5b02cc97edbfefbf0ff1f9ae1e71acc",
     "lib/crates/cairn-py/Cargo.toml": "e23992dbb85a1d22ed35b83ee3edb0836aeb339ed2f0ddfddcc023c439d747b3",
     "lib/crates/cairn/Cargo.toml": "59d93777e8dad992632123725a81511a56ef1309803691214cd0a9a3b556ebf7",

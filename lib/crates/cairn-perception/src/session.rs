@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
 // SPDX-License-Identifier: Apache-2.0
 
+use crate::client::PerceptionError;
 use crate::perception::{
     GetSessionRequest, PerceptionSession as ProtoPerceptionSession,
     SessionSnapshot as ProtoSessionSnapshot, SessionState as ProtoSessionState,
@@ -8,7 +9,6 @@ use crate::perception::{
     StatusInfo as ProtoStatusInfo, StopSessionRequest,
     perception_service_client::PerceptionServiceClient,
 };
-use crate::service::PerceptionServiceError;
 use crate::validation_result::ResolvedStage;
 use tonic::Request;
 use tonic::transport::Channel;
@@ -128,9 +128,9 @@ impl PerceptionSession {
     ///
     /// # Errors
     ///
-    /// Returns [`PerceptionServiceError::Rpc`] when the request fails or the response omits
+    /// Returns [`PerceptionError::Rpc`] when the request fails or the response omits
     /// its status.
-    pub async fn get_status(&self) -> Result<SessionSnapshot, PerceptionServiceError> {
+    pub async fn get_status(&self) -> Result<SessionSnapshot, PerceptionError> {
         let mut client = self.client.clone();
         let response = client
             .get_session_snapshot(Request::new(GetSessionRequest {
@@ -138,7 +138,7 @@ impl PerceptionSession {
             }))
             .await
             .map_err(|error| {
-                PerceptionServiceError::Rpc(format!(
+                PerceptionError::Rpc(format!(
                     "failed to get perception session status: {:?}: {}",
                     error.code(),
                     error.message()
@@ -155,8 +155,8 @@ impl PerceptionSession {
     ///
     /// # Errors
     ///
-    /// Returns [`PerceptionServiceError::Rpc`] when the stop request fails.
-    pub async fn stop(&self) -> Result<(), PerceptionServiceError> {
+    /// Returns [`PerceptionError::Rpc`] when the stop request fails.
+    pub async fn stop(&self) -> Result<(), PerceptionError> {
         let mut client = self.client.clone();
         client
             .stop_session(Request::new(StopSessionRequest {
@@ -164,7 +164,7 @@ impl PerceptionSession {
             }))
             .await
             .map_err(|error| {
-                PerceptionServiceError::Rpc(format!(
+                PerceptionError::Rpc(format!(
                     "failed to stop perception session: {:?}: {}",
                     error.code(),
                     error.message()
@@ -180,8 +180,8 @@ impl PerceptionSession {
     ///
     /// # Errors
     ///
-    /// Returns [`PerceptionServiceError::Rpc`] when the request fails.
-    pub async fn disable_stage(&self, stage_id: &str) -> Result<(), PerceptionServiceError> {
+    /// Returns [`PerceptionError::Rpc`] when the request fails.
+    pub async fn disable_stage(&self, stage_id: &str) -> Result<(), PerceptionError> {
         let mut client = self.client.clone();
         client
             .disable_stage(Request::new(StageControlRequest {
@@ -190,7 +190,7 @@ impl PerceptionSession {
             }))
             .await
             .map_err(|error| {
-                PerceptionServiceError::Rpc(format!(
+                PerceptionError::Rpc(format!(
                     "failed to disable perception stage: {:?}: {}",
                     error.code(),
                     error.message()
@@ -206,8 +206,8 @@ impl PerceptionSession {
     ///
     /// # Errors
     ///
-    /// Returns [`PerceptionServiceError::Rpc`] when the request fails.
-    pub async fn enable_stage(&self, stage_id: &str) -> Result<(), PerceptionServiceError> {
+    /// Returns [`PerceptionError::Rpc`] when the request fails.
+    pub async fn enable_stage(&self, stage_id: &str) -> Result<(), PerceptionError> {
         let mut client = self.client.clone();
         client
             .enable_stage(Request::new(StageControlRequest {
@@ -216,7 +216,7 @@ impl PerceptionSession {
             }))
             .await
             .map_err(|error| {
-                PerceptionServiceError::Rpc(format!(
+                PerceptionError::Rpc(format!(
                     "failed to enable perception stage: {:?}: {}",
                     error.code(),
                     error.message()
@@ -228,9 +228,9 @@ impl PerceptionSession {
     pub(crate) fn from_proto(
         session: ProtoPerceptionSession,
         client: PerceptionServiceClient<Channel>,
-    ) -> Result<Self, PerceptionServiceError> {
+    ) -> Result<Self, PerceptionError> {
         if session.id.is_empty() {
-            return Err(PerceptionServiceError::InvalidResponse(
+            return Err(PerceptionError::InvalidResponse(
                 "invalid perception service response: session is missing an ID".to_string(),
             ));
         }
@@ -271,11 +271,11 @@ impl PerceptionSession {
 }
 
 impl TryFrom<ProtoSessionSnapshot> for SessionSnapshot {
-    type Error = PerceptionServiceError;
+    type Error = PerceptionError;
 
     fn try_from(snapshot: ProtoSessionSnapshot) -> Result<Self, Self::Error> {
         let status = snapshot.status.ok_or_else(|| {
-            PerceptionServiceError::Rpc(
+            PerceptionError::Rpc(
                 "invalid perception service response: session snapshot is missing status"
                     .to_string(),
             )

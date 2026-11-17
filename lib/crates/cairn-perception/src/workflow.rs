@@ -20,7 +20,7 @@ pub struct StageHandle {
 /// A workflow specification built locally for validation or deployment.
 ///
 /// Start with a camera-discovered stream configuration, add inference stages, then
-/// validate or deploy with [`crate::PerceptionService`]. Building a workflow does not
+/// validate or deploy with [`crate::Perception`]. Building a workflow does not
 /// contact the service; models must already be registered there.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PerceptionWorkflow {

@@ -12,8 +12,8 @@ import collections.abc
 import typing
 __all__ = [
     "Notification",
-    "NotificationService",
     "NotificationSubscription",
+    "Notifications",
 ]
 
 @typing.final
@@ -33,12 +33,19 @@ class Notification:
         """
 
 @typing.final
-class NotificationService:
+class NotificationSubscription:
+    r"""
+    An identifier for a subscription registered with the notification service.
+    """
+    ...
+
+@typing.final
+class Notifications:
     r"""
     Client for subscribing to notifications from the Cairn messaging service.
     """
     @staticmethod
-    def connect(endpoint: typing.Optional[builtins.str] = None) -> collections.abc.Awaitable[NotificationService]:
+    def connect(endpoint: typing.Optional[builtins.str] = None) -> collections.abc.Awaitable[Notifications]:
         r"""
         Connect to the messaging service without blocking the Python event loop.
         
@@ -46,7 +53,7 @@ class NotificationService:
         ``http://127.0.0.1:50054``. Once ready, connects to local Redis.
         Connection failures raise ``RuntimeError``.
         """
-    def __aenter__(self) -> collections.abc.Awaitable[NotificationService]:
+    def __aenter__(self) -> collections.abc.Awaitable[Notifications]:
         r"""
         Enter an asynchronous context for this notification service.
         """
@@ -75,11 +82,4 @@ class NotificationService:
         r"""
         Exit an asynchronous context and close the notification service.
         """
-
-@typing.final
-class NotificationSubscription:
-    r"""
-    An identifier for a subscription registered with the notification service.
-    """
-    ...
 

@@ -3,7 +3,7 @@
 
 use std::sync::Arc;
 
-use cairn::notification_service::{Notification, NotificationService, NotificationSubscription};
+use cairn::notifications::{Notification, NotificationSubscription, Notifications};
 use pyo3::exceptions::{PyRuntimeError, PyTypeError};
 use pyo3::types::{PyAnyMethods, PyBytes, PyDict, PyModule, PyModuleMethods, PyTuple};
 use pyo3::{Bound, Py, PyAny, PyRef, PyResult, Python, pyclass, pymethods};
@@ -12,14 +12,14 @@ use pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pymethods};
 use tokio::sync::Mutex;
 
 /// Client for subscribing to notifications from the Cairn messaging service.
-#[gen_stub_pyclass(module = "cairn.notification")]
-#[pyclass(module = "cairn", name = "NotificationService")]
-pub struct PyNotificationService {
-    inner: Arc<Mutex<NotificationService>>,
+#[gen_stub_pyclass(module = "cairn.notifications")]
+#[pyclass(module = "cairn", name = "Notifications")]
+pub struct PyNotifications {
+    inner: Arc<Mutex<Notifications>>,
 }
 
 /// A notification received from the messaging service.
-#[gen_stub_pyclass(module = "cairn.notification")]
+#[gen_stub_pyclass(module = "cairn.notifications")]
 #[pyclass(frozen, module = "cairn", name = "Notification")]
 pub struct PyNotification {
     channel: String,
@@ -53,7 +53,7 @@ impl PyNotification {
 }
 
 /// An identifier for a subscription registered with the notification service.
-#[gen_stub_pyclass(module = "cairn.notification")]
+#[gen_stub_pyclass(module = "cairn.notifications")]
 #[pyclass(frozen, module = "cairn", name = "NotificationSubscription")]
 pub struct PyNotificationSubscription {
     subscription_id: NotificationSubscription,
@@ -61,14 +61,14 @@ pub struct PyNotificationSubscription {
 
 #[gen_stub_pymethods]
 #[pymethods]
-impl PyNotificationService {
+impl PyNotifications {
     #[new]
     #[gen_stub(skip)]
     #[pyo3(signature = (*_args, **_kwargs))]
     fn new(_args: &Bound<'_, PyTuple>, _kwargs: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
         Err(PyTypeError::new_err(
-            "NotificationService cannot be constructed directly. \
-             Use 'await NotificationService.connect(endpoint)' inside an async function.",
+            "Notifications cannot be constructed directly. \
+             Use 'await Notifications.connect(endpoint)' inside an async function.",
         ))
     }
 
@@ -80,12 +80,12 @@ impl PyNotificationService {
     #[staticmethod]
     #[pyo3(signature = (endpoint=None))]
     #[gen_stub(override_return_type(
-        type_repr = "collections.abc.Awaitable[NotificationService]",
+        type_repr = "collections.abc.Awaitable[Notifications]",
         imports = ("collections.abc",)
     ))]
     fn connect<'py>(py: Python<'py>, endpoint: Option<String>) -> PyResult<Bound<'py, PyAny>> {
         tokio_runtime::future_into_py(py, async move {
-            let inner = NotificationService::connect(endpoint)
+            let inner = Notifications::connect(endpoint)
                 .await
                 .map_err(|error| PyRuntimeError::new_err(error.to_string()))?;
             Python::attach(|py| {
@@ -101,11 +101,11 @@ impl PyNotificationService {
 
     /// Enter an asynchronous context for this notification service.
     #[gen_stub(override_return_type(
-        type_repr = "collections.abc.Awaitable[NotificationService]",
+        type_repr = "collections.abc.Awaitable[Notifications]",
         imports = ("collections.abc",)
     ))]
     fn __aenter__<'py>(slf: PyRef<'_, Self>, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let service: Py<PyNotificationService> = slf.into();
+        let service: Py<PyNotifications> = slf.into();
 
         tokio_runtime::future_into_py(py, async move {
             Ok(Python::attach(|py| {
@@ -227,8 +227,8 @@ impl PyNotificationService {
 }
 
 pub(crate) fn register(parent: &Bound<'_, PyModule>) -> PyResult<()> {
-    let module = PyModule::new(parent.py(), "cairn.notification")?;
-    module.add_class::<PyNotificationService>()?;
+    let module = PyModule::new(parent.py(), "cairn.notifications")?;
+    module.add_class::<PyNotifications>()?;
     module.add_class::<PyNotification>()?;
     module.add_class::<PyNotificationSubscription>()?;
     parent.add_submodule(&module)?;
@@ -236,12 +236,12 @@ pub(crate) fn register(parent: &Bound<'_, PyModule>) -> PyResult<()> {
         .py()
         .import("sys")?
         .getattr("modules")?
-        .set_item("cairn.notification", module)?;
+        .set_item("cairn.notifications", module)?;
     Ok(())
 }
 
 pyo3_stub_gen::module_doc!(
-    "cairn.notification",
+    "cairn.notifications",
     "Python interface for subscribing to notifications from the Cairn messaging service."
 );
 

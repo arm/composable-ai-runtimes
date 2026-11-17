@@ -8,14 +8,14 @@
 //! types provided by its corresponding service crate.
 
 /// Media device discovery client and metadata types.
-pub mod media_service {
+pub mod media {
     pub use cairn_media::*;
 }
 /// Asynchronous notification client and subscription types.
-pub mod notification_service {
+pub mod notifications {
     pub use cairn_notification::*;
 }
 /// Perception client and session types.
-pub mod perception_service {
+pub mod perception {
     pub use cairn_perception::*;
 }

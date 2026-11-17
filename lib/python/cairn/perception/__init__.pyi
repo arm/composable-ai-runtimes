@@ -38,12 +38,12 @@ __all__ = [
     "ObjectMetadata",
     "ObjectTrack",
     "ObjectTracks",
+    "Perception",
     "PerceptionDeploymentError",
     "PerceptionError",
     "PerceptionPayload",
     "PerceptionResult",
     "PerceptionResultError",
-    "PerceptionService",
     "PerceptionSession",
     "PerceptionWorkflow",
     "PerformanceOverlay",
@@ -653,6 +653,44 @@ class ObjectTracks:
         Tracked objects.
         """
 
+@typing.final
+class Perception:
+    r"""
+    Asynchronous client for the Cairn Perception service.
+    """
+    @staticmethod
+    def connect(endpoint: typing.Optional[builtins.str] = None) -> collections.abc.Awaitable[Perception]:
+        r"""
+        Connect to the Perception service.
+        
+        Await this method. ``None`` uses ``http://127.0.0.1:50053``.
+        Connection failures raise ``PerceptionError``.
+        """
+    def get_session(self, session_id: builtins.str) -> collections.abc.Awaitable[PerceptionSession]:
+        r"""
+        Return the session identified by ``session_id``. If the ID is unknown,
+        awaiting this method raises ``PerceptionError`` with a ``NotFound`` service error.
+        """
+    def validate(self, workflow: PerceptionWorkflow) -> collections.abc.Awaitable[ValidationResult]:
+        r"""
+        Validate a workflow without deploying it.
+        
+        An invalid workflow returns ``valid=False`` with ``errors`` and ``warnings``;
+        request failures raise ``PerceptionError`` instead.
+        """
+    def deploy(self, workflow: PerceptionWorkflow) -> collections.abc.Awaitable[PerceptionSession]:
+        r"""
+        Deploy a workflow and return its session handle.
+        
+        Retrying a deployment can create another session.
+        Rejection raises ``DeploymentValidationError`` with ``issues``; other failures
+        raise ``PerceptionDeploymentError``. Await ``session.stop()`` when finished.
+        """
+    def list_sessions(self) -> collections.abc.Awaitable[list[PerceptionSession]]:
+        r"""
+        Return handles for the sessions reported by the service.
+        """
+
 class PerceptionDeploymentError(PerceptionError):
     r"""
     Raised when a Perception workflow cannot be deployed.
@@ -692,44 +730,6 @@ class PerceptionResultError(builtins.ValueError):
         """
 
 @typing.final
-class PerceptionService:
-    r"""
-    Asynchronous client for the Cairn Perception service.
-    """
-    @staticmethod
-    def connect(endpoint: typing.Optional[builtins.str] = None) -> collections.abc.Awaitable[PerceptionService]:
-        r"""
-        Connect to the Perception service.
-        
-        Await this method. ``None`` uses ``http://127.0.0.1:50053``.
-        Connection failures raise ``PerceptionError``.
-        """
-    def get_session(self, session_id: builtins.str) -> collections.abc.Awaitable[PerceptionSession]:
-        r"""
-        Return the session identified by ``session_id``. If the ID is unknown,
-        awaiting this method raises ``PerceptionError`` with a ``NotFound`` service error.
-        """
-    def validate(self, workflow: PerceptionWorkflow) -> collections.abc.Awaitable[ValidationResult]:
-        r"""
-        Validate a workflow without deploying it.
-        
-        An invalid workflow returns ``valid=False`` with ``errors`` and ``warnings``;
-        request failures raise ``PerceptionError`` instead.
-        """
-    def deploy(self, workflow: PerceptionWorkflow) -> collections.abc.Awaitable[PerceptionSession]:
-        r"""
-        Deploy a workflow and return its session handle.
-        
-        Retrying a deployment can create another session.
-        Rejection raises ``DeploymentValidationError`` with ``issues``; other failures
-        raise ``PerceptionDeploymentError``. Await ``session.stop()`` when finished.
-        """
-    def list_sessions(self) -> collections.abc.Awaitable[list[PerceptionSession]]:
-        r"""
-        Return handles for the sessions reported by the service.
-        """
-
-@typing.final
 class PerceptionSession:
     r"""
     Handle to a deployed Perception session.
@@ -759,7 +759,7 @@ class PerceptionSession:
         r"""
         Opaque notification topics allocated to this session.
         Check that an optional topic is not `None` before passing it to
-        `NotificationService.subscribe()`.
+        `Notifications.subscribe()`.
         """
     def disable_stage(self, stage_id: builtins.str) -> collections.abc.Awaitable[None]:
         r"""
@@ -790,7 +790,7 @@ class PerceptionWorkflow:
     Build a workflow locally, then submit it for validation or deployment.
     
     Start with a camera-discovered stream configuration, add inference stages, then
-    await ``PerceptionService.validate()`` or ``deploy()``. Models must already be
+    await ``Perception.validate()`` or ``deploy()``. Models must already be
     registered on the service.
     """
     def __new__(cls, name: builtins.str, source_configuration: media.StreamConfiguration, *, output_events: builtins.bool = True) -> PerceptionWorkflow:
@@ -1082,7 +1082,7 @@ class SessionTopics:
         Topic carrying session lifecycle events, when allocated.
         This is `None` when the workflow was created with
         `output_events=False`. Check that it is not `None` before passing it to
-        `NotificationService.subscribe()`.
+        `Notifications.subscribe()`.
         """
 
 @typing.final

@@ -48,7 +48,7 @@ The Rust SDK lives at `crates/cairn` and is published as the `arm-cairn`
 Cargo package; its Rust import name is `cairn`. Its supporting client packages
 are `arm-cairn-media`, `arm-cairn-notification`, and `arm-cairn-perception`.
 The SDK provides typed clients for the Media, Notification, and Perception
-services. `NotificationService` takes a gRPC health endpoint and connects to
+services. `Notifications` takes a gRPC health endpoint and connects to
 Redis at `127.0.0.1:6379` after the service reports readiness.
 
 Perception result decoding uses the [OPK Rust SDK](https://crates.io/crates/open_perception_kit)

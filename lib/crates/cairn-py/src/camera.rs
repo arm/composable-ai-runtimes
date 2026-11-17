@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
 // SPDX-License-Identifier: Apache-2.0
 
-use cairn::media_service;
+use cairn::media;
 use pyo3::exceptions::{PyLookupError, PyRuntimeError};
 use pyo3::prelude::{Bound, PyErr, PyResult};
 use pyo3::types::{PyModule, PyModuleMethods};
@@ -12,25 +12,23 @@ use std::sync::Arc;
 
 use crate::camera_types::PyStreamConfiguration;
 
-pub(crate) fn map_media_error(error: media_service::MediaServiceError) -> PyErr {
+pub(crate) fn map_media_error(error: media::MediaError) -> PyErr {
     match error {
-        media_service::MediaServiceError::NotFound(_) => PyLookupError::new_err(error.to_string()),
-        media_service::MediaServiceError::Transport(message) => PyRuntimeError::new_err(message),
-        media_service::MediaServiceError::InvalidResponse(message) => {
-            PyRuntimeError::new_err(message)
-        }
+        media::MediaError::NotFound(_) => PyLookupError::new_err(error.to_string()),
+        media::MediaError::Transport(message) => PyRuntimeError::new_err(message),
+        media::MediaError::InvalidResponse(message) => PyRuntimeError::new_err(message),
     }
 }
 
-/// Information about a camera returned by `MediaService.list_cameras()`.
+/// Information about a camera returned by `Media.list_cameras()`.
 #[gen_stub_pyclass(module = "cairn.media")]
 #[pyclass(skip_from_py_object, module = "cairn", name = "Camera")]
 pub struct PyCamera {
-    camera: Arc<media_service::Camera>,
+    camera: Arc<media::Camera>,
 }
 
 impl PyCamera {
-    pub(crate) fn new(camera: media_service::Camera) -> Self {
+    pub(crate) fn new(camera: media::Camera) -> Self {
         Self {
             camera: Arc::new(camera),
         }
@@ -66,11 +64,10 @@ impl PyCamera {
         frame_rate: Option<(u32, u32)>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let has_filter = resolution.is_some() || pixel_format.is_some() || frame_rate.is_some();
-        let filter = has_filter.then(|| media_service::StreamFormatFilter {
-            resolution: resolution
-                .map(|(width, height)| media_service::Resolution { width, height }),
+        let filter = has_filter.then(|| media::StreamFormatFilter {
+            resolution: resolution.map(|(width, height)| media::Resolution { width, height }),
             pixel_format,
-            frame_rate: frame_rate.map(|(numerator, denominator)| media_service::FrameRate {
+            frame_rate: frame_rate.map(|(numerator, denominator)| media::FrameRate {
                 numerator,
                 denominator,
             }),

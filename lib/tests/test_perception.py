@@ -16,15 +16,15 @@ from cairn import (
 from cairn.perception import (
     DebugOutput,
     DeploymentValidationError,
+    Perception,
     PerceptionDeploymentError,
     PerceptionError,
-    PerceptionService,
     PerceptionWorkflow,
 )
 
 
 def test_perception_submodule_is_exported() -> None:
-    assert perception.PerceptionService is PerceptionService
+    assert perception.Perception is Perception
 
 
 def test_perception_errors_follow_deployment_hierarchy() -> None:
@@ -63,7 +63,7 @@ def test_workflow_builds_inference_stages() -> None:
 
 def test_direct_construction_is_not_supported() -> None:
     with pytest.raises(TypeError):
-        PerceptionService()
+        Perception()
 
 
 def test_connect_rejects_invalid_endpoint() -> None:
@@ -72,6 +72,6 @@ def test_connect_rejects_invalid_endpoint() -> None:
             PerceptionError,
             match="failed to connect to perception service at",
         ):
-            await PerceptionService.connect("http://[::1")
+            await Perception.connect("http://[::1")
 
     asyncio.run(connect())

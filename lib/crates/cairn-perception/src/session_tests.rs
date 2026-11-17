@@ -10,8 +10,7 @@ use crate::perception::{
     SessionStatus as ProtoSessionStatus, StageControlRequest, StatusInfo as ProtoStatusInfo,
 };
 use crate::{
-    PerceptionServiceError, PerceptionSession, SessionSnapshot, SessionState, SessionStatus,
-    SessionTopics,
+    PerceptionError, PerceptionSession, SessionSnapshot, SessionState, SessionStatus, SessionTopics,
 };
 
 async fn connect_test_session(server: &MockServerHandle) -> PerceptionSession {
@@ -70,7 +69,7 @@ async fn get_status_rejects_a_snapshot_without_status() {
 
     assert_eq!(
         error,
-        PerceptionServiceError::Rpc(
+        PerceptionError::Rpc(
             "invalid perception service response: session snapshot is missing status".to_string(),
         )
     );
@@ -92,7 +91,7 @@ async fn get_status_maps_grpc_status_to_service_error() {
 
     assert_eq!(
         error,
-        PerceptionServiceError::Rpc(
+        PerceptionError::Rpc(
             "failed to get perception session status: Unavailable: runtime unavailable".to_string(),
         )
     );
@@ -133,7 +132,7 @@ fn session_snapshot_rejects_missing_status() {
 
     assert_eq!(
         error,
-        PerceptionServiceError::Rpc(
+        PerceptionError::Rpc(
             "invalid perception service response: session snapshot is missing status".to_string(),
         )
     );
@@ -199,7 +198,7 @@ async fn disable_stage_maps_grpc_status_to_service_error() {
     server.set_stage_control_response(Err(Status::not_found("stage not found")));
     assert_eq!(
         session.disable_stage("missing-stage").await.unwrap_err(),
-        PerceptionServiceError::Rpc(
+        PerceptionError::Rpc(
             "failed to disable perception stage: NotFound: stage not found".to_string()
         )
     );
@@ -234,7 +233,7 @@ async fn enable_stage_maps_grpc_status_to_service_error() {
     server.set_stage_control_response(Err(Status::not_found("stage not found")));
     assert_eq!(
         session.enable_stage("missing-stage").await.unwrap_err(),
-        PerceptionServiceError::Rpc(
+        PerceptionError::Rpc(
             "failed to enable perception stage: NotFound: stage not found".to_string()
         )
     );

@@ -107,7 +107,7 @@ impl SubscriptionRegistry {
 /// An error returned by the notification service.
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[non_exhaustive]
-pub enum NotificationServiceError {
+pub enum NotificationsError {
     /// The service has already been closed.
     Closed,
     /// The requested subscription ID is not registered.
@@ -116,7 +116,7 @@ pub enum NotificationServiceError {
     Connection(String),
 }
 
-impl std::fmt::Display for NotificationServiceError {
+impl std::fmt::Display for NotificationsError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Closed => f.write_str("notification service client is closed"),
@@ -131,34 +131,34 @@ impl std::fmt::Display for NotificationServiceError {
     }
 }
 
-impl std::error::Error for NotificationServiceError {}
+impl std::error::Error for NotificationsError {}
 
 /// An asynchronous notification service for managing channel subscriptions.
-pub struct NotificationService {
+pub struct Notifications {
     pubsub_sink: Option<PubSubSink>,
     subscriptions: Arc<Mutex<SubscriptionRegistry>>,
     next_subscription_id: u64,
     listener_task: Option<JoinHandle<()>>,
 }
 
-impl NotificationService {
+impl Notifications {
     /// Waits for the gRPC endpoint to report readiness, then connects to local Redis.
     /// Uses the default gRPC endpoint when omitted.
-    pub async fn connect(endpoint: Option<String>) -> Result<Self, NotificationServiceError> {
+    pub async fn connect(endpoint: Option<String>) -> Result<Self, NotificationsError> {
         let endpoint = endpoint.unwrap_or_else(|| DEFAULT_ENDPOINT.to_string());
         wait_for_serving(&endpoint)
             .await
-            .map_err(NotificationServiceError::Connection)?;
+            .map_err(NotificationsError::Connection)?;
         Self::connect_redis(DEFAULT_REDIS_ENDPOINT).await
     }
 
-    pub(super) async fn connect_redis(endpoint: &str) -> Result<Self, NotificationServiceError> {
+    pub(super) async fn connect_redis(endpoint: &str) -> Result<Self, NotificationsError> {
         let client = redis::Client::open(endpoint)
-            .map_err(|err| NotificationServiceError::Connection(err.to_string()))?;
+            .map_err(|err| NotificationsError::Connection(err.to_string()))?;
         let (pubsub_sink, pubsub_stream) = client
             .get_async_pubsub()
             .await
-            .map_err(|err| NotificationServiceError::Connection(err.to_string()))?
+            .map_err(|err| NotificationsError::Connection(err.to_string()))?
             .split();
         let subscriptions = Arc::new(Mutex::new(SubscriptionRegistry::default()));
         let listener_task = tokio::spawn(listen(pubsub_stream, Arc::clone(&subscriptions)));
@@ -181,14 +181,14 @@ impl NotificationService {
         &mut self,
         channel: &str,
         handler: H,
-    ) -> Result<NotificationSubscription, NotificationServiceError>
+    ) -> Result<NotificationSubscription, NotificationsError>
     where
         H: Fn(Notification) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = ()> + Send + 'static,
     {
         self.ensure_listener_running()?;
         if self.pubsub_sink.is_none() {
-            return Err(NotificationServiceError::Closed);
+            return Err(NotificationsError::Closed);
         }
 
         let channel = channel.to_string();
@@ -196,9 +196,7 @@ impl NotificationService {
             Arc::new(move |notification| Box::pin(handler(notification)));
         let subscription_id = NotificationSubscription(self.next_subscription_id);
         self.next_subscription_id = self.next_subscription_id.checked_add(1).ok_or_else(|| {
-            NotificationServiceError::Connection(
-                "notification subscription ID space exhausted".into(),
-            )
+            NotificationsError::Connection("notification subscription ID space exhausted".into())
         })?;
 
         let was_empty = {
@@ -216,8 +214,8 @@ impl NotificationService {
                 Some(pubsub_sink) => pubsub_sink
                     .subscribe(channel.as_str())
                     .await
-                    .map_err(|err| NotificationServiceError::Connection(err.to_string())),
-                None => Err(NotificationServiceError::Closed),
+                    .map_err(|err| NotificationsError::Connection(err.to_string())),
+                None => Err(NotificationsError::Closed),
             };
 
             if let Err(error) = subscribe_result {
@@ -245,7 +243,7 @@ impl NotificationService {
     pub async fn unsubscribe(
         &mut self,
         subscription_id: NotificationSubscription,
-    ) -> Result<(), NotificationServiceError> {
+    ) -> Result<(), NotificationsError> {
         self.ensure_listener_running()?;
         let (channel, should_unsubscribe) = {
             let subscriptions = self.subscriptions.lock().await;
@@ -254,9 +252,7 @@ impl NotificationService {
                 .get(&subscription_id)
                 .cloned()
             else {
-                return Err(NotificationServiceError::SubscriptionNotFound(
-                    subscription_id,
-                ));
+                return Err(NotificationsError::SubscriptionNotFound(subscription_id));
             };
             let channel_subscriptions = subscriptions
                 .channels
@@ -269,10 +265,10 @@ impl NotificationService {
         if should_unsubscribe {
             self.pubsub_sink
                 .as_mut()
-                .ok_or(NotificationServiceError::Closed)?
+                .ok_or(NotificationsError::Closed)?
                 .unsubscribe(channel)
                 .await
-                .map_err(|err| NotificationServiceError::Connection(err.to_string()))?;
+                .map_err(|err| NotificationsError::Connection(err.to_string()))?;
         }
 
         self.subscriptions
@@ -285,7 +281,7 @@ impl NotificationService {
 
     /// Closes active connections and stops notification delivery.
     /// Calling this method more than once is safe.
-    pub async fn close(&mut self) -> Result<(), NotificationServiceError> {
+    pub async fn close(&mut self) -> Result<(), NotificationsError> {
         self.pubsub_sink.take();
         let mut subscriptions = self.subscriptions.lock().await;
         subscriptions.channels.clear();
@@ -297,7 +293,7 @@ impl NotificationService {
                 match listener_task.await {
                     Ok(()) => Ok(()),
                     Err(error) if error.is_cancelled() => Ok(()),
-                    Err(error) => Err(NotificationServiceError::Connection(format!(
+                    Err(error) => Err(NotificationsError::Connection(format!(
                         "notification listener task failed: {error}"
                     ))),
                 }
@@ -306,15 +302,13 @@ impl NotificationService {
         }
     }
 
-    fn ensure_listener_running(&self) -> Result<(), NotificationServiceError> {
+    fn ensure_listener_running(&self) -> Result<(), NotificationsError> {
         match &self.listener_task {
-            Some(listener_task) if listener_task.is_finished() => {
-                Err(NotificationServiceError::Connection(
-                    "notification listener terminated".to_string(),
-                ))
-            }
+            Some(listener_task) if listener_task.is_finished() => Err(
+                NotificationsError::Connection("notification listener terminated".to_string()),
+            ),
             Some(_) => Ok(()),
-            None => Err(NotificationServiceError::Closed),
+            None => Err(NotificationsError::Closed),
         }
     }
 
@@ -328,7 +322,7 @@ impl NotificationService {
     }
 }
 
-impl Drop for NotificationService {
+impl Drop for Notifications {
     fn drop(&mut self) {
         if let Some(listener_task) = self.listener_task.take() {
             listener_task.abort();

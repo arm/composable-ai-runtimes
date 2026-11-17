@@ -12,7 +12,7 @@ import pytest
 from cairn import (
     FrameRate,
     Notification,
-    NotificationService,
+    Notifications,
     Resolution,
     StreamConfiguration,
     StreamFormat,
@@ -20,9 +20,9 @@ from cairn import (
 from cairn.perception import (
     DeploymentValidationError,
     FrameContext,
+    Perception,
     PerceptionError,
     PerceptionResult,
-    PerceptionService,
     PerceptionSession,
     PerceptionWorkflow,
     SessionState,
@@ -66,7 +66,7 @@ def test_python_sdk_deploys_a_working_perception_workflow(
         str,
         ValidationResult,
     ]:
-        service = await PerceptionService.connect(perception_endpoint)
+        service = await Perception.connect(perception_endpoint)
 
         validation = await service.validate(workflow)
 
@@ -76,7 +76,7 @@ def test_python_sdk_deploys_a_working_perception_workflow(
             raise AssertionError("deployed session did not expose a results topic")
 
         received: asyncio.Queue[Notification] = asyncio.Queue()
-        async with await NotificationService.connect(messaging_endpoint) as notifications:
+        async with await Notifications.connect(messaging_endpoint) as notifications:
             await notifications.subscribe(result_topic, received.put)
             notification = await asyncio.wait_for(received.get(), timeout=30)
             result = PerceptionResult.decode(notification.payload)
@@ -137,7 +137,7 @@ def test_python_sdk_lists_running_and_stopped_sessions(
     workflow.infer("objects", "yolo26n-320")
 
     async def run() -> None:
-        service = await PerceptionService.connect(perception_endpoint)
+        service = await Perception.connect(perception_endpoint)
         assert await service.list_sessions() == []
 
         session = await service.deploy(workflow)
@@ -168,7 +168,7 @@ def test_python_sdk_gets_a_session_from_the_service(
     workflow.infer("objects", "yolo26n-320")
 
     async def run() -> None:
-        service = await PerceptionService.connect(perception_endpoint)
+        service = await Perception.connect(perception_endpoint)
         session = await service.deploy(workflow)
         try:
             fetched = await service.get_session(session.id)
@@ -193,7 +193,7 @@ def test_python_sdk_rejects_a_missing_session(
     perception_endpoint, _ = perception_stack
 
     async def run() -> None:
-        service = await PerceptionService.connect(perception_endpoint)
+        service = await Perception.connect(perception_endpoint)
         with pytest.raises(
             PerceptionError,
             match="NotFound: requested resource was not found",
@@ -216,7 +216,7 @@ def test_python_sdk_controls_perception_stages(
     stage = workflow.infer("objects", "yolo26n-320")
 
     async def run() -> None:
-        service = await PerceptionService.connect(perception_endpoint)
+        service = await Perception.connect(perception_endpoint)
         session = await service.deploy(workflow)
         try:
             result_topic = session.topics.results
@@ -224,7 +224,7 @@ def test_python_sdk_controls_perception_stages(
                 raise AssertionError("deployed session did not expose a results topic")
 
             received: asyncio.Queue[Notification] = asyncio.Queue()
-            async with await NotificationService.connect(messaging_endpoint) as notifications:
+            async with await Notifications.connect(messaging_endpoint) as notifications:
                 await notifications.subscribe(result_topic, received.put)
                 await asyncio.wait_for(received.get(), timeout=30)
 
@@ -261,7 +261,7 @@ def test_python_sdk_reads_session_status_from_the_service(
     workflow.infer("objects", "yolo26n-320")
 
     async def run() -> None:
-        service = await PerceptionService.connect(perception_endpoint)
+        service = await Perception.connect(perception_endpoint)
         session = await service.deploy(workflow)
         try:
             running = await session.get_status()
@@ -292,7 +292,7 @@ def test_python_sdk_get_and_list_handles_share_session_snapshot(
     workflow.infer("objects", "yolo26n-320")
 
     async def run() -> None:
-        service = await PerceptionService.connect(perception_endpoint)
+        service = await Perception.connect(perception_endpoint)
         session = await service.deploy(workflow)
         try:
             fetched = await service.get_session(session.id)
@@ -336,7 +336,7 @@ def test_python_sdk_fails_to_deploy_a_broken_workflow(
     workflow = PerceptionWorkflow("not-a-real-workflow", source)
 
     async def run() -> tuple[ValidationResult, DeploymentValidationError]:
-        service = await PerceptionService.connect(perception_endpoint)
+        service = await Perception.connect(perception_endpoint)
         validation = await service.validate(workflow)
 
         with pytest.raises(DeploymentValidationError) as error:

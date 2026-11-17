@@ -4,12 +4,12 @@
 #![warn(missing_docs)]
 //! Client types for discovering devices exposed by the Cairn media service.
 
-mod service;
+mod client;
 
 #[cfg(test)]
-mod service_tests;
+mod client_tests;
 
-pub use service::{
-    Camera, Device, DeviceSelector, DeviceType, FrameRate, MediaService, MediaServiceError,
-    Resolution, StreamConfiguration, StreamFormat, StreamFormatFilter,
+pub use client::{
+    Camera, Device, DeviceSelector, DeviceType, FrameRate, Media, MediaError, Resolution,
+    StreamConfiguration, StreamFormat, StreamFormatFilter,
 };

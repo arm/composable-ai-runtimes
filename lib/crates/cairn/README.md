@@ -11,10 +11,10 @@ devices. Use this crate to discover cameras, deploy inference workflows through 
 
 The library is imported as `cairn` and groups its APIs by service:
 
-- `cairn::media_service`: discover cameras and available stream configurations.
-- `cairn::perception_service`: validate and deploy inference workflows, manage
+- `cairn::media`: discover cameras and available stream configurations.
+- `cairn::perception`: validate and deploy inference workflows, manage
   sessions, and decode perception results.
-- `cairn::notification_service`: subscribe to event notifications over Redis.
+- `cairn::notifications`: subscribe to event notifications over Redis.
 
 ## License
 

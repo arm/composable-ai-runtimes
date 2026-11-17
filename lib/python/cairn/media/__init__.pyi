@@ -13,7 +13,7 @@ import typing
 __all__ = [
     "Camera",
     "FrameRate",
-    "MediaService",
+    "Media",
     "Resolution",
     "StreamConfiguration",
     "StreamFormat",
@@ -23,7 +23,7 @@ __all__ = [
 @typing.final
 class Camera:
     r"""
-    Information about a camera returned by `MediaService.list_cameras()`.
+    Information about a camera returned by `Media.list_cameras()`.
     """
     @property
     def id(self) -> builtins.int:
@@ -61,7 +61,7 @@ class FrameRate:
         """
 
 @typing.final
-class MediaService:
+class Media:
     r"""
     Client for the Cairn media service.
     
@@ -72,7 +72,7 @@ class MediaService:
         Discover stream configurations for a camera, optionally filtered by format.
         """
     @staticmethod
-    def connect(endpoint: typing.Optional[builtins.str] = None) -> collections.abc.Awaitable[MediaService]:
+    def connect(endpoint: typing.Optional[builtins.str] = None) -> collections.abc.Awaitable[Media]:
         r"""
         Connect to the media service without blocking the Python event loop.
         
@@ -137,7 +137,7 @@ class StreamConfiguration:
     def __new__(cls, target: builtins.str, camera_id: builtins.int, format: StreamFormat) -> StreamConfiguration:
         r"""
         Create a camera stream configuration from caller-supplied values.
-        Prefer MediaService.get_stream_configurations() to obtain configurations advertised by a camera. This constructor does not query the camera or validate format support.
+        Prefer Media.get_stream_configurations() to obtain configurations advertised by a camera. This constructor does not query the camera or validate format support.
         """
 
 @typing.final

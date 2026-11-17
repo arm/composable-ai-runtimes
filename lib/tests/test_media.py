@@ -17,7 +17,7 @@ import pytest
 from cairn import (
     Camera,
     FrameRate,
-    MediaService,
+    Media,
     Resolution,
     StreamConfiguration,
     StreamFormat,
@@ -147,7 +147,7 @@ def media_service(
 
 
 async def camera_from_service(endpoint: str) -> Camera:
-    service = await MediaService.connect(endpoint)
+    service = await Media.connect(endpoint)
     cameras = service.list_cameras()
 
     assert len(cameras) == 1
@@ -163,7 +163,7 @@ def test_get_camera_returns_camera_with_configuration_discovery(
     endpoint, requests = media_service
 
     async def discover() -> None:
-        service = await MediaService.connect(endpoint)
+        service = await Media.connect(endpoint)
         camera = await service.get_camera(camera_id=camera_id)
         assert isinstance(camera, Camera)
         assert (camera.id, camera.name) == (7, "front")
@@ -180,7 +180,7 @@ def test_get_camera_returns_none_when_no_cameras_are_available(
     media_service: tuple[str, "Queue[bytes]"],
 ) -> None:
     async def discover() -> None:
-        service = await MediaService.connect(media_service[0])
+        service = await Media.connect(media_service[0])
         assert await service.get_camera() is None
         assert await service.get_camera(camera_id=None) is None
 
@@ -204,7 +204,7 @@ def test_get_camera_reports_lookup_and_service_errors(
     message: str,
 ) -> None:
     async def discover() -> None:
-        service = await MediaService.connect(media_service[0])
+        service = await Media.connect(media_service[0])
         with pytest.raises(error_type, match=message):
             await service.get_camera(camera_id=camera_id)
 
@@ -213,13 +213,13 @@ def test_get_camera_reports_lookup_and_service_errors(
 
 def test_direct_construction_is_not_supported() -> None:
     with pytest.raises(TypeError):
-        MediaService()
+        Media()
 
 
 def test_connect_rejects_invalid_endpoint() -> None:
     async def connect() -> None:
         with pytest.raises(RuntimeError, match="health watch"):
-            await MediaService.connect("http://[::1")
+            await Media.connect("http://[::1")
 
     asyncio.run(connect())
 
@@ -271,7 +271,7 @@ def test_stream_configuration_constructor_preserves_fields() -> None:
 
 def test_stream_configuration_api_is_exported() -> None:
     assert not hasattr(Camera, "supported_formats")
-    assert callable(MediaService.get_stream_configurations)
+    assert callable(Media.get_stream_configurations)
     assert StreamConfiguration.__module__ == "cairn"
     assert StreamFormat.__module__ == "cairn"
 
@@ -331,7 +331,7 @@ def test_get_stream_configurations_forwards_filters_and_converts_response(
             assert inspect.isawaitable(result)
             return await asyncio.wait_for(result, timeout=5)
 
-        service = await MediaService.connect(endpoint)
+        service = await Media.connect(endpoint)
         return service.get_stream_configurations(
             7,
             StreamFormatFilter(
@@ -377,7 +377,7 @@ def test_get_stream_configurations_returns_empty_list(
 
     async def discover() -> None:
         camera = await camera_from_service(endpoint)
-        service = await MediaService.connect(endpoint)
+        service = await Media.connect(endpoint)
         assert await asyncio.wait_for(camera.get_stream_configurations(), timeout=5) == []
         assert service.get_stream_configurations(7) == []
 
@@ -394,7 +394,7 @@ def test_get_stream_configurations_rejects_missing_format(
         camera = await camera_from_service(endpoint)
         with pytest.raises(RuntimeError, match="missing its format"):
             await asyncio.wait_for(camera.get_stream_configurations(), timeout=5)
-        service = await MediaService.connect(endpoint)
+        service = await Media.connect(endpoint)
         with pytest.raises(RuntimeError, match="missing its format"):
             service.get_stream_configurations(7)
 

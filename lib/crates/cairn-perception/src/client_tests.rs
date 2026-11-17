@@ -16,8 +16,8 @@ use crate::perception;
 use crate::test_helpers::stream_configuration;
 use crate::workflow::PerceptionWorkflow;
 use crate::{
-    DebugPorts, PerceptionService, PerceptionServiceError, PerceptionSession, ResolvedStage,
-    ResolvedStageRole, SessionTopics, ValidationIssue, ValidationSeverity,
+    DebugPorts, Perception, PerceptionError, PerceptionSession, ResolvedStage, ResolvedStageRole,
+    SessionTopics, ValidationIssue, ValidationSeverity,
 };
 use perception::perception_service_client::PerceptionServiceClient;
 use perception::{
@@ -29,8 +29,8 @@ use perception::{
     ValidationSeverity as ProtoValidationSeverity, deploy_workflow_response,
 };
 
-async fn connect_to_mock_server(server: &MockServerHandle) -> PerceptionService {
-    PerceptionService::connect(Some(server.endpoint().to_owned()))
+async fn connect_to_mock_server(server: &MockServerHandle) -> Perception {
+    Perception::connect(Some(server.endpoint().to_owned()))
         .await
         .expect("failed to create client")
 }
@@ -117,7 +117,7 @@ async fn get_session_rejects_a_response_without_an_id() {
 
     assert_eq!(
         error,
-        PerceptionServiceError::InvalidResponse(
+        PerceptionError::InvalidResponse(
             "invalid perception service response: session is missing an ID".to_string(),
         )
     );
@@ -158,7 +158,7 @@ async fn get_session_maps_not_found_to_an_rpc_error() {
 
     assert_eq!(
         error,
-        PerceptionServiceError::Rpc(
+        PerceptionError::Rpc(
             "failed to get perception session: NotFound: session not found".to_string(),
         )
     );
@@ -333,7 +333,7 @@ async fn list_sessions_rejects_a_session_without_an_id() {
 
     assert_eq!(
         error,
-        PerceptionServiceError::InvalidResponse(
+        PerceptionError::InvalidResponse(
             "invalid perception service response: session is missing an ID".to_string(),
         )
     );
@@ -356,7 +356,7 @@ async fn list_sessions_maps_unavailable_to_an_rpc_error() {
 
     assert_eq!(
         error,
-        PerceptionServiceError::Rpc(
+        PerceptionError::Rpc(
             "failed to list perception sessions: Unavailable: runtime unavailable".to_string(),
         )
     );
@@ -476,7 +476,7 @@ async fn validate_maps_grpc_status_to_service_error() {
     });
     let mut service = connect_to_mock_server(&server).await;
     let workflow = PerceptionWorkflow::new("front-door", stream_configuration());
-    let expected_error = PerceptionServiceError::Rpc(
+    let expected_error = PerceptionError::Rpc(
         "failed to validate perception workflow: Unavailable: runtime unavailable".to_string(),
     );
 
@@ -545,7 +545,7 @@ async fn stop_maps_grpc_status_to_service_error() {
         SessionTopics::default(),
         client,
     );
-    let expected_error = PerceptionServiceError::Rpc(
+    let expected_error = PerceptionError::Rpc(
         "failed to stop perception session: Unavailable: runtime unavailable".to_string(),
     );
 
@@ -659,7 +659,7 @@ async fn deploy_maps_rejection_issues() {
     }));
     let mut service = connect_to_mock_server(&server).await;
     let workflow = test_workflow();
-    let expected_error = PerceptionServiceError::Workflow(vec![ValidationIssue {
+    let expected_error = PerceptionError::Workflow(vec![ValidationIssue {
         severity: ValidationSeverity::Error,
         code: "MODEL_NOT_FOUND".to_string(),
         message: "model 'missing' is unavailable".to_string(),
@@ -685,7 +685,7 @@ async fn deploy_rejects_a_missing_outcome() {
     }));
     let mut service = connect_to_mock_server(&server).await;
     let workflow = test_workflow();
-    let expected_error = PerceptionServiceError::Rpc(
+    let expected_error = PerceptionError::Rpc(
         "invalid perception service response: deployment response is missing an outcome"
             .to_string(),
     );
@@ -710,7 +710,7 @@ async fn deploy_rejects_a_missing_session() {
     }));
     let mut service = connect_to_mock_server(&server).await;
     let workflow = test_workflow();
-    let expected_error = PerceptionServiceError::Rpc(
+    let expected_error = PerceptionError::Rpc(
         "invalid perception service response: accepted deployment response is missing a session"
             .to_string(),
     );
@@ -734,7 +734,7 @@ async fn deploy_rejects_a_session_missing_its_id() {
     }));
     let mut service = connect_to_mock_server(&server).await;
     let workflow = test_workflow();
-    let expected_error = PerceptionServiceError::InvalidResponse(
+    let expected_error = PerceptionError::InvalidResponse(
         "invalid perception service response: session is missing an ID".to_string(),
     );
 
@@ -793,7 +793,7 @@ async fn start_health_server(
 #[tokio::test]
 async fn waits_for_serving() {
     let (endpoint, reporter, server) = start_health_server(ServingStatus::NotServing).await;
-    let readiness = PerceptionService::connect(Some(endpoint));
+    let readiness = Perception::connect(Some(endpoint));
     tokio::pin!(readiness);
     assert!(
         timeout(Duration::from_millis(100), &mut readiness)
@@ -817,13 +817,10 @@ async fn waits_for_serving() {
 #[tokio::test]
 async fn accepts_already_serving() {
     let (endpoint, _reporter, server) = start_health_server(ServingStatus::Serving).await;
-    timeout(
-        Duration::from_secs(2),
-        PerceptionService::connect(Some(endpoint)),
-    )
-    .await
-    .expect("already-serving health did not complete readiness")
-    .expect("readiness failed for an already-serving service");
+    timeout(Duration::from_secs(2), Perception::connect(Some(endpoint)))
+        .await
+        .expect("already-serving health did not complete readiness")
+        .expect("readiness failed for an already-serving service");
 
     server.abort();
     let _ = server.await;

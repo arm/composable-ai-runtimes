@@ -3,16 +3,16 @@
 
 use std::sync::Arc;
 
-use cairn::perception_service::output::DebugOutput as RustDebugOutput;
-use cairn::perception_service::workflow::PerceptionWorkflow as RustPerceptionWorkflow;
-use cairn::perception_service::{
-    DebugPorts as RustDebugPorts, PerceptionService as RustPerceptionService,
-    PerceptionServiceError as RustPerceptionServiceError,
-    PerceptionSession as RustPerceptionSession, ResolvedStage as RustResolvedStage,
-    ResolvedStageRole, SessionSnapshot as RustSessionSnapshot, SessionState as RustSessionState,
-    SessionStatus as RustSessionStatus, SessionTopics as RustSessionTopics,
-    StatusInfo as RustStatusInfo, ValidationIssue as RustValidationIssue,
-    ValidationResult as RustValidationResult, ValidationSeverity,
+use cairn::perception::output::DebugOutput as RustDebugOutput;
+use cairn::perception::workflow::PerceptionWorkflow as RustPerceptionWorkflow;
+use cairn::perception::{
+    DebugPorts as RustDebugPorts, Perception as RustPerception,
+    PerceptionError as RustPerceptionError, PerceptionSession as RustPerceptionSession,
+    ResolvedStage as RustResolvedStage, ResolvedStageRole, SessionSnapshot as RustSessionSnapshot,
+    SessionState as RustSessionState, SessionStatus as RustSessionStatus,
+    SessionTopics as RustSessionTopics, StatusInfo as RustStatusInfo,
+    ValidationIssue as RustValidationIssue, ValidationResult as RustValidationResult,
+    ValidationSeverity,
 };
 use pyo3::exceptions::{PyException, PyTypeError};
 use pyo3::types::{PyAnyMethods, PyDict, PyList, PyModule, PyModuleMethods, PyTuple};
@@ -300,7 +300,7 @@ pub struct PySessionTopics {
     /// Topic carrying session lifecycle events, when allocated.
     /// This is `None` when the workflow was created with
     /// `output_events=False`. Check that it is not `None` before passing it to
-    /// `NotificationService.subscribe()`.
+    /// `Notifications.subscribe()`.
     events: Option<String>,
 }
 
@@ -474,7 +474,7 @@ impl PyPerceptionSession {
 
     /// Opaque notification topics allocated to this session.
     /// Check that an optional topic is not `None` before passing it to
-    /// `NotificationService.subscribe()`.
+    /// `Notifications.subscribe()`.
     #[getter]
     fn topics(&self) -> PySessionTopics {
         PySessionTopics::from(self.0.topics().clone())
@@ -548,7 +548,7 @@ impl PyPerceptionSession {
 /// Build a workflow locally, then submit it for validation or deployment.
 ///
 /// Start with a camera-discovered stream configuration, add inference stages, then
-/// await ``PerceptionService.validate()`` or ``deploy()``. Models must already be
+/// await ``Perception.validate()`` or ``deploy()``. Models must already be
 /// registered on the service.
 #[gen_stub_pyclass]
 #[pyclass(
@@ -596,19 +596,19 @@ impl PyPerceptionWorkflow {
 
 /// Asynchronous client for the Cairn Perception service.
 #[gen_stub_pyclass]
-#[pyclass(module = "cairn.perception", name = "PerceptionService")]
-pub struct PyPerceptionService(Arc<Mutex<RustPerceptionService>>);
+#[pyclass(module = "cairn.perception", name = "Perception")]
+pub struct PyPerception(Arc<Mutex<RustPerception>>);
 
 #[gen_stub_pymethods]
 #[pymethods]
-impl PyPerceptionService {
+impl PyPerception {
     #[new]
     #[gen_stub(skip)]
     #[pyo3(signature = (*_args, **_kwargs))]
     fn new(_args: &Bound<'_, PyTuple>, _kwargs: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
         Err(PyTypeError::new_err(
-            "PerceptionService cannot be constructed directly. \
-             Use 'await PerceptionService.connect(endpoint)' inside an async function.",
+            "Perception cannot be constructed directly. \
+             Use 'await Perception.connect(endpoint)' inside an async function.",
         ))
     }
 
@@ -619,12 +619,12 @@ impl PyPerceptionService {
     #[staticmethod]
     #[pyo3(signature = (endpoint=None))]
     #[gen_stub(override_return_type(
-        type_repr = "collections.abc.Awaitable[PerceptionService]",
+        type_repr = "collections.abc.Awaitable[Perception]",
         imports = ("collections.abc",)
     ))]
     fn connect<'py>(py: Python<'py>, endpoint: Option<String>) -> PyResult<Bound<'py, PyAny>> {
         tokio_runtime::future_into_py(py, async move {
-            let service = RustPerceptionService::connect(endpoint)
+            let service = RustPerception::connect(endpoint)
                 .await
                 .map_err(perception_error)?;
             Python::attach(|py| Py::new(py, Self(Arc::new(Mutex::new(service)))))
@@ -742,13 +742,13 @@ fn resolved_stage_role_name(role: ResolvedStageRole) -> String {
     }
 }
 
-fn perception_error(error: RustPerceptionServiceError) -> pyo3::PyErr {
+fn perception_error(error: RustPerceptionError) -> pyo3::PyErr {
     PerceptionError::new_err(error.to_string())
 }
 
-fn deployment_error(error: RustPerceptionServiceError) -> PyResult<PyErr> {
+fn deployment_error(error: RustPerceptionError) -> PyResult<PyErr> {
     match error {
-        RustPerceptionServiceError::Workflow(issues) => Python::attach(|py| {
+        RustPerceptionError::Workflow(issues) => Python::attach(|py| {
             let issues = PyList::new(py, issues.into_iter().map(PyValidationIssue::from))?;
             let error = DeploymentValidationError::new_err("perception workflow validation failed");
             error.value(py).setattr("issues", &issues)?;
@@ -782,7 +782,7 @@ pub(crate) fn register(parent: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PySessionSnapshot>()?;
     module.add_class::<PyPerceptionSession>()?;
     module.add_class::<PyPerceptionWorkflow>()?;
-    module.add_class::<PyPerceptionService>()?;
+    module.add_class::<PyPerception>()?;
     crate::perception_result::register(&module)?;
     parent.add_submodule(&module)?;
     parent
