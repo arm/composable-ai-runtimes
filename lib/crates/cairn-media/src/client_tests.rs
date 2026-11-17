@@ -11,11 +11,9 @@ use tonic::transport::server::TcpIncoming;
 use tonic::{Response, Status};
 use tonic_health::ServingStatus;
 
-use super::client::media;
-use super::client::media::media_service_server::{
-    MediaService as ProtoMediaService, MediaServiceServer,
-};
-use super::client::media::{Camera as ProtoCamera, ListCamerasResponse, ListRequest};
+use super::media;
+use super::media::media_service_server::{MediaService as ProtoMediaService, MediaServiceServer};
+use super::media::{Camera as ProtoCamera, ListCamerasResponse, ListRequest};
 use super::{
     DeviceSelector, DeviceType, FrameRate, Media, MediaError, Resolution, StreamConfiguration,
     StreamFormat, StreamFormatFilter,

@@ -5,12 +5,17 @@
 //! Client types for discovering devices exposed by the Cairn media service.
 
 mod client;
+mod stream_configuration;
+
+mod media {
+    include!("generated/cairn.media.v1.rs");
+}
 
 #[cfg(test)]
 mod client_tests;
 
-pub use client::{
-    AudioFormat, Camera, Device, DeviceSelector, DeviceStreamConfiguration, DeviceStreamFormat,
-    DeviceStreamFormatFilter, DeviceType, FrameRate, Media, MediaError, Resolution,
-    StreamConfiguration, StreamFormat, StreamFormatFilter,
+pub use client::{Camera, Device, DeviceSelector, DeviceType, Media, MediaError};
+pub use stream_configuration::{
+    AudioFormat, DeviceStreamConfiguration, DeviceStreamFormat, DeviceStreamFormatFilter,
+    FrameRate, Resolution, StreamConfiguration, StreamFormat, StreamFormatFilter,
 };
