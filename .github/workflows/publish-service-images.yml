@@ -413,7 +413,8 @@ jobs:
         env:
           SERVICE: ${{ matrix.service }}
         run: |
-          python .github/scripts/cairn-contract/package-service-contract.py \
+          uv run --locked --only-group compose-validation --only-group proto \
+            python .github/scripts/cairn-contract/package-service-contract.py \
               "$SERVICE" \
               "$RUNNER_TEMP/cairn-contract-${SERVICE}.tar"
 
