@@ -45,7 +45,7 @@ GRPC_TARGET = f"{GRPC_HOST}:{GRPC_PORT}"
 GRPCURL_BINARY_ENV = "GRPCURL_BIN"
 GRPCURL_DEFAULT_BINARY = "grpcurl"
 MEDIA_SERVICE_PROTO = REPO_ROOT / "services" / "media" / "proto" / "media_service.proto"
-MEDIA_SERVICE_PROTO_ARG = str(MEDIA_SERVICE_PROTO.relative_to(REPO_ROOT))
+MEDIA_SERVICE_PROTO_ARG = MEDIA_SERVICE_PROTO.name
 LIST_CAMERAS_METHOD = "cairn.media.v1.MediaService/ListCameras"
 STARTUP_TIMEOUT_SECONDS = 60
 POLL_INTERVAL_SECONDS = 2
@@ -186,6 +186,7 @@ def test_camera_boardfarm_pipewire_failure_smoke(metadata: JsonObject) -> None:
     grpcurl_result = run_command(
         grpcurl_binary,
         "-plaintext",
+        "-import-path", str(MEDIA_SERVICE_PROTO.parent),
         "-proto",
         MEDIA_SERVICE_PROTO_ARG,
         "-d",

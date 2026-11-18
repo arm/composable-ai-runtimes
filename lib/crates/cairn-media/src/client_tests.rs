@@ -17,9 +17,40 @@ use super::media::media_service_server::{MediaService as ProtoMediaService, Medi
 use super::media::{Camera as ProtoCamera, ListCamerasResponse, ListRequest};
 use super::{
     AudioFormat, DeviceSelector, DeviceStreamConfiguration, DeviceStreamFormat,
-    DeviceStreamFormatFilter, DeviceType, FrameRate, Media, MediaError, Resolution, StreamFormat,
-    StreamFormatFilter,
+    DeviceStreamFormatFilter, DeviceType, FrameRate, Media, MediaError, Resolution,
+    StreamConfiguration, StreamFormat, StreamFormatFilter,
 };
+
+#[test]
+fn stream_configuration_preserves_supplied_fields() {
+    let format = StreamFormat {
+        resolution: Resolution {
+            width: 1920,
+            height: 1080,
+        },
+        pixel_format: "NV12".into(),
+        frame_rate: FrameRate {
+            numerator: 30_000,
+            denominator: 1_001,
+        },
+    };
+
+    let configuration = StreamConfiguration::new("opaque/pipewire:target", 7, format.clone());
+
+    assert_eq!(configuration.target(), "opaque/pipewire:target");
+    assert_eq!(configuration.camera_id(), 7);
+    assert_eq!(configuration.format(), &format);
+
+    let proto = media::StreamConfiguration::from(&configuration);
+    assert_eq!(proto.target, "opaque/pipewire:target");
+    assert_eq!(proto.camera_id, 7);
+    let format = proto.format.unwrap();
+    assert_eq!(format.pixel_format, "NV12");
+    let resolution = format.resolution.unwrap();
+    assert_eq!((resolution.width, resolution.height), (1920, 1080));
+    let rate = format.frame_rate.unwrap();
+    assert_eq!((rate.numerator, rate.denominator), (30_000, 1_001));
+}
 
 #[test]
 fn stream_configuration_new_preserves_supplied_fields() {

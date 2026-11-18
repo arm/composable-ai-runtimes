@@ -25,6 +25,9 @@ stages = ["pre-push"]
 files = { glob = [
     "proto/**/*.proto",
     "../messaging/proto/**/*.proto",
+    "../media/proto/**/*.proto",
+    "src/perception_service/_proto/media/v1/stream_configuration_pb2.py",
+    "src/perception_service/_proto/media/v1/stream_configuration_pb2.pyi",
     "src/perception_service/_proto/messaging/v1/messaging_pb2.py",
     "src/perception_service/_proto/messaging/v1/messaging_pb2.pyi",
     "src/perception_service/_proto/perception/v1/perception_pb2.py",

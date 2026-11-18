@@ -3,6 +3,7 @@
 
 fn main() {
     println!("cargo:rerun-if-changed=proto/media_service.proto");
+    println!("cargo:rerun-if-changed=proto/cairn/media/v1/stream_configuration.proto");
 
     tonic_prost_build::configure()
         .compile_protos(&["proto/media_service.proto"], &["proto"])

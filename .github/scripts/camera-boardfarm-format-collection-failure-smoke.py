@@ -51,7 +51,7 @@ GRPCURL_DEFAULT_BINARY = "grpcurl"
 MEDIA_SERVICE_PROTO = (
     REPO_ROOT / "services" / "media" / "proto" / "media_service.proto"
 )
-MEDIA_SERVICE_PROTO_ARG = str(MEDIA_SERVICE_PROTO.relative_to(REPO_ROOT))
+MEDIA_SERVICE_PROTO_ARG = MEDIA_SERVICE_PROTO.name
 LIST_CAMERAS_METHOD = "cairn.media.v1.MediaService/ListCameras"
 GET_STREAM_CONFIGURATIONS_METHOD = "cairn.media.v1.MediaService/get_stream_configurations"
 STARTUP_TIMEOUT_SECONDS = 60
@@ -106,6 +106,7 @@ def wait_for_camera_id(grpcurl_binary: str) -> str | int | None:
         grpcurl_binary,
         "-plaintext",
         "-max-time", "10",
+        "-import-path", str(MEDIA_SERVICE_PROTO.parent),
         "-proto", MEDIA_SERVICE_PROTO_ARG,
         "-d", "{}",
         GRPC_TARGET,
@@ -197,6 +198,7 @@ def test_camera_format_collection_failure(metadata: JsonObject) -> None:
         grpcurl_binary,
         "-plaintext",
         "-max-time", "10",
+        "-import-path", str(MEDIA_SERVICE_PROTO.parent),
         "-proto",
         MEDIA_SERVICE_PROTO_ARG,
         "-d",

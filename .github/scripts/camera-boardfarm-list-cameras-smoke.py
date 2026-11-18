@@ -56,7 +56,7 @@ GRPCURL_DEFAULT_BINARY = "grpcurl"
 MEDIA_SERVICE_PROTO = (
     REPO_ROOT / "services" / "media" / "proto" / "media_service.proto"
 )
-MEDIA_SERVICE_PROTO_ARG = str(MEDIA_SERVICE_PROTO.relative_to(REPO_ROOT))
+MEDIA_SERVICE_PROTO_ARG = MEDIA_SERVICE_PROTO.name
 LIST_CAMERAS_METHOD = "cairn.media.v1.MediaService/ListCameras"
 
 JsonObject = dict[str, object]
@@ -123,6 +123,7 @@ def run_grpcurl_list_cameras() -> CommandResult:
     return run_command(
         grpcurl_binary,
         "-plaintext",
+        "-import-path", str(MEDIA_SERVICE_PROTO.parent),
         "-proto",
         MEDIA_SERVICE_PROTO_ARG,
         "-d",

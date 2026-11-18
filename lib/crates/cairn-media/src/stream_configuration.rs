@@ -187,6 +187,27 @@ impl StreamConfiguration {
     }
 }
 
+impl From<&StreamConfiguration> for media::StreamConfiguration {
+    fn from(configuration: &StreamConfiguration) -> Self {
+        let format = configuration.format();
+        Self {
+            target: configuration.target().to_owned(),
+            camera_id: configuration.camera_id(),
+            format: Some(media::StreamFormat {
+                resolution: Some(media::Resolution {
+                    width: format.resolution.width,
+                    height: format.resolution.height,
+                }),
+                frame_rate: Some(media::FrameRate {
+                    numerator: format.frame_rate.numerator,
+                    denominator: format.frame_rate.denominator,
+                }),
+                pixel_format: format.pixel_format.clone(),
+            }),
+        }
+    }
+}
+
 impl From<StreamFormatFilter> for media::StreamFormat {
     fn from(filter: StreamFormatFilter) -> Self {
         Self {
