@@ -3,7 +3,7 @@
 
 import pytest
 
-from perception_service._proto.perception.v1 import perception_pb2
+from perception_service._proto.media.v1 import stream_configuration_pb2 as media_pb2
 import perception_service.workflow.stages.source as source_module
 from perception_service.gstreamer.values import (
     MAX_GSTREAMER_INT,
@@ -223,12 +223,12 @@ def camera_source(
     height: int = 480,
     frame_rate_numerator: int = 30,
     frame_rate_denominator: int = 1,
-) -> perception_pb2.StreamConfiguration:
-    return perception_pb2.StreamConfiguration(
+) -> media_pb2.StreamConfiguration:
+    return media_pb2.StreamConfiguration(
         target=pipewire_target,
-        format=perception_pb2.StreamFormat(
-            resolution=perception_pb2.Resolution(width=width, height=height),
-            frame_rate=perception_pb2.FrameRate(
+        format=media_pb2.StreamFormat(
+            resolution=media_pb2.Resolution(width=width, height=height),
+            frame_rate=media_pb2.FrameRate(
                 numerator=frame_rate_numerator,
                 denominator=frame_rate_denominator,
             ),

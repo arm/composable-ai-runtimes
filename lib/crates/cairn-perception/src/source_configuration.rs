@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::perception::{FrameRate, Resolution, StreamConfiguration, StreamFormat};
+use crate::media::{FrameRate, Resolution, StreamConfiguration, StreamFormat};
 
 impl From<&cairn_media::StreamConfiguration> for StreamConfiguration {
     fn from(configuration: &cairn_media::StreamConfiguration) -> Self {

@@ -1,3 +1,4 @@
+from perception_service._proto.media.v1 import stream_configuration_pb2 as _stream_configuration_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
@@ -69,44 +70,8 @@ class WorkflowSpec(_message.Message):
 class SourceSpec(_message.Message):
     __slots__ = ("camera",)
     CAMERA_FIELD_NUMBER: _ClassVar[int]
-    camera: StreamConfiguration
-    def __init__(self, camera: _Optional[_Union[StreamConfiguration, _Mapping]] = ...) -> None: ...
-
-class StreamConfiguration(_message.Message):
-    __slots__ = ("target", "camera_id", "format")
-    TARGET_FIELD_NUMBER: _ClassVar[int]
-    CAMERA_ID_FIELD_NUMBER: _ClassVar[int]
-    FORMAT_FIELD_NUMBER: _ClassVar[int]
-    target: str
-    camera_id: int
-    format: StreamFormat
-    def __init__(self, target: _Optional[str] = ..., camera_id: _Optional[int] = ..., format: _Optional[_Union[StreamFormat, _Mapping]] = ...) -> None: ...
-
-class StreamFormat(_message.Message):
-    __slots__ = ("resolution", "pixel_format", "frame_rate")
-    RESOLUTION_FIELD_NUMBER: _ClassVar[int]
-    PIXEL_FORMAT_FIELD_NUMBER: _ClassVar[int]
-    FRAME_RATE_FIELD_NUMBER: _ClassVar[int]
-    resolution: Resolution
-    pixel_format: str
-    frame_rate: FrameRate
-    def __init__(self, resolution: _Optional[_Union[Resolution, _Mapping]] = ..., pixel_format: _Optional[str] = ..., frame_rate: _Optional[_Union[FrameRate, _Mapping]] = ...) -> None: ...
-
-class Resolution(_message.Message):
-    __slots__ = ("width", "height")
-    WIDTH_FIELD_NUMBER: _ClassVar[int]
-    HEIGHT_FIELD_NUMBER: _ClassVar[int]
-    width: int
-    height: int
-    def __init__(self, width: _Optional[int] = ..., height: _Optional[int] = ...) -> None: ...
-
-class FrameRate(_message.Message):
-    __slots__ = ("numerator", "denominator")
-    NUMERATOR_FIELD_NUMBER: _ClassVar[int]
-    DENOMINATOR_FIELD_NUMBER: _ClassVar[int]
-    numerator: int
-    denominator: int
-    def __init__(self, numerator: _Optional[int] = ..., denominator: _Optional[int] = ...) -> None: ...
+    camera: _stream_configuration_pb2.StreamConfiguration
+    def __init__(self, camera: _Optional[_Union[_stream_configuration_pb2.StreamConfiguration, _Mapping]] = ...) -> None: ...
 
 class InferenceStage(_message.Message):
     __slots__ = ("id", "name", "model_id")

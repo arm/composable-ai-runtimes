@@ -16,13 +16,22 @@ fn main() {
 fn generate() -> Result<(), Box<dyn Error>> {
     let perception_crate_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let proto_dir = perception_crate_dir.join("../../../services/perception/proto");
+    let media_proto_dir = perception_crate_dir.join("../../../services/media/proto");
     let proto_file = proto_dir.join(PERCEPTION_PROTO);
     let output_dir = perception_crate_dir.join(OUTPUT_DIR);
     fs::create_dir_all(&output_dir)?;
 
     tonic_prost_build::configure()
         .out_dir(&output_dir)
-        .compile_protos(&[proto_file], &[proto_dir])?;
+        .compile_protos(
+            &[media_proto_dir.join("cairn/media/v1/stream_configuration.proto")],
+            &[media_proto_dir.clone()],
+        )?;
+
+    tonic_prost_build::configure()
+        .out_dir(&output_dir)
+        .extern_path(".cairn.media.v1", "crate::media")
+        .compile_protos(&[proto_file], &[proto_dir, media_proto_dir])?;
 
     Ok(())
 }

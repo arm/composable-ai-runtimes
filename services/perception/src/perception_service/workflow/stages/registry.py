@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
 # SPDX-License-Identifier: Apache-2.0
 
+from perception_service._proto.media.v1.stream_configuration_pb2 import StreamConfiguration
 from perception_service._proto.perception.v1.perception_pb2 import (
-    StreamConfiguration,
     DebugOutput,
     InferenceStage,
 )

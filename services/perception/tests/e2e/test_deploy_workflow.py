@@ -14,6 +14,7 @@ from redis import Redis
 from redis.client import PubSub
 
 from perception_service._proto.messaging.v1.messaging_pb2 import CairnEvent
+from perception_service._proto.media.v1 import stream_configuration_pb2 as media_pb2
 from perception_service._proto.perception.v1 import perception_pb2, perception_pb2_grpc
 
 pytestmark = pytest.mark.e2e
@@ -45,11 +46,11 @@ def deploy_workflow(
             workflow=perception_pb2.WorkflowSpec(
                 name=name,
                 source=perception_pb2.SourceSpec(
-                    camera=perception_pb2.StreamConfiguration(
+                    camera=media_pb2.StreamConfiguration(
                         target=PIPEWIRE_TARGET,
-                        format=perception_pb2.StreamFormat(
-                            resolution=perception_pb2.Resolution(width=640, height=480),
-                            frame_rate=perception_pb2.FrameRate(
+                        format=media_pb2.StreamFormat(
+                            resolution=media_pb2.Resolution(width=640, height=480),
+                            frame_rate=media_pb2.FrameRate(
                                 numerator=30,
                                 denominator=1,
                             ),

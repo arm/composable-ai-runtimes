@@ -6,7 +6,7 @@ from typing import ClassVar
 
 import gi
 
-from perception_service._proto.perception.v1.perception_pb2 import StreamConfiguration
+from perception_service._proto.media.v1.stream_configuration_pb2 import StreamConfiguration
 from perception_service.gstreamer.values import contains_nul
 
 gi.require_version("GstVideo", "1.0")

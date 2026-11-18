@@ -5,6 +5,8 @@ syntax = "proto3";
 
 package cairn.perception.v1;
 
+import "cairn/media/v1/stream_configuration.proto";
+
 service PerceptionService {
   rpc ValidateWorkflow(ValidateWorkflowRequest) returns (ValidateWorkflowResponse);
   rpc DeployWorkflow(DeployWorkflowRequest) returns (DeployWorkflowResponse);
@@ -34,45 +36,8 @@ message WorkflowSpec {
 
 message SourceSpec {
   oneof source {
-    StreamConfiguration camera = 1;
+    cairn.media.v1.StreamConfiguration camera = 1;
   }
-}
-
-// Perception-owned copies of Camera's configuration messages.
-message StreamConfiguration {
-  // Opaque PipeWire target to pass unchanged to the source.
-  string target = 1;
-
-  // Camera identifier associated with this configuration.
-  uint64 camera_id = 2;
-  // Complete stream format advertised by the camera.
-  StreamFormat format = 3;
-}
-
-// A concrete camera stream format.
-message StreamFormat {
-  // Frame dimensions in pixels.
-  Resolution resolution = 1;
-  // PipeWire pixel format name.
-  string pixel_format = 2;
-  // Exact frames-per-second fraction.
-  FrameRate frame_rate = 3;
-}
-
-// Frame dimensions in pixels.
-message Resolution {
-  // Frame width.
-  uint32 width = 1;
-  // Frame height.
-  uint32 height = 2;
-}
-
-// Frames per second as an exact fraction.
-message FrameRate {
-  // Fraction numerator.
-  uint32 numerator = 1;
-  // Fraction denominator.
-  uint32 denominator = 2;
 }
 
 message InferenceStage {

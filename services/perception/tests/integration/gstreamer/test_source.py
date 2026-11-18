@@ -7,7 +7,7 @@ import pytest
 gi.require_version("Gst", "1.0")
 from gi.repository import Gst  # noqa: E402
 
-from perception_service._proto.perception.v1 import perception_pb2  # noqa: E402
+from perception_service._proto.media.v1 import stream_configuration_pb2 as media_pb2  # noqa: E402
 from perception_service.workflow.stages.source import (  # noqa: E402
     CameraSourceDefinition,
 )
@@ -18,11 +18,11 @@ pytestmark = pytest.mark.integration
 @pytest.mark.pipewiresrc
 def test_constructed_pipewire_source_parses_with_strict_properties_and_caps() -> None:
     target = 'camera target "front" ! fakesink'
-    source = perception_pb2.StreamConfiguration(
+    source = media_pb2.StreamConfiguration(
         target=target,
-        format=perception_pb2.StreamFormat(
-            resolution=perception_pb2.Resolution(width=640, height=480),
-            frame_rate=perception_pb2.FrameRate(numerator=30, denominator=1),
+        format=media_pb2.StreamFormat(
+            resolution=media_pb2.Resolution(width=640, height=480),
+            frame_rate=media_pb2.FrameRate(numerator=30, denominator=1),
             pixel_format="YUY2",
         ),
     )

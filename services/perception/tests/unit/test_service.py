@@ -15,6 +15,7 @@ import pytest
 from grpc_health.v1 import health, health_pb2, health_pb2_grpc
 
 import perception_service.service as service_module
+from perception_service._proto.media.v1 import stream_configuration_pb2 as media_pb2
 from perception_service._proto.perception.v1 import perception_pb2, perception_pb2_grpc
 from perception_service.gstreamer.errors import PipelineError, RuntimeUnavailableError
 from perception_service.messaging.lifecycle import (
@@ -149,7 +150,7 @@ def create_test_stage_factory(
 ) -> StageFactory:
     stage_factory = StageFactory(dependencies)
     stage_factory.register_stage(
-        perception_pb2.StreamConfiguration,
+        media_pb2.StreamConfiguration,
         lambda definition, _: TestCameraSourceDefinition(definition),
     )
     if validate_models:
@@ -182,7 +183,7 @@ def create_test_stage_factory(
 def workflow() -> perception_pb2.WorkflowSpec:
     return perception_pb2.WorkflowSpec(
         name="camera-inference",
-        source=perception_pb2.SourceSpec(camera=perception_pb2.StreamConfiguration()),
+        source=perception_pb2.SourceSpec(camera=media_pb2.StreamConfiguration()),
         stages=[
             perception_pb2.InferenceStage(
                 id="objects",

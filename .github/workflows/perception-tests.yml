@@ -28,6 +28,7 @@ jobs:
         uv.lock
         lib/pyproject.toml
         .github/workflows/perception-tests.yml
+        services/media/proto/**
         services/messaging/**
         services/perception/**
         .github/workflows/ci-detect-changes.yml

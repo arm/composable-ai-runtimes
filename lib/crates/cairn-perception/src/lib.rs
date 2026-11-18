@@ -29,6 +29,10 @@ pub use validation_result::{
     ResolvedStage, ResolvedStageRole, ValidationIssue, ValidationResult, ValidationSeverity,
 };
 
+pub(crate) mod media {
+    include!("generated/cairn.media.v1.rs");
+}
+
 pub(crate) mod perception {
     include!("generated/cairn.perception.v1.rs");
 }

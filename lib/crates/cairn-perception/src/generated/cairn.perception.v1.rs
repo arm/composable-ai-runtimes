@@ -33,54 +33,8 @@ pub mod source_spec {
     #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum Source {
         #[prost(message, tag = "1")]
-        Camera(super::StreamConfiguration),
+        Camera(crate::media::StreamConfiguration),
     }
-}
-/// Perception-owned copies of Camera's configuration messages.
-#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
-pub struct StreamConfiguration {
-    /// Opaque PipeWire target to pass unchanged to the source.
-    #[prost(string, tag = "1")]
-    pub target: ::prost::alloc::string::String,
-    /// Camera identifier associated with this configuration.
-    #[prost(uint64, tag = "2")]
-    pub camera_id: u64,
-    /// Complete stream format advertised by the camera.
-    #[prost(message, optional, tag = "3")]
-    pub format: ::core::option::Option<StreamFormat>,
-}
-/// A concrete camera stream format.
-#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
-pub struct StreamFormat {
-    /// Frame dimensions in pixels.
-    #[prost(message, optional, tag = "1")]
-    pub resolution: ::core::option::Option<Resolution>,
-    /// PipeWire pixel format name.
-    #[prost(string, tag = "2")]
-    pub pixel_format: ::prost::alloc::string::String,
-    /// Exact frames-per-second fraction.
-    #[prost(message, optional, tag = "3")]
-    pub frame_rate: ::core::option::Option<FrameRate>,
-}
-/// Frame dimensions in pixels.
-#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
-pub struct Resolution {
-    /// Frame width.
-    #[prost(uint32, tag = "1")]
-    pub width: u32,
-    /// Frame height.
-    #[prost(uint32, tag = "2")]
-    pub height: u32,
-}
-/// Frames per second as an exact fraction.
-#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
-pub struct FrameRate {
-    /// Fraction numerator.
-    #[prost(uint32, tag = "1")]
-    pub numerator: u32,
-    /// Fraction denominator.
-    #[prost(uint32, tag = "2")]
-    pub denominator: u32,
 }
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct InferenceStage {

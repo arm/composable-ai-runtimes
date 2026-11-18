@@ -5,6 +5,7 @@ from dataclasses import FrozenInstanceError
 
 import pytest
 
+from perception_service._proto.media.v1 import stream_configuration_pb2 as media_pb2
 from perception_service._proto.perception.v1 import perception_pb2
 from perception_service.opk.config import OpkCommEndpoint
 from perception_service.workflow.model_registry import ModelRegistry
@@ -28,7 +29,7 @@ def test_stage_factory_rejects_duplicate_and_unsupported_registrations() -> None
     factory = StageFactory(dependencies)
 
     def constructor(
-        _: perception_pb2.StreamConfiguration,
+        _: media_pb2.StreamConfiguration,
         _dependencies: StageDependencies,
     ) -> StageDefinition:
         return StubStageDefinition(
@@ -36,10 +37,10 @@ def test_stage_factory_rejects_duplicate_and_unsupported_registrations() -> None
             perception_pb2.RESOLVED_STAGE_ROLE_SOURCE,
         )
 
-    factory.register_stage(perception_pb2.StreamConfiguration, constructor)
+    factory.register_stage(media_pb2.StreamConfiguration, constructor)
 
     with pytest.raises(ValueError, match="stage already registered"):
-        factory.register_stage(perception_pb2.StreamConfiguration, constructor)
+        factory.register_stage(media_pb2.StreamConfiguration, constructor)
 
     with pytest.raises(UnsupportedStageError):
         factory.create_stage(perception_pb2.InferenceStage())

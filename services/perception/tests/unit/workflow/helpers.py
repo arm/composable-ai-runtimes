@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
 # SPDX-License-Identifier: Apache-2.0
 
+from perception_service._proto.media.v1 import stream_configuration_pb2 as media_pb2
 from perception_service._proto.perception.v1 import perception_pb2
 from perception_service.opk.config import OpkCommEndpoint
 from perception_service.workflow.model_registry import ModelRegistry
@@ -69,7 +70,7 @@ def workflow(
 ) -> perception_pb2.WorkflowSpec:
     return perception_pb2.WorkflowSpec(
         name="workflow",
-        source=perception_pb2.SourceSpec(camera=perception_pb2.StreamConfiguration()),
+        source=perception_pb2.SourceSpec(camera=media_pb2.StreamConfiguration()),
         stages=stages if stages is not None else [inference_stage()],
         output=output,
     )
@@ -91,7 +92,7 @@ def create_stage_factory(
 ) -> StageFactory:
     factory = StageFactory(dependencies)
     factory.register_stage(
-        perception_pb2.StreamConfiguration,
+        media_pb2.StreamConfiguration,
         lambda _, _dependencies: StubStageDefinition(
             "source:camera",
             perception_pb2.RESOLVED_STAGE_ROLE_SOURCE,
