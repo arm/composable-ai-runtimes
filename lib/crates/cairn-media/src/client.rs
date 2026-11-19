@@ -7,7 +7,6 @@ use crate::media::{DeviceType as ProtoDeviceType, ListRequest};
 use crate::stream_configuration::{
     DeviceStreamConfiguration, DeviceStreamFormatFilter, StreamConfiguration, StreamFormatFilter,
 };
-use std::sync::Arc;
 use tonic::Request;
 use tonic::transport::{Channel, Endpoint};
 use tonic_health::pb::{
@@ -159,7 +158,7 @@ impl Camera {
 /// A client for discovering devices exposed by the Cairn media service.
 #[derive(Clone)]
 pub struct Media {
-    client: Arc<MediaServiceClient<Channel>>,
+    client: MediaServiceClient<Channel>,
 }
 
 impl Media {
@@ -173,7 +172,7 @@ impl Media {
         &self,
         device_type: Option<DeviceType>,
     ) -> Result<Vec<Device>, MediaError> {
-        let mut client = self.client.as_ref().clone();
+        let mut client = self.client.clone();
         let response = client
             .list_devices(Request::new(media::ListDevicesRequest {
                 device_type: device_type.map(|value| ProtoDeviceType::from(value) as i32),
@@ -238,7 +237,7 @@ impl Media {
         device_id: u64,
         filter: Option<DeviceStreamFormatFilter>,
     ) -> Result<Vec<DeviceStreamConfiguration>, MediaError> {
-        let mut client = self.client.as_ref().clone();
+        let mut client = self.client.clone();
         let response = client
             .get_device_stream_configurations(Request::new(
                 media::DeviceStreamConfigurationRequest {
@@ -268,7 +267,7 @@ impl Media {
         camera_id: u64,
         filter: Option<StreamFormatFilter>,
     ) -> Result<Vec<StreamConfiguration>, MediaError> {
-        let mut client = self.client.as_ref().clone();
+        let mut client = self.client.clone();
         let response = client
             .get_stream_configurations(Request::new(media::StreamConfigurationRequest {
                 camera_id,
@@ -297,7 +296,7 @@ impl Media {
             .await
             .map_err(MediaError::Transport)?;
         Ok(Self {
-            client: Arc::new(MediaServiceClient::new(channel)),
+            client: MediaServiceClient::new(channel),
         })
     }
 
@@ -330,7 +329,7 @@ impl Media {
     ///
     /// Returns [`MediaError::Transport`] when the request fails.
     pub async fn list_cameras(&mut self) -> Result<Vec<Camera>, MediaError> {
-        let mut client = self.client.as_ref().clone();
+        let mut client = self.client.clone();
         let response = client
             .list_cameras(Request::new(ListRequest {}))
             .await
