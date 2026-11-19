@@ -5,7 +5,7 @@ use cairn::media;
 use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::{Bound, PyResult};
 use pyo3::types::{PyAnyMethods, PyDict, PyModule, PyModuleMethods, PyTuple};
-use pyo3::{Py, PyAny, Python, pyclass, pymethods};
+use pyo3::{Py, PyAny, PyRef, Python, pyclass, pymethods};
 use pyo3_async_runtimes::tokio as tokio_runtime;
 use pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pymethods};
 
@@ -13,10 +13,11 @@ use crate::camera::{PyCamera, add_camera_bindings, map_media_error};
 use crate::camera_types::{
     PyStreamConfiguration, PyStreamFormatFilter, add_stream_configuration_bindings,
 };
+use crate::device::{PyDevice, PyDeviceSelector, PyDeviceType};
 
 /// Client for the Cairn media service.
 ///
-/// Connects over gRPC to discover cameras and their stream configurations.
+/// Connects over gRPC to discover media devices and camera stream configurations.
 #[gen_stub_pyclass(module = "cairn.media")]
 #[pyclass(module = "cairn", name = "Media")]
 pub struct PyMedia {
@@ -26,6 +27,34 @@ pub struct PyMedia {
 #[gen_stub_pymethods]
 #[pymethods]
 impl PyMedia {
+    /// List devices, optionally filtered by type. Discovery failures raise RuntimeError.
+    #[pyo3(signature = (device_type=None))]
+    fn list_devices(&self, device_type: Option<PyDeviceType>) -> PyResult<Vec<PyDevice>> {
+        tokio_runtime::get_runtime()
+            .block_on(self.inner.list_devices(device_type.map(Into::into)))
+            .map(|devices| devices.into_iter().map(PyDevice::from).collect())
+            .map_err(map_media_error)
+    }
+
+    /// Select a device by ID or type. Type selection returns None when no devices match.
+    /// A missing ID raises LookupError; discovery failures raise RuntimeError.
+    #[gen_stub(override_return_type(
+        type_repr = "collections.abc.Awaitable[Device | None]",
+        imports = ("collections.abc",)
+    ))]
+    fn get_device<'py>(
+        &self,
+        py: Python<'py>,
+        selector: PyRef<'_, PyDeviceSelector>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let selector = media::DeviceSelector::from(&*selector);
+        let client = self.inner.clone();
+        tokio_runtime::future_into_py(py, async move {
+            let device = client.get_device(selector).await.map_err(map_media_error)?;
+            Ok(device.map(PyDevice::from))
+        })
+    }
+
     /// Discover stream configurations for a camera, optionally filtered by format.
     #[pyo3(signature = (camera_id, filter=None))]
     fn get_stream_configurations(
@@ -116,6 +145,9 @@ pub(crate) fn register(parent: &Bound<'_, PyModule>) -> PyResult<()> {
     let module = PyModule::new(parent.py(), "cairn.media")?;
     add_camera_bindings(&module)?;
     add_stream_configuration_bindings(&module)?;
+    module.add_class::<PyDeviceType>()?;
+    module.add_class::<PyDeviceSelector>()?;
+    module.add_class::<PyDevice>()?;
     module.add_class::<PyMedia>()?;
     parent.add_submodule(&module)?;
     parent
@@ -128,5 +160,5 @@ pub(crate) fn register(parent: &Bound<'_, PyModule>) -> PyResult<()> {
 
 pyo3_stub_gen::module_doc!(
     "cairn.media",
-    "Python interface for camera discovery and stream configurations."
+    "Python interface for device discovery and camera stream configurations."
 );

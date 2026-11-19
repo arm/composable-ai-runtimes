@@ -10,7 +10,8 @@ available classes, methods, and properties.
 
 The ``cairn`` package provides three service modules:
 
-* :mod:`cairn.media`: camera discovery and stream configurations.
+* :mod:`cairn.media`: camera, microphone, and speaker discovery, plus camera
+  stream configurations.
 * :mod:`cairn.notifications`: messaging notification subscriptions.
 * :mod:`cairn.perception`: Perception workflows, sessions, and results.
 

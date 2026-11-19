@@ -16,6 +16,9 @@ import grpc
 import pytest
 from cairn import (
     Camera,
+    Device,
+    DeviceSelector,
+    DeviceType,
     FrameRate,
     Media,
     Resolution,
@@ -31,6 +34,27 @@ class MockMediaService:
     def __init__(self, response_kind: str, requests: Any) -> None:
         self.response_kind = response_kind
         self.requests = requests
+
+    def list_devices(
+        self, request: camera_proto.ListDevicesRequest, context: grpc.ServicerContext
+    ) -> camera_proto.ListDevicesResponse:
+        self.requests.put(request.SerializeToString())
+        if self.response_kind == "unavailable-devices":
+            context.abort(grpc.StatusCode.UNAVAILABLE, "PipeWire unavailable")
+        if self.response_kind == "unimplemented-devices":
+            context.abort(grpc.StatusCode.UNIMPLEMENTED, "device discovery unavailable")
+        devices = [
+            camera_proto.Device(id=7, name="front", device_type=0),
+            camera_proto.Device(id=8, name="microphone", device_type=1),
+            camera_proto.Device(id=9, name="speaker", device_type=2),
+        ]
+        if self.response_kind == "no-devices":
+            devices = []
+        elif self.response_kind == "only-cameras":
+            devices = devices[:1]
+        if request.HasField("device_type"):
+            devices = [d for d in devices if d.device_type == request.device_type]
+        return camera_proto.ListDevicesResponse(devices=devices)
 
     def list_cameras(
         self, _request: camera_proto.ListRequest, context: grpc.ServicerContext
@@ -82,6 +106,11 @@ def run_mock_media_service(
             grpc.method_handlers_generic_handler(
                 "cairn.media.v1.MediaService",
                 {
+                    "ListDevices": grpc.unary_unary_rpc_method_handler(
+                        service.list_devices,
+                        request_deserializer=camera_proto.ListDevicesRequest.FromString,
+                        response_serializer=camera_proto.ListDevicesResponse.SerializeToString,
+                    ),
                     "ListCameras": grpc.unary_unary_rpc_method_handler(
                         service.list_cameras,
                         request_deserializer=camera_proto.ListRequest.FromString,
@@ -153,6 +182,129 @@ async def camera_from_service(endpoint: str) -> Camera:
     assert len(cameras) == 1
     assert not hasattr(cameras[0], "supported_formats")
     return cameras[0]
+
+
+def test_list_devices_maps_metadata(
+    media_service: tuple[str, "Queue[bytes]"],
+) -> None:
+    async def discover() -> None:
+        client = await Media.connect(media_service[0])
+        devices = client.list_devices()
+        assert all(isinstance(device, Device) for device in devices)
+        assert [(d.id, d.name, d.device_type) for d in devices] == [
+            (7, "front", DeviceType.Camera),
+            (8, "microphone", DeviceType.Microphone),
+            (9, "speaker", DeviceType.Speaker),
+        ]
+
+    asyncio.run(asyncio.wait_for(discover(), timeout=5))
+
+
+@pytest.mark.parametrize("device_type, expected_id", [
+    (DeviceType.Camera, 7),
+    (DeviceType.Microphone, 8),
+    (DeviceType.Speaker, 9),
+])
+def test_list_devices_forwards_type_filter(
+    media_service: tuple[str, "Queue[bytes]"],
+    device_type: DeviceType, expected_id: int,
+) -> None:
+    async def discover() -> None:
+        client = await Media.connect(media_service[0])
+        devices = client.list_devices(device_type=device_type)
+        assert [(d.id, d.device_type) for d in devices] == [(expected_id, device_type)]
+
+    asyncio.run(asyncio.wait_for(discover(), timeout=5))
+
+
+def test_device_types_support_sets_and_dictionary_keys(
+    media_service: tuple[str, "Queue[bytes]"],
+) -> None:
+    async def discover() -> list[Device]:
+        client = await Media.connect(media_service[0])
+        return client.list_devices()
+
+    devices = asyncio.run(asyncio.wait_for(discover(), timeout=5))
+    assert {d.device_type for d in devices} == {
+        DeviceType.Camera, DeviceType.Microphone, DeviceType.Speaker,
+    }
+    assert {d.device_type: d.id for d in devices} == {
+        DeviceType.Camera: 7,
+        DeviceType.Microphone: 8,
+        DeviceType.Speaker: 9,
+    }
+
+
+@pytest.mark.parametrize(
+    "selector, expected_request",
+    [
+        (DeviceSelector.Id(8), camera_proto.ListDevicesRequest()),
+        (
+            DeviceSelector.Type(DeviceType.Microphone),
+            camera_proto.ListDevicesRequest(device_type=1),
+        ),
+    ],
+)
+def test_get_device_selects_by_id_and_type(
+    media_service: tuple[str, "Queue[bytes]"],
+    selector: DeviceSelector,
+    expected_request: camera_proto.ListDevicesRequest,
+) -> None:
+    endpoint, requests = media_service
+
+    async def discover() -> None:
+        service = await Media.connect(endpoint)
+        device = await service.get_device(selector)
+        assert isinstance(device, Device)
+        assert (device.id, device.name, device.device_type) == (
+            8, "microphone", DeviceType.Microphone
+        )
+
+    asyncio.run(asyncio.wait_for(discover(), timeout=5))
+    request = camera_proto.ListDevicesRequest.FromString(requests.get(timeout=1))
+    assert request == expected_request
+
+
+@pytest.mark.parametrize("media_service", ["no-devices", "only-cameras"], indirect=True)
+def test_device_discovery_handles_no_matching_devices(
+    media_service: tuple[str, "Queue[bytes]"],
+) -> None:
+    async def discover() -> None:
+        service = await Media.connect(media_service[0])
+        assert service.list_devices(DeviceType.Microphone) == []
+        assert await service.get_device(DeviceSelector.Type(DeviceType.Microphone)) is None
+        with pytest.raises(LookupError, match="device 123 was not found"):
+            await service.get_device(DeviceSelector.Id(123))
+
+    asyncio.run(asyncio.wait_for(discover(), timeout=5))
+
+
+@pytest.mark.parametrize(
+    "media_service, message",
+    [
+        ("unavailable-devices", "PipeWire unavailable"),
+        ("unimplemented-devices", "device discovery unavailable"),
+    ],
+    indirect=["media_service"],
+)
+def test_device_discovery_propagates_rpc_errors(
+    media_service: tuple[str, "Queue[bytes]"], message: str,
+) -> None:
+    async def discover() -> None:
+        service = await Media.connect(media_service[0])
+        with pytest.raises(RuntimeError, match=message):
+            service.list_devices(DeviceType.Microphone)
+        for selector in [DeviceSelector.Id(8), DeviceSelector.Type(DeviceType.Microphone)]:
+            with pytest.raises(RuntimeError, match=message):
+                await service.get_device(selector)
+
+    asyncio.run(asyncio.wait_for(discover(), timeout=5))
+
+
+def test_device_types_are_exported_from_package() -> None:
+    for name in ["Device", "DeviceType", "DeviceSelector"]:
+        assert name in cairn.__all__
+        assert getattr(cairn, name) is getattr(cairn.media, name)
 
 
 @pytest.mark.parametrize("camera_id", [None, 7])

@@ -7,8 +7,8 @@ SPDX-License-Identifier: Apache-2.0
 
 Python client library for [Composable AI Runtimes (Cairn)](https://github.com/arm/composable-ai-runtimes).
 Cairn provides runtime services for edge and physical AI applications on Arm Linux
-devices. Use this package to discover cameras, deploy inference workflows, and
-receive detection events through consistent Python APIs.
+devices. Use this package to discover cameras, microphones, and speakers, deploy
+inference workflows, and receive detection events through consistent Python APIs.
 
 Install with `pip install arm-cairn` and import as `cairn`.
 Release wheels support Python `>=3.13.17,<3.14` on Linux ARM64.

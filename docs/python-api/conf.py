@@ -9,6 +9,8 @@ import sys
 import tomllib
 from pathlib import Path
 
+from autoapi import _mapper
+from autoapi._parser import Parser
 from jinja2 import ChoiceLoader, Environment, PackageLoader, PrefixLoader
 from sphinx import addnodes
 
@@ -88,7 +90,26 @@ def _prepare_autoapi_templates(environment: Environment) -> None:
 autoapi_prepare_jinja_env = _prepare_autoapi_templates
 
 
+class _NestedClassParser(Parser):
+    """Avoid AutoAPI 3.8.0 recursion when a nested class inherits its container."""
+
+    def __init__(self):
+        super().__init__()
+        self._active_classes = set()
+
+    def parse_classdef(self, node):
+        if node in self._active_classes:
+            return []
+
+        self._active_classes.add(node)
+        try:
+            return super().parse_classdef(node)
+        finally:
+            self._active_classes.remove(node)
+
+
 def setup(app):
+    _mapper.Parser = _NestedClassParser
     # Resolve built-ins externally before local members such as the ``bytes``
     # payload properties can shadow them.
     app.connect("doctree-read", _link_builtin_type_references)

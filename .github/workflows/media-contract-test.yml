@@ -25,7 +25,7 @@ jobs:
       paths: |
         services/media/src/api/**
         services/media/src/notifications/**
-        services/media/src/camera.rs
+        services/media/src/device.rs
         services/media/src/helpers.rs
         services/media/src/lib.rs
         services/media/src/logging.rs

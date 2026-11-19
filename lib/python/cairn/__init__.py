@@ -4,6 +4,9 @@
 from ._bindings import media, notifications, perception
 from .media import (
     Camera,
+    Device,
+    DeviceSelector,
+    DeviceType,
     FrameRate,
     Media,
     Resolution,
@@ -19,6 +22,9 @@ from .notifications import (
 
 __all__ = [
     "Camera",
+    "Device",
+    "DeviceSelector",
+    "DeviceType",
     "FrameRate",
     "Media",
     "Notification",
