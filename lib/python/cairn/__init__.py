@@ -3,9 +3,13 @@
 
 from ._bindings import media, notifications, perception
 from .media import (
+    AudioFormat,
     Camera,
     Device,
     DeviceSelector,
+    DeviceStreamConfiguration,
+    DeviceStreamFormat,
+    DeviceStreamFormatFilter,
     DeviceType,
     FrameRate,
     Media,
@@ -21,9 +25,13 @@ from .notifications import (
 )
 
 __all__ = [
+    "AudioFormat",
     "Camera",
     "Device",
     "DeviceSelector",
+    "DeviceStreamConfiguration",
+    "DeviceStreamFormat",
+    "DeviceStreamFormatFilter",
     "DeviceType",
     "FrameRate",
     "Media",

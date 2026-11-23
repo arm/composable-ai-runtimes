@@ -15,9 +15,12 @@ import cairn
 import grpc
 import pytest
 from cairn import (
+    AudioFormat,
     Camera,
     Device,
     DeviceSelector,
+    DeviceStreamConfiguration,
+    DeviceStreamFormat,
     DeviceType,
     FrameRate,
     Media,
@@ -302,9 +305,42 @@ def test_device_discovery_propagates_rpc_errors(
 
 
 def test_device_types_are_exported_from_package() -> None:
-    for name in ["Device", "DeviceType", "DeviceSelector"]:
+    for name in [
+        "Device", "DeviceType", "DeviceSelector", "AudioFormat",
+        "DeviceStreamConfiguration", "DeviceStreamFormat", "DeviceStreamFormatFilter",
+    ]:
         assert name in cairn.__all__
         assert getattr(cairn, name) is getattr(cairn.media, name)
+
+
+def test_video_device_configuration_constructor_preserves_fields() -> None:
+    format = DeviceStreamFormat.Video(StreamFormat(
+        Resolution(1920, 1080), "RGB", FrameRate(30000, 1001),
+    ))
+    configuration = DeviceStreamConfiguration("opaque:52", 7, format)
+
+    assert (configuration.target, configuration.device_id) == ("opaque:52", 7)
+    actual_format = configuration.format
+    assert isinstance(actual_format, DeviceStreamFormat.Video)
+    video = actual_format[0]
+    assert (video.resolution.width, video.resolution.height, video.pixel_format) == (1920, 1080, "RGB")
+    assert (video.frame_rate.numerator, video.frame_rate.denominator) == (30000, 1001)
+
+
+@pytest.mark.parametrize("interleaved", [False, True])
+def test_audio_device_configuration_constructor_preserves_fields(interleaved: bool) -> None:
+    format = DeviceStreamFormat.Audio(
+        AudioFormat(48000, 2, "F32LE", ["FL", "FR"], interleaved),
+    )
+    configuration = DeviceStreamConfiguration("opaque:52", 8, format)
+
+    assert (configuration.target, configuration.device_id) == ("opaque:52", 8)
+    actual_format = configuration.format
+    assert isinstance(actual_format, DeviceStreamFormat.Audio)
+    audio = actual_format[0]
+    assert (audio.sample_rate, audio.channels, audio.sample_format) == (48000, 2, "F32LE")
+    assert audio.channel_layout == ["FL", "FR"]
+    assert audio.interleaved == interleaved
 
 
 @pytest.mark.parametrize("camera_id", [None, 7])

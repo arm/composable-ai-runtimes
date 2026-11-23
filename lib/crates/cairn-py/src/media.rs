@@ -14,6 +14,9 @@ use crate::camera_types::{
     PyStreamConfiguration, PyStreamFormatFilter, add_stream_configuration_bindings,
 };
 use crate::device::{PyDevice, PyDeviceSelector, PyDeviceType};
+use crate::device_types::{
+    PyAudioFormat, PyDeviceStreamConfiguration, PyDeviceStreamFormat, PyDeviceStreamFormatFilter,
+};
 
 /// Client for the Cairn media service.
 ///
@@ -148,6 +151,10 @@ pub(crate) fn register(parent: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyDeviceType>()?;
     module.add_class::<PyDeviceSelector>()?;
     module.add_class::<PyDevice>()?;
+    module.add_class::<PyAudioFormat>()?;
+    module.add_class::<PyDeviceStreamFormat>()?;
+    module.add_class::<PyDeviceStreamFormatFilter>()?;
+    module.add_class::<PyDeviceStreamConfiguration>()?;
     module.add_class::<PyMedia>()?;
     parent.add_submodule(&module)?;
     parent

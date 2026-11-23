@@ -4,6 +4,7 @@
 mod camera;
 mod camera_types;
 mod device;
+mod device_types;
 mod media;
 mod notifications;
 mod perception;
@@ -38,7 +39,8 @@ pyo3_stub_gen::module_doc!(
 pyo3_stub_gen::reexport_module_members!(
     "cairn" from "cairn.media";
     "Camera", "Media", "FrameRate", "Resolution", "StreamConfiguration",
-    "StreamFormat", "StreamFormatFilter", "Device", "DeviceType", "DeviceSelector"
+    "StreamFormat", "StreamFormatFilter", "Device", "DeviceType", "DeviceSelector",
+    "AudioFormat", "DeviceStreamFormat", "DeviceStreamFormatFilter", "DeviceStreamConfiguration"
 );
 pyo3_stub_gen::reexport_module_members!(
     "cairn" from "cairn.notifications";

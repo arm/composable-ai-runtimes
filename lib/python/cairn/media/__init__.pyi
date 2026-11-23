@@ -11,9 +11,13 @@ import builtins
 import collections.abc
 import typing
 __all__ = [
+    "AudioFormat",
     "Camera",
     "Device",
     "DeviceSelector",
+    "DeviceStreamConfiguration",
+    "DeviceStreamFormat",
+    "DeviceStreamFormatFilter",
     "DeviceType",
     "FrameRate",
     "Media",
@@ -22,6 +26,41 @@ __all__ = [
     "StreamFormat",
     "StreamFormatFilter",
 ]
+
+@typing.final
+class AudioFormat:
+    r"""
+    An audio stream format.
+    """
+    @property
+    def sample_rate(self) -> builtins.int:
+        r"""
+        Samples per second per channel.
+        """
+    @property
+    def channels(self) -> builtins.int:
+        r"""
+        Number of audio channels.
+        """
+    @property
+    def sample_format(self) -> builtins.str:
+        r"""
+        Audio sample format name, such as F32LE.
+        """
+    @property
+    def channel_layout(self) -> builtins.list[builtins.str]:
+        r"""
+        Ordered channel names, such as FL and FR.
+        """
+    @property
+    def interleaved(self) -> builtins.bool:
+        r"""
+        Whether samples from different channels are interleaved.
+        """
+    def __new__(cls, sample_rate: builtins.int, channels: builtins.int, sample_format: builtins.str, channel_layout: typing.Sequence[builtins.str], interleaved: builtins.bool) -> AudioFormat:
+        r"""
+        Create an audio format from caller-supplied values.
+        """
 
 @typing.final
 class Camera:
@@ -83,6 +122,70 @@ class DeviceSelector:
         @property
         def _0(self) -> DeviceType: ...
         def __new__(cls, _0: DeviceType) -> DeviceSelector.Type: ...
+        def __len__(self) -> builtins.int: ...
+        def __getitem__(self, key: builtins.int, /) -> typing.Any: ...
+    
+    ...
+
+@typing.final
+class DeviceStreamConfiguration:
+    r"""
+    An immutable device configuration, discovered or supplied by the caller.
+    """
+    @property
+    def target(self) -> builtins.str:
+        r"""
+        Opaque target to pass unchanged to the consuming service.
+        """
+    @property
+    def device_id(self) -> builtins.int:
+        r"""
+        Identifier of the device associated with this configuration.
+        """
+    @property
+    def format(self) -> DeviceStreamFormat:
+        r"""
+        The audio or video stream format.
+        """
+    def __new__(cls, target: builtins.str, device_id: builtins.int, format: DeviceStreamFormat) -> DeviceStreamConfiguration:
+        r"""
+        Create a configuration without querying or validating device capabilities.
+        """
+
+class DeviceStreamFormat:
+    r"""
+    A video or audio stream format.
+    """
+    @typing.final
+    class Video(DeviceStreamFormat):
+        __match_args__ = ("_0",)
+        @property
+        def _0(self) -> StreamFormat: ...
+        def __new__(cls, _0: StreamFormat) -> DeviceStreamFormat.Video: ...
+        def __len__(self) -> builtins.int: ...
+        def __getitem__(self, key: builtins.int, /) -> typing.Any: ...
+    
+    @typing.final
+    class Audio(DeviceStreamFormat):
+        __match_args__ = ("_0",)
+        @property
+        def _0(self) -> AudioFormat: ...
+        def __new__(cls, _0: AudioFormat) -> DeviceStreamFormat.Audio: ...
+        def __len__(self) -> builtins.int: ...
+        def __getitem__(self, key: builtins.int, /) -> typing.Any: ...
+    
+    ...
+
+class DeviceStreamFormatFilter:
+    r"""
+    Optional video format constraints. Audio filtering is not supported.
+    """
+    @typing.final
+    class Video(DeviceStreamFormatFilter):
+        __match_args__ = ("_0",)
+        @property
+        def _0(self) -> StreamFormatFilter: ...
+        def __new__(cls, _0: StreamFormatFilter) -> DeviceStreamFormatFilter.Video: ...
         def __len__(self) -> builtins.int: ...
         def __getitem__(self, key: builtins.int, /) -> typing.Any: ...
     
