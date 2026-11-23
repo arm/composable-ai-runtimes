@@ -227,6 +227,9 @@ Before completion:
 
 ## Pull requests
 
+Use `.agents/skills/cairn-pr-workflow/SKILL.md` for branch, commit, and PR work,
+including verification of each checklist item before marking a PR ready.
+
 Preserve PR template headings, checklist wording, links, and comments verbatim.
 Only change checkbox states and fill designated content sections. Do not append
 explanations to checklist items; put relevant explanations in the appropriate
