@@ -507,6 +507,62 @@ fn stream_formats_from_enum_format_returns_empty_for_malformed_pod() {
 }
 
 #[test]
+fn mjpeg_filter_aliases_return_the_advertised_format() {
+    let bytes = enum_format_pod_factory(MediaType::Video, MediaSubtype::Mjpg, None);
+    let pod = spa::pod::Pod::from_bytes(&bytes).unwrap();
+    let expected = StreamFormat {
+        resolution: Resolution {
+            width: 640,
+            height: 480,
+        },
+        pixel_format: "Mjpg".to_string(),
+        frame_rate: FrameRate {
+            numerator: 30,
+            denominator: 1,
+        },
+    };
+
+    for alias in ["Mjpg", "MJPG", "mJpG", "MJPEG", "mJpEg"] {
+        let filter = StreamFormatFilter {
+            resolution: Some(expected.resolution.clone()),
+            pixel_format: alias.to_string(),
+            frame_rate: Some(expected.frame_rate.clone()),
+        };
+        assert_eq!(
+            parse_stream_formats(pod, Some(&filter)),
+            std::slice::from_ref(&expected),
+            "{alias}"
+        );
+    }
+}
+
+#[test]
+fn mjpeg_filters_distinguish_encoded_subtypes() {
+    for (subtype, requested, matches) in [
+        (MediaSubtype::Mjpg, "H264", false),
+        (MediaSubtype::H264, "MJPEG", false),
+        (MediaSubtype::H264, "MJPG", false),
+        (MediaSubtype::H264, "H264", true),
+    ] {
+        let bytes = enum_format_pod_factory(MediaType::Video, subtype, None);
+        let pod = spa::pod::Pod::from_bytes(&bytes).unwrap();
+        let filter = StreamFormatFilter {
+            resolution: Some(Resolution {
+                width: 640,
+                height: 480,
+            }),
+            pixel_format: requested.to_string(),
+            frame_rate: Some(FrameRate {
+                numerator: 30,
+                denominator: 1,
+            }),
+        };
+        let formats = parse_stream_formats(pod, Some(&filter));
+        assert_eq!(!formats.is_empty(), matches, "{subtype:?} with {requested}");
+    }
+}
+
+#[test]
 fn stream_formats_from_enum_format_uses_requested_values_for_missing_properties() {
     let bytes = enum_format_pod_factory(MediaType::Video, MediaSubtype::Raw, None);
     let pod = spa::pod::Pod::from_bytes(&bytes).unwrap();

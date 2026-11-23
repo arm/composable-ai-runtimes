@@ -16,8 +16,13 @@ pub(super) fn pixel_formats_from_object(
 ) -> Vec<String> {
     if media_subtype != MediaSubtype::Raw {
         let format = pipewire_variant_name(media_subtype);
-        if requested.is_some_and(|requested| requested != format) {
-            return Vec::new();
+        if let Some(requested) = requested {
+            let matches_mjpeg = media_subtype == MediaSubtype::Mjpg
+                && (requested.eq_ignore_ascii_case("MJPG")
+                    || requested.eq_ignore_ascii_case("MJPEG"));
+            if requested != format && !matches_mjpeg {
+                return Vec::new();
+            }
         }
         return vec![format];
     }
