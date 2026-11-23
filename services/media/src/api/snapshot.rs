@@ -4,7 +4,7 @@
 use crate::api::parameters::{StreamFormat, StreamFormatFilter};
 use crate::api::stream_format_collector::StreamFormatCollector;
 use crate::device::{Device, DeviceType};
-use crate::helpers::{is_device_type, should_include_device};
+use crate::helpers::should_include_device;
 use pipewire as pw;
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
@@ -72,8 +72,15 @@ pub(crate) fn list_camera_formats(
     camera_id: u64,
     filter: Option<StreamFormatFilter>,
 ) -> Result<(u64, Vec<StreamFormat>), SnapshotError> {
+    list_device_stream_formats(camera_id, filter)
+}
+
+pub(crate) fn list_device_stream_formats(
+    device_id: u64,
+    filter: Option<StreamFormatFilter>,
+) -> Result<(u64, Vec<StreamFormat>), SnapshotError> {
     let pipewire = create_pipewire_client()?;
-    let selected_node: Rc<RefCell<Option<pw::node::Node>>> = Rc::new(RefCell::new(None));
+    let selected_node = Rc::new(RefCell::new(None));
     let listener_node = Rc::clone(&selected_node);
     let bind_error = Rc::new(RefCell::new(None));
     let listener_bind_error = Rc::clone(&bind_error);
@@ -82,49 +89,44 @@ pub(crate) fn list_camera_formats(
         .registry
         .add_listener_local()
         .global(move |global| {
-            if !is_device_type(global, &DeviceType::Camera) {
-                return;
-            }
-
-            let Ok(camera) = Device::try_from_global_object(global) else {
+            let Ok(device) = Device::try_from_global_object(global) else {
                 return;
             };
 
-            if camera.object_serial != camera_id {
+            if device.object_serial != device_id {
                 return;
             }
 
-            let camera_node = match bind_registry.bind(global) {
-                Ok(camera_node) => camera_node,
+            let node = match bind_registry.bind(global) {
+                Ok(node) => node,
                 Err(err) => {
                     *listener_bind_error.borrow_mut() = Some(err.to_string());
                     return;
                 }
             };
 
-            *listener_node.borrow_mut() = Some(camera_node);
+            *listener_node.borrow_mut() = Some(node);
         })
         .register();
 
     run_until_synced(
         &pipewire.mainloop,
         &pipewire.core,
-        "PipeWire camera lookup timed out",
+        "PipeWire device lookup timed out",
         SNAPSHOT_TIMEOUT,
     )?;
 
-    let camera_node = selected_node.borrow_mut().take();
-    let camera_node = match camera_node {
-        Some(camera_node) => camera_node,
+    let node = match selected_node.borrow_mut().take() {
+        Some(selection) => selection,
         None => {
             return Err(camera_lookup_error(
-                camera_id,
+                device_id,
                 bind_error.borrow_mut().take(),
             ));
         }
     };
 
-    let collector = StreamFormatCollector::new(camera_node, filter);
+    let collector = StreamFormatCollector::new(node, filter);
 
     collector.request_format_collection();
 
@@ -137,7 +139,7 @@ pub(crate) fn list_camera_formats(
 
     let formats = collector.take_collected_formats();
 
-    Ok((camera_id, formats))
+    Ok((device_id, formats))
 }
 
 #[derive(Default)]
