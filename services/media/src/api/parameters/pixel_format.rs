@@ -4,11 +4,11 @@
 use pipewire::spa;
 use spa::param::format::{FormatProperties, MediaSubtype};
 use spa::param::video::VideoFormat;
-use spa::pod::{ChoiceValue, Object, Value};
-use spa::utils::{Choice, ChoiceEnum, Id};
+use spa::pod::Object;
+use spa::utils::Id;
 use tracing::debug;
 
-use super::stream_format::find_property_value;
+use super::spa_format_tools::{find_property_value, ids_from_spa_value, pipewire_variant_name};
 pub(super) fn pixel_formats_from_object(
     object: &Object,
     media_subtype: MediaSubtype,
@@ -29,7 +29,7 @@ pub(super) fn pixel_formats_from_object(
         };
     };
 
-    let ids = ids_from_video_format_value(value);
+    let ids = ids_from_spa_value(value);
 
     let mut formats = pixel_format_names_from_ids(ids);
     formats.retain(|format| requested.is_none_or(|requested| format == requested));
@@ -50,32 +50,4 @@ fn pixel_format_names_from_ids(ids: Vec<Id>) -> Vec<String> {
         }
     }
     formats
-}
-
-fn ids_from_video_format_value(value: Value) -> Vec<Id> {
-    match value {
-        Value::Id(id) => vec![id],
-        Value::Choice(ChoiceValue::Id(Choice(_, ChoiceEnum::None(id)))) => vec![id],
-        Value::Choice(ChoiceValue::Id(Choice(
-            _,
-            ChoiceEnum::Enum {
-                default,
-                alternatives,
-            },
-        ))) => {
-            let mut ids = Vec::with_capacity(alternatives.len() + 1);
-            ids.push(default);
-            ids.extend(alternatives);
-            ids
-        }
-        _ => Vec::new(),
-    }
-}
-
-fn pipewire_variant_name(value: impl std::fmt::Debug) -> String {
-    let debug = format!("{value:?}");
-    match debug.rsplit_once("::") {
-        Some((_, name)) => name.to_string(),
-        None => debug,
-    }
 }

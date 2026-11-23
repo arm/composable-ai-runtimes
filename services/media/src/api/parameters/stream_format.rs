@@ -9,6 +9,7 @@ use tracing::debug;
 use super::frame_rate::{fraction_choice_from_value, select_frame_rates};
 use super::pixel_format::pixel_formats_from_object;
 use super::resolution::{rectangle_choice_from_value, select_resolutions};
+use super::spa_format_tools::find_property_value;
 use super::{FrameRate, Resolution};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -95,12 +96,4 @@ pub(crate) fn stream_formats_from_enum_format(
     }
 
     stream_formats
-}
-
-pub(super) fn find_property_value(object: &spa::pod::Object, key: u32) -> Option<Value> {
-    object
-        .properties
-        .iter()
-        .find(|property| property.key == key)
-        .map(|property| property.value.clone())
 }

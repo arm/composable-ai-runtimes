@@ -6,19 +6,23 @@ use pipewire::node::NodeListener;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use super::parameters::{StreamFormat, StreamFormatFilter, stream_formats_from_enum_format};
+use super::parameters::{
+    DeviceStreamFormat, StreamFormatFilter, audio_formats_from_pod, stream_formats_from_enum_format,
+};
+use crate::device::DeviceType;
 
 pub(super) struct StreamFormatCollector {
     node: pw::node::Node,
-    formats: Rc<RefCell<Vec<StreamFormat>>>,
+    formats: Rc<RefCell<Vec<DeviceStreamFormat>>>,
     _listener: NodeListener,
 }
 
 impl StreamFormatCollector {
     pub(super) fn new(
         camera_node: pw::node::Node,
+        device_type: DeviceType,
         filter: Option<StreamFormatFilter>,
-    ) -> StreamFormatCollector {
+    ) -> Self {
         let formats = Rc::new(RefCell::new(vec![]));
 
         let listener_formats = Rc::clone(&formats);
@@ -29,16 +33,12 @@ impl StreamFormatCollector {
                     return;
                 }
 
-                let Some(camera_format_param) = param else {
+                let Some(format_param) = param else {
                     return;
                 };
 
-                listener_formats
-                    .borrow_mut()
-                    .extend(stream_formats_from_enum_format(
-                        camera_format_param,
-                        filter.as_ref(),
-                    ));
+                let formats = device_formats_from_pod(device_type, format_param, filter.as_ref());
+                listener_formats.borrow_mut().extend(formats);
             })
             .register();
 
@@ -55,7 +55,24 @@ impl StreamFormatCollector {
             .enum_params(1, Some(pw::spa::param::ParamType::EnumFormat), 0, u32::MAX);
     }
 
-    pub(super) fn take_collected_formats(&self) -> Vec<StreamFormat> {
+    pub(super) fn take_collected_formats(&self) -> Vec<DeviceStreamFormat> {
         std::mem::take(&mut self.formats.borrow_mut())
+    }
+}
+
+fn device_formats_from_pod(
+    device_type: DeviceType,
+    pod: &pw::spa::pod::Pod,
+    video_filter: Option<&StreamFormatFilter>,
+) -> Vec<DeviceStreamFormat> {
+    match device_type {
+        DeviceType::Camera => stream_formats_from_enum_format(pod, video_filter)
+            .into_iter()
+            .map(DeviceStreamFormat::Video)
+            .collect(),
+        DeviceType::Microphone | DeviceType::Speaker => audio_formats_from_pod(pod)
+            .into_iter()
+            .map(DeviceStreamFormat::Audio)
+            .collect(),
     }
 }

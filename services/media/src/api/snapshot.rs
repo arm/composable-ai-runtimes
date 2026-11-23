@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::api::parameters::{StreamFormat, StreamFormatFilter};
+use crate::api::parameters::{DeviceStreamFormat, StreamFormat, StreamFormatFilter};
 use crate::api::stream_format_collector::StreamFormatCollector;
 use crate::device::{Device, DeviceType};
 use crate::helpers::should_include_device;
@@ -23,6 +23,7 @@ const CAMERA_NODE_PARAMS_SYNC_FAILURE: &str = "camera-node-params-sync";
 #[derive(Debug, PartialEq)]
 pub enum SnapshotError {
     NotFound(u64),
+    VideoFilterOnAudioDevice,
     Unavailable(String),
 }
 
@@ -30,6 +31,9 @@ impl std::fmt::Display for SnapshotError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::NotFound(camera_id) => write!(f, "camera {camera_id} was not found"),
+            Self::VideoFilterOnAudioDevice => {
+                f.write_str("video filters are only supported for cameras")
+            }
             Self::Unavailable(message) => f.write_str(message),
         }
     }
@@ -72,14 +76,35 @@ pub(crate) fn list_camera_formats(
     camera_id: u64,
     filter: Option<StreamFormatFilter>,
 ) -> Result<(u64, Vec<StreamFormat>), SnapshotError> {
-    list_device_stream_formats(camera_id, filter)
+    let pipewire = create_pipewire_client()?;
+    let (node, device_type) = find_device_node(&pipewire, camera_id)?;
+    let formats = collect_stream_formats(&pipewire, node, device_type, filter)?
+        .into_iter()
+        .filter_map(|format| match format {
+            DeviceStreamFormat::Video(format) => Some(format),
+            DeviceStreamFormat::Audio(_) => None,
+        })
+        .collect();
+    Ok((camera_id, formats))
 }
 
 pub(crate) fn list_device_stream_formats(
     device_id: u64,
     filter: Option<StreamFormatFilter>,
-) -> Result<(u64, Vec<StreamFormat>), SnapshotError> {
+) -> Result<(u64, Vec<DeviceStreamFormat>), SnapshotError> {
     let pipewire = create_pipewire_client()?;
+    let (node, device_type) = find_device_node(&pipewire, device_id)?;
+    if filter.is_some() && device_type != DeviceType::Camera {
+        return Err(SnapshotError::VideoFilterOnAudioDevice);
+    }
+    let formats = collect_stream_formats(&pipewire, node, device_type, filter)?;
+    Ok((device_id, formats))
+}
+
+fn find_device_node(
+    pipewire: &PipeWireClient,
+    device_id: u64,
+) -> Result<(pw::node::Node, DeviceType), SnapshotError> {
     let selected_node = Rc::new(RefCell::new(None));
     let listener_node = Rc::clone(&selected_node);
     let bind_error = Rc::new(RefCell::new(None));
@@ -105,7 +130,7 @@ pub(crate) fn list_device_stream_formats(
                 }
             };
 
-            *listener_node.borrow_mut() = Some(node);
+            *listener_node.borrow_mut() = Some((node, device.device_type));
         })
         .register();
 
@@ -116,17 +141,19 @@ pub(crate) fn list_device_stream_formats(
         SNAPSHOT_TIMEOUT,
     )?;
 
-    let node = match selected_node.borrow_mut().take() {
-        Some(selection) => selection,
-        None => {
-            return Err(camera_lookup_error(
-                device_id,
-                bind_error.borrow_mut().take(),
-            ));
-        }
-    };
+    selected_node
+        .borrow_mut()
+        .take()
+        .ok_or_else(|| camera_lookup_error(device_id, bind_error.borrow_mut().take()))
+}
 
-    let collector = StreamFormatCollector::new(node, filter);
+fn collect_stream_formats(
+    pipewire: &PipeWireClient,
+    node: pw::node::Node,
+    device_type: DeviceType,
+    filter: Option<StreamFormatFilter>,
+) -> Result<Vec<DeviceStreamFormat>, SnapshotError> {
+    let collector = StreamFormatCollector::new(node, device_type, filter);
 
     collector.request_format_collection();
 
@@ -137,9 +164,7 @@ pub(crate) fn list_device_stream_formats(
         SNAPSHOT_TIMEOUT,
     )?;
 
-    let formats = collector.take_collected_formats();
-
-    Ok((device_id, formats))
+    Ok(collector.take_collected_formats())
 }
 
 #[derive(Default)]

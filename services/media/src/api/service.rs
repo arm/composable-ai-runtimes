@@ -1,8 +1,12 @@
 // SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
 // SPDX-License-Identifier: Apache-2.0
 
-use super::parameters::{FrameRate, Resolution, StreamFormat, StreamFormatFilter};
-use super::snapshot::{SnapshotError, list_camera_formats, list_devices};
+use super::parameters::{
+    DeviceStreamFormat, FrameRate, Resolution, StreamFormat, StreamFormatFilter,
+};
+use super::snapshot::{
+    SnapshotError, list_camera_formats, list_device_stream_formats, list_devices,
+};
 use crate::device::{Device, DeviceType};
 use tokio::task;
 use tonic::{Request, Response, Status};
@@ -17,11 +21,14 @@ use media::{
 };
 use tracing::{debug, warn};
 
+type ListStreamFormats<F> =
+    fn(u64, Option<StreamFormatFilter>) -> Result<(u64, Vec<F>), SnapshotError>;
+
 #[derive(Clone, Copy)]
 pub(crate) struct MediaServiceProvider {
     pub(crate) list_devices: fn(Option<DeviceType>) -> Result<Vec<Device>, SnapshotError>,
-    pub(crate) list_camera_formats:
-        fn(u64, Option<StreamFormatFilter>) -> Result<(u64, Vec<StreamFormat>), SnapshotError>,
+    pub(crate) list_camera_formats: ListStreamFormats<StreamFormat>,
+    pub(crate) list_device_stream_formats: ListStreamFormats<DeviceStreamFormat>,
 }
 
 impl Default for MediaServiceProvider {
@@ -29,6 +36,7 @@ impl Default for MediaServiceProvider {
         Self {
             list_devices,
             list_camera_formats,
+            list_device_stream_formats,
         }
     }
 }
@@ -94,11 +102,27 @@ impl From<StreamFormat> for media::StreamFormat {
     }
 }
 
+impl From<DeviceStreamFormat> for media::device_stream_configuration::Format {
+    fn from(format: DeviceStreamFormat) -> Self {
+        match format {
+            DeviceStreamFormat::Video(format) => Self::VideoFormat(format.into()),
+            DeviceStreamFormat::Audio(format) => Self::AudioFormat(media::AudioFormat {
+                sample_rate: format.sample_rate,
+                channels: format.channels,
+                sample_format: format.sample_format,
+                channel_layout: format.channel_layout,
+                interleaved: format.interleaved,
+            }),
+        }
+    }
+}
+
 pub(crate) fn map_snapshot_error(err: SnapshotError) -> Status {
     match err {
         SnapshotError::NotFound(camera_id) => {
             Status::not_found(format!("camera {camera_id} was not found"))
         }
+        SnapshotError::VideoFilterOnAudioDevice => Status::invalid_argument(err.to_string()),
         SnapshotError::Unavailable(message) => Status::unavailable(message),
     }
 }
@@ -112,7 +136,11 @@ pub(super) fn validate_stream_configuration_request(
         ));
     }
 
-    if let Some(format) = &request.format {
+    validate_video_filter(request.format.as_ref())
+}
+
+fn validate_video_filter(filter: Option<&media::StreamFormat>) -> Result<(), Status> {
+    if let Some(format) = filter {
         if format
             .resolution
             .as_ref()
@@ -188,11 +216,43 @@ impl MediaService for MediaApiService {
 
     async fn get_device_stream_configurations(
         &self,
-        _request: Request<media::DeviceStreamConfigurationRequest>,
+        request: Request<media::DeviceStreamConfigurationRequest>,
     ) -> Result<Response<media::DeviceStreamConfigurationResponse>, Status> {
-        Err(Status::unimplemented(
-            "device configurations are not implemented",
-        ))
+        use media::device_stream_configuration_request::Filter;
+
+        let media::DeviceStreamConfigurationRequest { device_id, filter } = request.into_inner();
+        if device_id == 0 {
+            return Err(Status::invalid_argument(
+                "device_id must be greater than zero",
+            ));
+        }
+        let video_filter = filter.map(|Filter::VideoFormat(format)| format);
+        validate_video_filter(video_filter.as_ref())?;
+        let video_filter = video_filter.map(StreamFormatFilter::from);
+
+        let list_device_stream_formats = self.provider.list_device_stream_formats;
+        let (target, formats) =
+            task::spawn_blocking(move || list_device_stream_formats(device_id, video_filter))
+                .await
+                .map_err(|error| Status::unavailable(error.to_string()))?
+                .map_err(|error| match error {
+                    SnapshotError::NotFound(id) => {
+                        Status::not_found(format!("device {id} was not found"))
+                    }
+                    error => map_snapshot_error(error),
+                })?;
+
+        let configurations = formats
+            .into_iter()
+            .map(|format| media::DeviceStreamConfiguration {
+                device_id,
+                target: target.to_string(),
+                format: Some(format.into()),
+            })
+            .collect();
+        Ok(Response::new(media::DeviceStreamConfigurationResponse {
+            configurations,
+        }))
     }
 
     async fn list_cameras(

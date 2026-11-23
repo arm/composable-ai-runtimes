@@ -24,7 +24,7 @@ jobs:
       group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
       cancel-in-progress: true
     if: vars.INTERNAL_REPO == 'true'
-    runs-on: self-hosted-ubuntu-24.04-arm64-ephemeral
+    runs-on: self-hosted-ubuntu-26.04-arm64-ephemeral
     timeout-minutes: 20
     env:
       CARGO_PROFILE_DEV_DEBUG: "0"
