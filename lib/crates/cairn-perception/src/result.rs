@@ -12,7 +12,8 @@ pub use crate::result_model::{
     InstanceSegmentationMasks, LayerInfo, ObjectEmbedding, ObjectEmbeddings, ObjectMetadata,
     ObjectTrack, ObjectTracks, PerformanceOverlay, PersonPresence, Point2d, PoseEstimation,
     PoseEstimations, ProducerInfo, SegmentationMask, SegmentationMasks, SemanticSegmentationMask,
-    SemanticSegmentationMasks, TrackTrace, TrackTraces, VideoFrameContext,
+    SemanticSegmentationMasks, TrackTrace, TrackTraces, TurnDetection, TurnDetections,
+    VideoFrameContext, VoiceActivityDetection, VoiceActivityDetections,
 };
 
 /// A decoded result from a Perception session's results topic.

@@ -68,6 +68,8 @@ __all__ = [
     "StatusInfo",
     "TrackTrace",
     "TrackTraces",
+    "TurnDetection",
+    "TurnDetections",
     "UnexpectedProducerError",
     "UnknownPayload",
     "UnsupportedPayloadSchemaVersionError",
@@ -75,6 +77,8 @@ __all__ = [
     "ValidationIssue",
     "ValidationResult",
     "VideoFrameContext",
+    "VoiceActivityDetection",
+    "VoiceActivityDetections",
 ]
 
 PerceptionPayload: TypeAlias = BoxDetections  |  Classifications  |  FrameContext  |  ObjectEmbeddings  |  ObjectTracks  |  PerformanceOverlay  |  PoseEstimations  |  SegmentationMasks  |  TrackTraces  |  ExternalPayload  |  UnknownPayload  |  MalformedKnownPayload
@@ -1267,6 +1271,78 @@ class TrackTraces:
         Tracked-object paths.
         """
 
+@typing.final
+class TurnDetection:
+    r"""
+    One model turn assessment, not a conversation-controller decision.
+    """
+    @property
+    def object(self) -> typing.Optional[ObjectMetadata]:
+        r"""
+        Metadata for the associated object.
+        """
+    @property
+    def turn_probability(self) -> builtins.float:
+        r"""
+        Model probability.
+        """
+    @property
+    def turn_complete(self) -> builtins.bool:
+        r"""
+        Whether the configured model threshold was met.
+        """
+    @property
+    def window_start_sample(self) -> builtins.int:
+        r"""
+        First mono 16 kHz sample since the latest reset.
+        """
+    @property
+    def window_end_sample(self) -> builtins.int:
+        r"""
+        Exclusive end sample since the latest reset.
+        """
+    @property
+    def window_start_timestamp_ns(self) -> typing.Optional[builtins.int]:
+        r"""
+        Source media timestamp; zero is valid and None means unknown.
+        """
+    @property
+    def window_end_timestamp_ns(self) -> typing.Optional[builtins.int]:
+        r"""
+        Exclusive end media timestamp; None means unknown.
+        """
+    @property
+    def discontinuity(self) -> builtins.bool:
+        r"""
+        First assessment after initialization or a stream discontinuity.
+        """
+
+@typing.final
+class TurnDetections:
+    r"""
+    One TurnDetections payload.
+    """
+    @property
+    def schema_major(self) -> builtins.int:
+        r"""
+        Payload schema major version.
+        """
+    @property
+    def schema_minor(self) -> builtins.int:
+        r"""
+        Payload schema minor version.
+        """
+    @property
+    def layer(self) -> typing.Optional[LayerInfo]:
+        r"""
+        Metadata for the layer that produced the payload.
+        """
+    @property
+    def detections(self) -> typing.Optional[builtins.list[TurnDetection]]:
+        r"""
+        Results in payload order.
+        """
+
 class UnexpectedProducerError(ProducerIdentityError):
     r"""
     Raised when a packet was produced by an unexpected SDK.
@@ -1436,6 +1512,78 @@ class VideoFrameContext:
     def letterbox_bottom(self) -> builtins.int:
         r"""
         Pixels added at the bottom edge during letterboxing.
+        """
+
+@typing.final
+class VoiceActivityDetection:
+    r"""
+    One speech inference window.
+    """
+    @property
+    def object(self) -> typing.Optional[ObjectMetadata]:
+        r"""
+        Metadata for the associated object.
+        """
+    @property
+    def speech_probability(self) -> builtins.float:
+        r"""
+        Model probability.
+        """
+    @property
+    def speech_active(self) -> builtins.bool:
+        r"""
+        Speech state after hysteresis and attack/release filtering.
+        """
+    @property
+    def window_start_sample(self) -> builtins.int:
+        r"""
+        First mono 16 kHz sample since the latest reset.
+        """
+    @property
+    def window_end_sample(self) -> builtins.int:
+        r"""
+        Exclusive end sample since the latest reset.
+        """
+    @property
+    def window_start_timestamp_ns(self) -> typing.Optional[builtins.int]:
+        r"""
+        Source media timestamp; zero is valid and None means unknown.
+        """
+    @property
+    def window_end_timestamp_ns(self) -> typing.Optional[builtins.int]:
+        r"""
+        Exclusive end media timestamp; None means unknown.
+        """
+    @property
+    def discontinuity(self) -> builtins.bool:
+        r"""
+        First assessment after initialization or a stream discontinuity.
+        """
+
+@typing.final
+class VoiceActivityDetections:
+    r"""
+    One VoiceActivityDetections payload.
+    """
+    @property
+    def schema_major(self) -> builtins.int:
+        r"""
+        Payload schema major version.
+        """
+    @property
+    def schema_minor(self) -> builtins.int:
+        r"""
+        Payload schema minor version.
+        """
+    @property
+    def layer(self) -> typing.Optional[LayerInfo]:
+        r"""
+        Metadata for the layer that produced the payload.
+        """
+    @property
+    def detections(self) -> typing.Optional[builtins.list[VoiceActivityDetection]]:
+        r"""
+        Results in payload order.
         """
 
 @typing.final

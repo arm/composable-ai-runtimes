@@ -1141,6 +1141,94 @@ impl From<model::InstanceSegmentationMask> for PyInstanceSegmentationMask {
     }
 }
 
+/// One speech inference window.
+#[gen_stub_pyclass]
+#[pyclass(
+    frozen,
+    get_all,
+    skip_from_py_object,
+    module = "cairn.perception",
+    name = "VoiceActivityDetection"
+)]
+#[derive(Clone)]
+pub(super) struct PyVoiceActivityDetection {
+    /// Metadata for the associated object.
+    object: Option<PyObjectMetadata>,
+    /// Model probability.
+    speech_probability: f32,
+    /// Speech state after hysteresis and attack/release filtering.
+    speech_active: bool,
+    /// First mono 16 kHz sample since the latest reset.
+    window_start_sample: u64,
+    /// Exclusive end sample since the latest reset.
+    window_end_sample: u64,
+    /// Source media timestamp; zero is valid and None means unknown.
+    window_start_timestamp_ns: Option<u64>,
+    /// Exclusive end media timestamp; None means unknown.
+    window_end_timestamp_ns: Option<u64>,
+    /// First assessment after initialization or a stream discontinuity.
+    discontinuity: bool,
+}
+
+impl From<model::VoiceActivityDetection> for PyVoiceActivityDetection {
+    fn from(value: model::VoiceActivityDetection) -> Self {
+        Self {
+            object: value.object.map(Into::into),
+            speech_probability: value.speech_probability,
+            speech_active: value.speech_active,
+            window_start_sample: value.window_start_sample,
+            window_end_sample: value.window_end_sample,
+            window_start_timestamp_ns: value.window_start_timestamp_ns,
+            window_end_timestamp_ns: value.window_end_timestamp_ns,
+            discontinuity: value.discontinuity,
+        }
+    }
+}
+
+/// One model turn assessment, not a conversation-controller decision.
+#[gen_stub_pyclass]
+#[pyclass(
+    frozen,
+    get_all,
+    skip_from_py_object,
+    module = "cairn.perception",
+    name = "TurnDetection"
+)]
+#[derive(Clone)]
+pub(super) struct PyTurnDetection {
+    /// Metadata for the associated object.
+    object: Option<PyObjectMetadata>,
+    /// Model probability.
+    turn_probability: f32,
+    /// Whether the configured model threshold was met.
+    turn_complete: bool,
+    /// First mono 16 kHz sample since the latest reset.
+    window_start_sample: u64,
+    /// Exclusive end sample since the latest reset.
+    window_end_sample: u64,
+    /// Source media timestamp; zero is valid and None means unknown.
+    window_start_timestamp_ns: Option<u64>,
+    /// Exclusive end media timestamp; None means unknown.
+    window_end_timestamp_ns: Option<u64>,
+    /// First assessment after initialization or a stream discontinuity.
+    discontinuity: bool,
+}
+
+impl From<model::TurnDetection> for PyTurnDetection {
+    fn from(value: model::TurnDetection) -> Self {
+        Self {
+            object: value.object.map(Into::into),
+            turn_probability: value.turn_probability,
+            turn_complete: value.turn_complete,
+            window_start_sample: value.window_start_sample,
+            window_end_sample: value.window_end_sample,
+            window_start_timestamp_ns: value.window_start_timestamp_ns,
+            window_end_timestamp_ns: value.window_end_timestamp_ns,
+            discontinuity: value.discontinuity,
+        }
+    }
+}
+
 /// One SemanticSegmentationMasks payload.
 #[gen_stub_pyclass]
 #[pyclass(
@@ -1209,6 +1297,74 @@ impl From<model::InstanceSegmentationMasks> for PyInstanceSegmentationMasks {
     }
 }
 
+/// One VoiceActivityDetections payload.
+#[gen_stub_pyclass]
+#[pyclass(
+    frozen,
+    get_all,
+    skip_from_py_object,
+    module = "cairn.perception",
+    name = "VoiceActivityDetections"
+)]
+#[derive(Clone)]
+pub(super) struct PyVoiceActivityDetections {
+    /// Payload schema major version.
+    schema_major: u16,
+    /// Payload schema minor version.
+    schema_minor: u16,
+    /// Metadata for the layer that produced the payload.
+    layer: Option<PyLayerInfo>,
+    /// Results in payload order.
+    detections: Option<Vec<PyVoiceActivityDetection>>,
+}
+
+impl From<model::VoiceActivityDetections> for PyVoiceActivityDetections {
+    fn from(value: model::VoiceActivityDetections) -> Self {
+        Self {
+            schema_major: value.schema_major,
+            schema_minor: value.schema_minor,
+            layer: value.layer.map(Into::into),
+            detections: value
+                .detections
+                .map(|nested| nested.into_iter().map(Into::into).collect()),
+        }
+    }
+}
+
+/// One TurnDetections payload.
+#[gen_stub_pyclass]
+#[pyclass(
+    frozen,
+    get_all,
+    skip_from_py_object,
+    module = "cairn.perception",
+    name = "TurnDetections"
+)]
+#[derive(Clone)]
+pub(super) struct PyTurnDetections {
+    /// Payload schema major version.
+    schema_major: u16,
+    /// Payload schema minor version.
+    schema_minor: u16,
+    /// Metadata for the layer that produced the payload.
+    layer: Option<PyLayerInfo>,
+    /// Results in payload order.
+    detections: Option<Vec<PyTurnDetection>>,
+}
+
+impl From<model::TurnDetections> for PyTurnDetections {
+    fn from(value: model::TurnDetections) -> Self {
+        Self {
+            schema_major: value.schema_major,
+            schema_minor: value.schema_minor,
+            layer: value.layer.map(Into::into),
+            detections: value
+                .detections
+                .map(|nested| nested.into_iter().map(Into::into).collect()),
+        }
+    }
+}
+
 pub(super) fn register(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyObjectMetadata>()?;
     module.add_class::<PyProducerInfo>()?;
@@ -1238,7 +1394,11 @@ pub(super) fn register(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyTrackTraces>()?;
     module.add_class::<PySemanticSegmentationMask>()?;
     module.add_class::<PyInstanceSegmentationMask>()?;
+    module.add_class::<PyVoiceActivityDetection>()?;
+    module.add_class::<PyTurnDetection>()?;
     module.add_class::<PySemanticSegmentationMasks>()?;
     module.add_class::<PyInstanceSegmentationMasks>()?;
+    module.add_class::<PyVoiceActivityDetections>()?;
+    module.add_class::<PyTurnDetections>()?;
     Ok(())
 }

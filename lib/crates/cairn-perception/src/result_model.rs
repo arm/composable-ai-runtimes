@@ -610,6 +610,34 @@ pub struct InstanceSegmentationMask {
     pub bounding_box: Option<BoundingBox>,
 }
 
+/// One speech inference window.
+#[allow(missing_docs)]
+#[derive(Debug)]
+pub struct VoiceActivityDetection {
+    pub object: Option<ObjectMetadata>,
+    pub speech_probability: f32,
+    pub speech_active: bool,
+    pub window_start_sample: u64,
+    pub window_end_sample: u64,
+    pub window_start_timestamp_ns: Option<u64>,
+    pub window_end_timestamp_ns: Option<u64>,
+    pub discontinuity: bool,
+}
+
+/// One model turn assessment, not a conversation-controller decision.
+#[allow(missing_docs)]
+#[derive(Debug)]
+pub struct TurnDetection {
+    pub object: Option<ObjectMetadata>,
+    pub turn_probability: f32,
+    pub turn_complete: bool,
+    pub window_start_sample: u64,
+    pub window_end_sample: u64,
+    pub window_start_timestamp_ns: Option<u64>,
+    pub window_end_timestamp_ns: Option<u64>,
+    pub discontinuity: bool,
+}
+
 /// One SemanticSegmentationMasks payload.
 #[allow(missing_docs)]
 #[derive(Debug)]
@@ -628,4 +656,24 @@ pub struct InstanceSegmentationMasks {
     pub schema_minor: u16,
     pub layer: Option<LayerInfo>,
     pub masks: Option<Vec<InstanceSegmentationMask>>,
+}
+
+/// One VoiceActivityDetections payload.
+#[allow(missing_docs)]
+#[derive(Debug)]
+pub struct VoiceActivityDetections {
+    pub schema_major: u16,
+    pub schema_minor: u16,
+    pub layer: Option<LayerInfo>,
+    pub detections: Option<Vec<VoiceActivityDetection>>,
+}
+
+/// One TurnDetections payload.
+#[allow(missing_docs)]
+#[derive(Debug)]
+pub struct TurnDetections {
+    pub schema_major: u16,
+    pub schema_minor: u16,
+    pub layer: Option<LayerInfo>,
+    pub detections: Option<Vec<TurnDetection>>,
 }
