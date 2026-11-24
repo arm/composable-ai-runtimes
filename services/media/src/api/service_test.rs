@@ -189,6 +189,86 @@ async fn list_devices_maps_snapshot_panic_to_unavailable() {
     assert!(error.message().starts_with("device listing task failed:"));
 }
 
+#[tokio::test]
+async fn list_cameras_returns_camera_identities() {
+    let service = MediaApiService {
+        provider: MediaServiceProvider {
+            list_devices: |filter| {
+                assert_eq!(filter, Some(DeviceType::Camera));
+                Ok(vec![
+                    Device {
+                        node_id: 7,
+                        object_serial: 4_294_967_303,
+                        name: "front-door".to_string(),
+                        device_type: DeviceType::Camera,
+                    },
+                    Device {
+                        node_id: 8,
+                        object_serial: 4_294_967_304,
+                        name: "loading-bay".to_string(),
+                        device_type: DeviceType::Camera,
+                    },
+                ])
+            },
+            ..Default::default()
+        },
+    };
+
+    let cameras = service
+        .list_cameras(Request::new(media::ListRequest {}))
+        .await
+        .expect("listing should succeed")
+        .into_inner()
+        .cameras;
+
+    assert_eq!(
+        cameras
+            .into_iter()
+            .map(|camera| (camera.id, camera.name))
+            .collect::<Vec<_>>(),
+        vec![
+            (4_294_967_303, "front-door".to_string()),
+            (4_294_967_304, "loading-bay".to_string()),
+        ]
+    );
+}
+
+#[tokio::test]
+async fn list_cameras_maps_snapshot_error_to_unavailable() {
+    let service = MediaApiService {
+        provider: MediaServiceProvider {
+            list_devices: |_| Err(SnapshotError::Unavailable("PipeWire disconnected".into())),
+            ..Default::default()
+        },
+    };
+
+    let error = service
+        .list_cameras(Request::new(media::ListRequest {}))
+        .await
+        .expect_err("provider failure should reach the caller");
+
+    assert_eq!(error.code(), Code::Unavailable);
+    assert_eq!(error.message(), "PipeWire disconnected");
+}
+
+#[tokio::test]
+async fn list_cameras_maps_blocking_task_panic_to_unavailable() {
+    let service = MediaApiService {
+        provider: MediaServiceProvider {
+            list_devices: |_| panic!("snapshot task panicked"),
+            ..Default::default()
+        },
+    };
+
+    let error = service
+        .list_cameras(Request::new(media::ListRequest {}))
+        .await
+        .expect_err("task failure should reach the caller");
+
+    assert_eq!(error.code(), Code::Unavailable);
+    assert!(error.message().starts_with("camera listing task failed:"));
+}
+
 #[test]
 fn validate_stream_configuration_request_rejects_zero_resolution_dimension() {
     let request = media::StreamConfigurationRequest {
