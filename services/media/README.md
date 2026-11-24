@@ -16,7 +16,7 @@ Dependencies:
 
 - Rust toolchain with `cargo`
 - `protoc` available on `PATH`, or set via `PROTOC`
-- PipeWire libraries available via `pkg-config`
+- PipeWire 1.6.2 (or newer) libraries available via `pkg-config`
 
 Run all commands from `services/media`.
 

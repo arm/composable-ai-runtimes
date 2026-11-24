@@ -31,6 +31,7 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
 
 [build-dependencies]
+pkg-config = "0.3"
 tonic-prost-build = "0.14.5"
 
 [dev-dependencies]
