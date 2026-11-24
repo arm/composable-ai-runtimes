@@ -28,6 +28,8 @@ __all__ = [
     "ExternalPayload",
     "FrameContext",
     "IncompatibleProducerSchemaError",
+    "InstanceSegmentationMask",
+    "InstanceSegmentationMasks",
     "InvalidEnvelopeError",
     "LayerInfo",
     "MalformedKnownPayload",
@@ -56,6 +58,8 @@ __all__ = [
     "ResolvedStage",
     "SegmentationMask",
     "SegmentationMasks",
+    "SemanticSegmentationMask",
+    "SemanticSegmentationMasks",
     "SessionSnapshot",
     "SessionState",
     "SessionStatus",
@@ -422,6 +426,63 @@ class IncompatibleProducerSchemaError(ProducerIdentityError):
     Raised when the producer schema set differs from the supported schema set.
     """
     ...
+
+@typing.final
+class InstanceSegmentationMask:
+    r"""
+    One instance segmentation mask.
+    """
+    @property
+    def object(self) -> typing.Optional[ObjectMetadata]:
+        r"""
+        Metadata for the associated object.
+        """
+    @property
+    def bitmap(self) -> typing.Optional[BitmapData]:
+        r"""
+        Segmentation bitmap.
+        """
+    @property
+    def class_id(self) -> builtins.int:
+        r"""
+        Detected class identifier.
+        """
+    @property
+    def confidence(self) -> builtins.float:
+        r"""
+        Confidence score.
+        """
+    @property
+    def bounding_box(self) -> typing.Optional[BoundingBox]:
+        r"""
+        Bounding box of the instance.
+        """
+
+@typing.final
+class InstanceSegmentationMasks:
+    r"""
+    One InstanceSegmentationMasks payload.
+    """
+    @property
+    def schema_major(self) -> builtins.int:
+        r"""
+        Payload schema major version.
+        """
+    @property
+    def schema_minor(self) -> builtins.int:
+        r"""
+        Payload schema minor version.
+        """
+    @property
+    def layer(self) -> typing.Optional[LayerInfo]:
+        r"""
+        Metadata for the layer that produced the payload.
+        """
+    @property
+    def masks(self) -> typing.Optional[builtins.list[InstanceSegmentationMask]]:
+        r"""
+        Results in payload order.
+        """
 
 class InvalidEnvelopeError(PerceptionResultError):
     r"""
@@ -1032,6 +1093,48 @@ class SegmentationMasks:
     def masks(self) -> typing.Optional[builtins.list[SegmentationMask]]:
         r"""
         Object segmentation masks.
+        """
+
+@typing.final
+class SemanticSegmentationMask:
+    r"""
+    One semantic segmentation mask.
+    """
+    @property
+    def object(self) -> typing.Optional[ObjectMetadata]:
+        r"""
+        Metadata for the associated object.
+        """
+    @property
+    def bitmap(self) -> typing.Optional[BitmapData]:
+        r"""
+        Segmentation bitmap.
+        """
+
+@typing.final
+class SemanticSegmentationMasks:
+    r"""
+    One SemanticSegmentationMasks payload.
+    """
+    @property
+    def schema_major(self) -> builtins.int:
+        r"""
+        Payload schema major version.
+        """
+    @property
+    def schema_minor(self) -> builtins.int:
+        r"""
+        Payload schema minor version.
+        """
+    @property
+    def layer(self) -> typing.Optional[LayerInfo]:
+        r"""
+        Metadata for the layer that produced the payload.
+        """
+    @property
+    def masks(self) -> typing.Optional[builtins.list[SemanticSegmentationMask]]:
+        r"""
+        Results in payload order.
         """
 
 @typing.final

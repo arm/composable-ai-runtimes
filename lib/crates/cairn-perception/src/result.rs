@@ -8,10 +8,11 @@ use open_perception_kit::{EntryRef, NativePayload, ProducerIdentityStatus};
 
 pub use crate::result_model::{
     AudioFrameContext, BitmapData, BoundingBox, BoxDetection, BoxDetections, Classification,
-    ClassificationCandidate, Classifications, FrameContext, LayerInfo, ObjectEmbedding,
-    ObjectEmbeddings, ObjectMetadata, ObjectTrack, ObjectTracks, PerformanceOverlay,
-    PersonPresence, Point2d, PoseEstimation, PoseEstimations, ProducerInfo, SegmentationMask,
-    SegmentationMasks, TrackTrace, TrackTraces, VideoFrameContext,
+    ClassificationCandidate, Classifications, FrameContext, InstanceSegmentationMask,
+    InstanceSegmentationMasks, LayerInfo, ObjectEmbedding, ObjectEmbeddings, ObjectMetadata,
+    ObjectTrack, ObjectTracks, PerformanceOverlay, PersonPresence, Point2d, PoseEstimation,
+    PoseEstimations, ProducerInfo, SegmentationMask, SegmentationMasks, SemanticSegmentationMask,
+    SemanticSegmentationMasks, TrackTrace, TrackTraces, VideoFrameContext,
 };
 
 /// A decoded result from a Perception session's results topic.

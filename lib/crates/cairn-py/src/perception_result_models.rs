@@ -1080,6 +1080,135 @@ impl From<model::TrackTraces> for PyTrackTraces {
     }
 }
 
+/// One semantic segmentation mask.
+#[gen_stub_pyclass]
+#[pyclass(
+    frozen,
+    get_all,
+    skip_from_py_object,
+    module = "cairn.perception",
+    name = "SemanticSegmentationMask"
+)]
+#[derive(Clone)]
+pub(super) struct PySemanticSegmentationMask {
+    /// Metadata for the associated object.
+    object: Option<PyObjectMetadata>,
+    /// Segmentation bitmap.
+    bitmap: Option<PyBitmapData>,
+}
+
+impl From<model::SemanticSegmentationMask> for PySemanticSegmentationMask {
+    fn from(value: model::SemanticSegmentationMask) -> Self {
+        Self {
+            object: value.object.map(Into::into),
+            bitmap: value.bitmap.map(Into::into),
+        }
+    }
+}
+
+/// One instance segmentation mask.
+#[gen_stub_pyclass]
+#[pyclass(
+    frozen,
+    get_all,
+    skip_from_py_object,
+    module = "cairn.perception",
+    name = "InstanceSegmentationMask"
+)]
+#[derive(Clone)]
+pub(super) struct PyInstanceSegmentationMask {
+    /// Metadata for the associated object.
+    object: Option<PyObjectMetadata>,
+    /// Segmentation bitmap.
+    bitmap: Option<PyBitmapData>,
+    /// Detected class identifier.
+    class_id: i32,
+    /// Confidence score.
+    confidence: f32,
+    /// Bounding box of the instance.
+    bounding_box: Option<PyBoundingBox>,
+}
+
+impl From<model::InstanceSegmentationMask> for PyInstanceSegmentationMask {
+    fn from(value: model::InstanceSegmentationMask) -> Self {
+        Self {
+            object: value.object.map(Into::into),
+            bitmap: value.bitmap.map(Into::into),
+            class_id: value.class_id,
+            confidence: value.confidence,
+            bounding_box: value.bounding_box.map(Into::into),
+        }
+    }
+}
+
+/// One SemanticSegmentationMasks payload.
+#[gen_stub_pyclass]
+#[pyclass(
+    frozen,
+    get_all,
+    skip_from_py_object,
+    module = "cairn.perception",
+    name = "SemanticSegmentationMasks"
+)]
+#[derive(Clone)]
+pub(super) struct PySemanticSegmentationMasks {
+    /// Payload schema major version.
+    schema_major: u16,
+    /// Payload schema minor version.
+    schema_minor: u16,
+    /// Metadata for the layer that produced the payload.
+    layer: Option<PyLayerInfo>,
+    /// Results in payload order.
+    masks: Option<Vec<PySemanticSegmentationMask>>,
+}
+
+impl From<model::SemanticSegmentationMasks> for PySemanticSegmentationMasks {
+    fn from(value: model::SemanticSegmentationMasks) -> Self {
+        Self {
+            schema_major: value.schema_major,
+            schema_minor: value.schema_minor,
+            layer: value.layer.map(Into::into),
+            masks: value
+                .masks
+                .map(|nested| nested.into_iter().map(Into::into).collect()),
+        }
+    }
+}
+
+/// One InstanceSegmentationMasks payload.
+#[gen_stub_pyclass]
+#[pyclass(
+    frozen,
+    get_all,
+    skip_from_py_object,
+    module = "cairn.perception",
+    name = "InstanceSegmentationMasks"
+)]
+#[derive(Clone)]
+pub(super) struct PyInstanceSegmentationMasks {
+    /// Payload schema major version.
+    schema_major: u16,
+    /// Payload schema minor version.
+    schema_minor: u16,
+    /// Metadata for the layer that produced the payload.
+    layer: Option<PyLayerInfo>,
+    /// Results in payload order.
+    masks: Option<Vec<PyInstanceSegmentationMask>>,
+}
+
+impl From<model::InstanceSegmentationMasks> for PyInstanceSegmentationMasks {
+    fn from(value: model::InstanceSegmentationMasks) -> Self {
+        Self {
+            schema_major: value.schema_major,
+            schema_minor: value.schema_minor,
+            layer: value.layer.map(Into::into),
+            masks: value
+                .masks
+                .map(|nested| nested.into_iter().map(Into::into).collect()),
+        }
+    }
+}
+
 pub(super) fn register(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyObjectMetadata>()?;
     module.add_class::<PyProducerInfo>()?;
@@ -1107,5 +1236,9 @@ pub(super) fn register(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PySegmentationMasks>()?;
     module.add_class::<PyTrackTrace>()?;
     module.add_class::<PyTrackTraces>()?;
+    module.add_class::<PySemanticSegmentationMask>()?;
+    module.add_class::<PyInstanceSegmentationMask>()?;
+    module.add_class::<PySemanticSegmentationMasks>()?;
+    module.add_class::<PyInstanceSegmentationMasks>()?;
     Ok(())
 }

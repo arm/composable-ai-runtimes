@@ -590,3 +590,42 @@ impl From<opk::TrackTracesT> for TrackTraces {
         }
     }
 }
+
+/// One semantic segmentation mask.
+#[allow(missing_docs)]
+#[derive(Debug)]
+pub struct SemanticSegmentationMask {
+    pub object: Option<ObjectMetadata>,
+    pub bitmap: Option<BitmapData>,
+}
+
+/// One instance segmentation mask.
+#[allow(missing_docs)]
+#[derive(Debug)]
+pub struct InstanceSegmentationMask {
+    pub object: Option<ObjectMetadata>,
+    pub bitmap: Option<BitmapData>,
+    pub class_id: i32,
+    pub confidence: f32,
+    pub bounding_box: Option<BoundingBox>,
+}
+
+/// One SemanticSegmentationMasks payload.
+#[allow(missing_docs)]
+#[derive(Debug)]
+pub struct SemanticSegmentationMasks {
+    pub schema_major: u16,
+    pub schema_minor: u16,
+    pub layer: Option<LayerInfo>,
+    pub masks: Option<Vec<SemanticSegmentationMask>>,
+}
+
+/// One InstanceSegmentationMasks payload.
+#[allow(missing_docs)]
+#[derive(Debug)]
+pub struct InstanceSegmentationMasks {
+    pub schema_major: u16,
+    pub schema_minor: u16,
+    pub layer: Option<LayerInfo>,
+    pub masks: Option<Vec<InstanceSegmentationMask>>,
+}
