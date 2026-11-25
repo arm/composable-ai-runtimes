@@ -105,6 +105,13 @@ pub enum PyDeviceStreamFormatFilter {
     Video(Py<PyStreamFormatFilter>),
 }
 
+impl PyDeviceStreamFormatFilter {
+    pub(crate) fn to_rust(&self, py: Python<'_>) -> media::DeviceStreamFormatFilter {
+        let Self::Video(filter) = self;
+        media::DeviceStreamFormatFilter::Video((&*filter.borrow(py)).into())
+    }
+}
+
 /// An immutable device configuration, discovered or supplied by the caller.
 #[gen_stub_pyclass(module = "cairn.media")]
 #[pyclass(

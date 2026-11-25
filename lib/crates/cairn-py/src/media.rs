@@ -20,7 +20,7 @@ use crate::device_types::{
 
 /// Client for the Cairn media service.
 ///
-/// Connects over gRPC to discover media devices and camera stream configurations.
+/// Connects over gRPC to discover media devices and their stream configurations.
 #[gen_stub_pyclass(module = "cairn.media")]
 #[pyclass(module = "cairn", name = "Media")]
 pub struct PyMedia {
@@ -30,6 +30,29 @@ pub struct PyMedia {
 #[gen_stub_pymethods]
 #[pymethods]
 impl PyMedia {
+    /// Discover configurations for a device. None means unfiltered discovery; video filters apply only to cameras.
+    #[pyo3(signature = (device_id, filter=None))]
+    fn get_device_stream_configurations(
+        &self,
+        py: Python<'_>,
+        device_id: u64,
+        filter: Option<PyRef<'_, PyDeviceStreamFormatFilter>>,
+    ) -> PyResult<Vec<PyDeviceStreamConfiguration>> {
+        let filter = filter.map(|filter| filter.to_rust(py));
+        tokio_runtime::get_runtime()
+            .block_on(
+                self.inner
+                    .get_device_stream_configurations(device_id, filter),
+            )
+            .map(|values| {
+                values
+                    .into_iter()
+                    .map(PyDeviceStreamConfiguration)
+                    .collect()
+            })
+            .map_err(map_media_error)
+    }
+
     /// List devices, optionally filtered by type. Discovery failures raise RuntimeError.
     #[pyo3(signature = (device_type=None))]
     fn list_devices(&self, device_type: Option<PyDeviceType>) -> PyResult<Vec<PyDevice>> {
@@ -167,5 +190,5 @@ pub(crate) fn register(parent: &Bound<'_, PyModule>) -> PyResult<()> {
 
 pyo3_stub_gen::module_doc!(
     "cairn.media",
-    "Python interface for device discovery and camera stream configurations."
+    "Python interface for device discovery and their stream configurations."
 );

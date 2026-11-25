@@ -21,6 +21,7 @@ from cairn import (
     DeviceSelector,
     DeviceStreamConfiguration,
     DeviceStreamFormat,
+    DeviceStreamFormatFilter,
     DeviceType,
     FrameRate,
     Media,
@@ -97,6 +98,32 @@ class MockMediaService:
             ]
         )
 
+    def get_device_stream_configurations(
+        self, request: camera_proto.DeviceStreamConfigurationRequest,
+        context: grpc.ServicerContext,
+    ) -> camera_proto.DeviceStreamConfigurationResponse:
+        self.requests.put(request.SerializeToString())
+        if self.response_kind == "unavailable":
+            context.abort(grpc.StatusCode.UNAVAILABLE, "PipeWire unavailable")
+        if self.response_kind == "empty":
+            return camera_proto.DeviceStreamConfigurationResponse()
+        configuration = camera_proto.DeviceStreamConfiguration(
+            target="opaque:52", device_id=request.device_id,
+        )
+        if self.response_kind != "missing-format":
+            if request.device_id == 7:
+                configuration.video_format.CopyFrom(camera_proto.StreamFormat(
+                    resolution=camera_proto.Resolution(width=1920, height=1080),
+                    pixel_format="RGB",
+                    frame_rate=camera_proto.FrameRate(numerator=30000, denominator=1001),
+                ))
+            else:
+                configuration.audio_format.CopyFrom(camera_proto.AudioFormat(
+                    sample_rate=48000, channels=2, sample_format="F32LE",
+                    channel_layout=["FL", "FR"], interleaved=request.device_id == 8,
+                ))
+        return camera_proto.DeviceStreamConfigurationResponse(configurations=[configuration])
+
 
 def run_mock_media_service(
     response_kind: str, ready: Any, requests: Any, stop: Any
@@ -109,6 +136,11 @@ def run_mock_media_service(
             grpc.method_handlers_generic_handler(
                 "cairn.media.v1.MediaService",
                 {
+                    "GetDeviceStreamConfigurations": grpc.unary_unary_rpc_method_handler(
+                        service.get_device_stream_configurations,
+                        request_deserializer=camera_proto.DeviceStreamConfigurationRequest.FromString,
+                        response_serializer=camera_proto.DeviceStreamConfigurationResponse.SerializeToString,
+                    ),
                     "ListDevices": grpc.unary_unary_rpc_method_handler(
                         service.list_devices,
                         request_deserializer=camera_proto.ListDevicesRequest.FromString,
@@ -152,11 +184,7 @@ def run_mock_media_service(
     executor.shutdown(wait=True)
 
 
-@pytest.fixture
-def media_service(
-    request: pytest.FixtureRequest,
-) -> Generator[tuple[str, Any]]:
-    response_kind = getattr(request, "param", "valid")
+def mock_media_service(response_kind: str) -> Generator[tuple[str, "Queue[bytes]"]]:
     context = multiprocessing.get_context("spawn")
     ready = context.Queue()
     requests = context.Queue()
@@ -176,6 +204,18 @@ def media_service(
         if process.is_alive():
             process.kill()
             process.join()
+
+
+@pytest.fixture
+def media_service(
+    request: pytest.FixtureRequest,
+) -> Generator[tuple[str, "Queue[bytes]"]]:
+    yield from mock_media_service(getattr(request, "param", "valid"))
+
+
+@pytest.fixture
+def empty_media_service() -> Generator[tuple[str, "Queue[bytes]"]]:
+    yield from mock_media_service("empty")
 
 
 async def camera_from_service(endpoint: str) -> Camera:
@@ -313,6 +353,94 @@ def test_device_types_are_exported_from_package() -> None:
         assert getattr(cairn, name) is getattr(cairn.media, name)
 
 
+@pytest.mark.parametrize("device_id, format_type", [
+    (7, DeviceStreamFormat.Video), (8, DeviceStreamFormat.Audio),
+])
+def test_device_configuration_discovery(
+    media_service: tuple[str, "Queue[bytes]"], device_id: int,
+    format_type: type[DeviceStreamFormat],
+) -> None:
+    async def discover() -> list[DeviceStreamConfiguration]:
+        client = await Media.connect(media_service[0])
+        device = await client.get_device(DeviceSelector.Id(device_id))
+        del client
+        return await device.get_stream_configurations()
+
+    configurations = asyncio.run(asyncio.wait_for(discover(), timeout=5))
+    assert len(configurations) == 1
+    configuration = configurations[0]
+    assert (configuration.target, configuration.device_id) == ("opaque:52", device_id)
+    assert isinstance(configuration.format, format_type)
+
+
+@pytest.mark.parametrize("device_id, format_type", [
+    (7, DeviceStreamFormat.Video), (8, DeviceStreamFormat.Audio),
+])
+def test_media_device_configuration_discovery(
+    media_service: tuple[str, "Queue[bytes]"], device_id: int,
+    format_type: type[DeviceStreamFormat],
+) -> None:
+    async def discover() -> list[DeviceStreamConfiguration]:
+        client = await Media.connect(media_service[0])
+        return client.get_device_stream_configurations(device_id)
+
+    configurations = asyncio.run(asyncio.wait_for(discover(), timeout=5))
+    assert len(configurations) == 1
+    configuration = configurations[0]
+    assert (configuration.target, configuration.device_id) == ("opaque:52", device_id)
+    assert isinstance(configuration.format, format_type)
+
+
+def test_device_configurations_forward_video_filter(
+    media_service: tuple[str, "Queue[bytes]"],
+) -> None:
+    endpoint, requests = media_service
+    filter = DeviceStreamFormatFilter.Video(StreamFormatFilter(
+        resolution=Resolution(1920, 1080), pixel_format="RGB",
+        frame_rate=FrameRate(30000, 1001),
+    ))
+
+    async def discover() -> None:
+        client = await Media.connect(endpoint)
+        device = await client.get_device(DeviceSelector.Id(7))
+        requests.get(timeout=1)  # Consume the discovery request.
+        await device.get_stream_configurations(filter)
+
+    asyncio.run(asyncio.wait_for(discover(), timeout=5))
+    request = camera_proto.DeviceStreamConfigurationRequest.FromString(requests.get(timeout=1))
+    assert request == camera_proto.DeviceStreamConfigurationRequest(
+        device_id=7,
+        video_format=camera_proto.StreamFormat(
+            resolution=camera_proto.Resolution(width=1920, height=1080), pixel_format="RGB",
+            frame_rate=camera_proto.FrameRate(numerator=30000, denominator=1001),
+        ),
+    )
+
+
+def test_media_device_configurations_forward_video_filter(
+    media_service: tuple[str, "Queue[bytes]"],
+) -> None:
+    endpoint, requests = media_service
+    filter = DeviceStreamFormatFilter.Video(StreamFormatFilter(
+        resolution=Resolution(1920, 1080), pixel_format="RGB",
+        frame_rate=FrameRate(30000, 1001),
+    ))
+
+    async def discover() -> None:
+        client = await Media.connect(endpoint)
+        client.get_device_stream_configurations(7, filter)
+
+    asyncio.run(asyncio.wait_for(discover(), timeout=5))
+    request = camera_proto.DeviceStreamConfigurationRequest.FromString(requests.get(timeout=1))
+    assert request == camera_proto.DeviceStreamConfigurationRequest(
+        device_id=7,
+        video_format=camera_proto.StreamFormat(
+            resolution=camera_proto.Resolution(width=1920, height=1080), pixel_format="RGB",
+            frame_rate=camera_proto.FrameRate(numerator=30000, denominator=1001),
+        ),
+    )
+
+
 def test_video_device_configuration_constructor_preserves_fields() -> None:
     format = DeviceStreamFormat.Video(StreamFormat(
         Resolution(1920, 1080), "RGB", FrameRate(30000, 1001),
@@ -341,6 +469,58 @@ def test_audio_device_configuration_constructor_preserves_fields(interleaved: bo
     assert (audio.sample_rate, audio.channels, audio.sample_format) == (48000, 2, "F32LE")
     assert audio.channel_layout == ["FL", "FR"]
     assert audio.interleaved == interleaved
+
+
+def test_device_configurations_handle_empty_responses(
+    empty_media_service: tuple[str, "Queue[bytes]"],
+) -> None:
+    async def discover() -> None:
+        service = await Media.connect(empty_media_service[0])
+        device = await service.get_device(DeviceSelector.Id(7))
+        assert await device.get_stream_configurations() == []
+
+    asyncio.run(asyncio.wait_for(discover(), timeout=5))
+
+
+def test_media_device_configurations_handle_empty_responses(
+    empty_media_service: tuple[str, "Queue[bytes]"],
+) -> None:
+    async def discover() -> None:
+        service = await Media.connect(empty_media_service[0])
+        assert service.get_device_stream_configurations(7) == []
+
+    asyncio.run(asyncio.wait_for(discover(), timeout=5))
+
+
+@pytest.mark.parametrize("media_service, message", [
+    ("missing-format", "missing its format"),
+    ("unavailable", "PipeWire unavailable"),
+], indirect=["media_service"])
+def test_device_configurations_propagate_errors(
+    media_service: tuple[str, "Queue[bytes]"], message: str,
+) -> None:
+    async def discover() -> None:
+        service = await Media.connect(media_service[0])
+        device = await service.get_device(DeviceSelector.Id(7))
+        with pytest.raises(RuntimeError, match=message):
+            await device.get_stream_configurations()
+
+    asyncio.run(asyncio.wait_for(discover(), timeout=5))
+
+
+@pytest.mark.parametrize("media_service, message", [
+    ("missing-format", "missing its format"),
+    ("unavailable", "PipeWire unavailable"),
+], indirect=["media_service"])
+def test_media_device_configurations_propagate_errors(
+    media_service: tuple[str, "Queue[bytes]"], message: str,
+) -> None:
+    async def discover() -> None:
+        service = await Media.connect(media_service[0])
+        with pytest.raises(RuntimeError, match=message):
+            service.get_device_stream_configurations(7)
+
+    asyncio.run(asyncio.wait_for(discover(), timeout=5))
 
 
 @pytest.mark.parametrize("camera_id", [None, 7])
