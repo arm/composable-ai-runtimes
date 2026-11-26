@@ -11,8 +11,7 @@ mod stream_format;
 #[cfg(test)]
 mod audio_format_test;
 
-use audio_format::AudioStreamFormat;
-pub(super) use audio_format::audio_formats_from_pod;
+pub(super) use audio_format::{AudioStreamFormat, audio_formats_from_pod};
 pub(crate) use frame_rate::FrameRate;
 pub(crate) use resolution::Resolution;
 #[allow(unused_imports)]

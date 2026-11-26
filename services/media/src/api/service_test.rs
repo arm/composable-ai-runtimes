@@ -1,7 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
 // SPDX-License-Identifier: Apache-2.0
 
-use super::parameters::{FrameRate, Resolution, StreamFormat};
+use super::parameters::{
+    AudioStreamFormat, DeviceStreamFormat, FrameRate, Resolution, StreamFormat, StreamFormatFilter,
+};
 use super::service::media::media_service_server::MediaService;
 use super::service::{
     MediaApiService, MediaServiceProvider, map_snapshot_error, media,
@@ -10,6 +12,50 @@ use super::service::{
 use super::snapshot::SnapshotError;
 use crate::device::{Device, DeviceType};
 use tonic::{Code, Request};
+
+const AUDIO_DEVICE_ID: u64 = u32::MAX as u64 + 1;
+const AUDIO_TARGET: u64 = 73;
+const VIDEO_DEVICE_ID: u64 = 101;
+
+fn mock_audio_formats(
+    _device_id: u64,
+    _filter: Option<StreamFormatFilter>,
+) -> Result<(u64, Vec<DeviceStreamFormat>), SnapshotError> {
+    Ok((
+        AUDIO_TARGET,
+        vec![
+            DeviceStreamFormat::Audio(AudioStreamFormat {
+                sample_rate: 96_000,
+                channels: 2,
+                sample_format: "F32LE".into(),
+                channel_layout: vec!["FR".into(), "FL".into()],
+                interleaved: true,
+            }),
+            DeviceStreamFormat::Audio(AudioStreamFormat {
+                sample_rate: 44_100,
+                channels: 1,
+                sample_format: "F32P".into(),
+                channel_layout: Vec::new(),
+                interleaved: false,
+            }),
+        ],
+    ))
+}
+
+fn mock_video_formats(
+    device_id: u64,
+    filter: Option<StreamFormatFilter>,
+) -> Result<(u64, Vec<DeviceStreamFormat>), SnapshotError> {
+    let filter = filter.expect("test supplies a video filter");
+    Ok((
+        device_id,
+        vec![DeviceStreamFormat::Video(StreamFormat {
+            resolution: filter.resolution.expect("test supplies a resolution"),
+            pixel_format: filter.pixel_format,
+            frame_rate: filter.frame_rate.expect("test supplies a frame rate"),
+        })],
+    ))
+}
 
 #[test]
 fn map_snapshot_error_returns_unavailable_status() {
@@ -375,4 +421,247 @@ fn device_converts_to_grpc_camera() {
 
     assert_eq!(camera.id, 7);
     assert_eq!(camera.name, "front");
+}
+
+#[tokio::test]
+async fn get_device_stream_configurations_returns_all_audio_configurations() {
+    let service = MediaApiService {
+        provider: MediaServiceProvider {
+            list_device_stream_formats: mock_audio_formats,
+            ..Default::default()
+        },
+    };
+    let request = media::DeviceStreamConfigurationRequest {
+        device_id: AUDIO_DEVICE_ID,
+        filter: None,
+    };
+    let actual = service
+        .get_device_stream_configurations(Request::new(request))
+        .await
+        .expect("audio configuration request should succeed")
+        .into_inner();
+
+    use media::device_stream_configuration::Format;
+    let expected = [
+        media::DeviceStreamConfiguration {
+            device_id: AUDIO_DEVICE_ID,
+            target: AUDIO_TARGET.to_string(),
+            format: Some(Format::AudioFormat(media::AudioFormat {
+                sample_rate: 96_000,
+                channels: 2,
+                sample_format: "F32LE".into(),
+                channel_layout: vec!["FR".into(), "FL".into()],
+                interleaved: true,
+            })),
+        },
+        media::DeviceStreamConfiguration {
+            device_id: AUDIO_DEVICE_ID,
+            target: AUDIO_TARGET.to_string(),
+            format: Some(Format::AudioFormat(media::AudioFormat {
+                sample_rate: 44_100,
+                channels: 1,
+                sample_format: "F32P".into(),
+                channel_layout: Vec::new(),
+                interleaved: false,
+            })),
+        },
+    ];
+    assert_eq!(actual.configurations.len(), expected.len());
+    for configuration in expected {
+        assert!(
+            actual.configurations.contains(&configuration),
+            "missing configuration: {configuration:?}"
+        );
+    }
+}
+
+#[tokio::test]
+async fn get_device_stream_configurations_forwards_video_filter() {
+    use media::device_stream_configuration::Format;
+    use media::device_stream_configuration_request::Filter;
+
+    let service = MediaApiService {
+        provider: MediaServiceProvider {
+            list_device_stream_formats: mock_video_formats,
+            ..Default::default()
+        },
+    };
+    let filter = media::StreamFormat {
+        resolution: Some(media::Resolution {
+            width: 1280,
+            height: 720,
+        }),
+        frame_rate: Some(media::FrameRate {
+            numerator: 30_000,
+            denominator: 1001,
+        }),
+        pixel_format: "YUY2".into(),
+    };
+    let request = media::DeviceStreamConfigurationRequest {
+        device_id: VIDEO_DEVICE_ID,
+        filter: Some(Filter::VideoFormat(filter.clone())),
+    };
+    let actual = service
+        .get_device_stream_configurations(Request::new(request))
+        .await
+        .expect("video configuration request should succeed")
+        .into_inner();
+    assert_eq!(
+        actual.configurations,
+        [media::DeviceStreamConfiguration {
+            device_id: VIDEO_DEVICE_ID,
+            target: VIDEO_DEVICE_ID.to_string(),
+            format: Some(Format::VideoFormat(filter)),
+        }]
+    );
+}
+
+#[tokio::test]
+async fn get_device_stream_configurations_rejects_zero_id_before_lookup() {
+    use std::sync::atomic::{AtomicBool, Ordering};
+
+    static PROVIDER_CALLED: AtomicBool = AtomicBool::new(false);
+    let service = MediaApiService {
+        provider: MediaServiceProvider {
+            list_device_stream_formats: |device_id, _| {
+                PROVIDER_CALLED.store(true, Ordering::Relaxed);
+                Ok((device_id, Vec::new()))
+            },
+            ..Default::default()
+        },
+    };
+    let request = media::DeviceStreamConfigurationRequest {
+        device_id: 0,
+        filter: None,
+    };
+    let error = service
+        .get_device_stream_configurations(Request::new(request))
+        .await
+        .unwrap_err();
+    assert_eq!(
+        (error.code(), error.message()),
+        (Code::InvalidArgument, "device_id must be greater than zero")
+    );
+    assert!(!PROVIDER_CALLED.load(Ordering::Relaxed));
+}
+
+#[tokio::test]
+async fn get_device_stream_configurations_rejects_invalid_filter_before_lookup() {
+    use media::device_stream_configuration_request::Filter;
+    use std::sync::atomic::{AtomicBool, Ordering};
+
+    static PROVIDER_CALLED: AtomicBool = AtomicBool::new(false);
+    let service = MediaApiService {
+        provider: MediaServiceProvider {
+            list_device_stream_formats: |device_id, _| {
+                PROVIDER_CALLED.store(true, Ordering::Relaxed);
+                Ok((device_id, Vec::new()))
+            },
+            ..Default::default()
+        },
+    };
+    let request = media::DeviceStreamConfigurationRequest {
+        device_id: VIDEO_DEVICE_ID,
+        filter: Some(Filter::VideoFormat(media::StreamFormat {
+            pixel_format: "RGB 24".into(),
+            ..Default::default()
+        })),
+    };
+    let error = service
+        .get_device_stream_configurations(Request::new(request))
+        .await
+        .unwrap_err();
+    assert_eq!(error.code(), Code::InvalidArgument);
+    assert_eq!(error.message(), "pixel_format contains invalid characters");
+    assert!(!PROVIDER_CALLED.load(Ordering::Relaxed));
+}
+
+#[tokio::test]
+async fn get_device_stream_configurations_returns_empty_when_provider_has_no_formats() {
+    let service = MediaApiService {
+        provider: MediaServiceProvider {
+            list_device_stream_formats: |device_id, _| Ok((device_id, Vec::new())),
+            ..Default::default()
+        },
+    };
+    let request = media::DeviceStreamConfigurationRequest {
+        device_id: VIDEO_DEVICE_ID,
+        filter: None,
+    };
+    let response = service
+        .get_device_stream_configurations(Request::new(request))
+        .await
+        .expect("an empty snapshot should succeed")
+        .into_inner();
+
+    assert!(response.configurations.is_empty());
+}
+
+#[tokio::test]
+async fn get_device_stream_configurations_maps_missing_device_to_not_found() {
+    let service = MediaApiService {
+        provider: MediaServiceProvider {
+            list_device_stream_formats: |_, _| Err(SnapshotError::NotFound(52)),
+            ..Default::default()
+        },
+    };
+    let request = media::DeviceStreamConfigurationRequest {
+        device_id: 52,
+        filter: None,
+    };
+    let error = service
+        .get_device_stream_configurations(Request::new(request))
+        .await
+        .unwrap_err();
+    assert_eq!(error.code(), Code::NotFound);
+    assert_eq!(error.message(), "device 52 was not found");
+}
+
+#[tokio::test]
+async fn get_device_stream_configurations_maps_snapshot_failure_to_unavailable() {
+    let service = MediaApiService {
+        provider: MediaServiceProvider {
+            list_device_stream_formats: |_, _| {
+                Err(SnapshotError::Unavailable("PipeWire disconnected".into()))
+            },
+            ..Default::default()
+        },
+    };
+    let request = media::DeviceStreamConfigurationRequest {
+        device_id: VIDEO_DEVICE_ID,
+        filter: None,
+    };
+    let error = service
+        .get_device_stream_configurations(Request::new(request))
+        .await
+        .unwrap_err();
+
+    assert_eq!(error.code(), Code::Unavailable);
+    assert_eq!(error.message(), "PipeWire disconnected");
+}
+
+#[tokio::test]
+async fn get_device_stream_configurations_maps_audio_filter_error_to_invalid_argument() {
+    use media::device_stream_configuration_request::Filter;
+
+    let service = MediaApiService {
+        provider: MediaServiceProvider {
+            list_device_stream_formats: |_, _| Err(SnapshotError::VideoFilterOnAudioDevice),
+            ..Default::default()
+        },
+    };
+    let request = media::DeviceStreamConfigurationRequest {
+        device_id: AUDIO_DEVICE_ID,
+        filter: Some(Filter::VideoFormat(media::StreamFormat::default())),
+    };
+    let error = service
+        .get_device_stream_configurations(Request::new(request))
+        .await
+        .unwrap_err();
+
+    assert_eq!(error.code(), Code::InvalidArgument);
+    assert_eq!(
+        error.message(),
+        "video filters are only supported for cameras"
+    );
 }
