@@ -9,8 +9,10 @@ use pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pymethods};
 use pyo3_stub_gen::runtime::PyModuleTypeAliasExt;
 
 use crate::perception_result_models::{
-    PyBoxDetections, PyClassifications, PyFrameContext, PyObjectEmbeddings, PyObjectTracks,
-    PyPerformanceOverlay, PyPoseEstimations, PySegmentationMasks, PyTrackTraces,
+    PyBoxDetections, PyClassifications, PyFrameContext, PyInstanceSegmentationMasks,
+    PyObjectEmbeddings, PyObjectTracks, PyPerformanceOverlay, PyPoseEstimations,
+    PySegmentationMasks, PySemanticSegmentationMasks, PyTrackTraces, PyTurnDetections,
+    PyVoiceActivityDetections,
 };
 
 macro_rules! error_member {
@@ -251,6 +253,18 @@ fn bind_entry(py: Python<'_>, entry: model::PerceptionPayload) -> PyResult<Py<Py
         model::PerceptionPayload::TrackTraces(value) => {
             Ok(Py::new(py, PyTrackTraces::from(value))?.into_any())
         }
+        model::PerceptionPayload::SemanticSegmentationMasks(value) => {
+            Ok(Py::new(py, PySemanticSegmentationMasks::from(value))?.into_any())
+        }
+        model::PerceptionPayload::InstanceSegmentationMasks(value) => {
+            Ok(Py::new(py, PyInstanceSegmentationMasks::from(value))?.into_any())
+        }
+        model::PerceptionPayload::VoiceActivityDetections(value) => {
+            Ok(Py::new(py, PyVoiceActivityDetections::from(value))?.into_any())
+        }
+        model::PerceptionPayload::TurnDetections(value) => {
+            Ok(Py::new(py, PyTurnDetections::from(value))?.into_any())
+        }
         model::PerceptionPayload::External(value) => Ok(Py::new(
             py,
             PyExternalPayload {
@@ -346,6 +360,10 @@ pyo3_stub_gen::type_alias!(
         | PyObjectTracks
         | PyPerformanceOverlay
         | PyPoseEstimations
+        | PySemanticSegmentationMasks
+        | PyInstanceSegmentationMasks
+        | PyVoiceActivityDetections
+        | PyTurnDetections
         | PySegmentationMasks
         | PyTrackTraces
         | PyExternalPayload

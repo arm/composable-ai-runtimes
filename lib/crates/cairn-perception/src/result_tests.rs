@@ -128,7 +128,7 @@ fn classification_candidate_mapping_preserves_renamed_fields() {
 }
 
 #[test]
-fn decode_exposes_all_nine_result_families() {
+fn decode_exposes_all_result_families() {
     let mut envelope = Envelope::new();
     envelope.add(opk::BoxDetectionsT::default());
     envelope.add(opk::ClassificationsT::default());
@@ -139,6 +139,10 @@ fn decode_exposes_all_nine_result_families() {
     envelope.add(opk::PoseEstimationsT::default());
     envelope.add(opk::SegmentationMasksT::default());
     envelope.add(opk::TrackTracesT::default());
+    envelope.add(opk::SemanticSegmentationMasksT::default());
+    envelope.add(opk::InstanceSegmentationMasksT::default());
+    envelope.add(opk::VoiceActivityDetectionsT::default());
+    envelope.add(opk::TurnDetectionsT::default());
 
     let result = PerceptionResult::decode(&envelope.serialize()).expect("packet should decode");
 
@@ -177,6 +181,23 @@ fn decode_exposes_all_nine_result_families() {
     assert!(matches!(
         result.entries()[8],
         PerceptionPayload::TrackTraces(_)
+    ));
+    assert_eq!(result.entries().len(), 13);
+    assert!(matches!(
+        result.entries()[9],
+        PerceptionPayload::SemanticSegmentationMasks(_)
+    ));
+    assert!(matches!(
+        result.entries()[10],
+        PerceptionPayload::InstanceSegmentationMasks(_)
+    ));
+    assert!(matches!(
+        result.entries()[11],
+        PerceptionPayload::VoiceActivityDetections(_)
+    ));
+    assert!(matches!(
+        result.entries()[12],
+        PerceptionPayload::TurnDetections(_)
     ));
 }
 
@@ -372,7 +393,7 @@ fn decode_preserves_malformed_known_payload_and_other_entries_in_order() {
 }
 
 #[test]
-fn decode_validates_schema_major_for_all_nine_result_families() {
+fn decode_validates_schema_major_for_all_result_families() {
     macro_rules! assert_unsupported {
         ($payload_type:ty) => {{
             let mut payload = <$payload_type>::default();
@@ -419,6 +440,10 @@ fn decode_validates_schema_major_for_all_nine_result_families() {
     assert_unsupported!(opk::PoseEstimationsT);
     assert_unsupported!(opk::SegmentationMasksT);
     assert_unsupported!(opk::TrackTracesT);
+    assert_unsupported!(opk::SemanticSegmentationMasksT);
+    assert_unsupported!(opk::InstanceSegmentationMasksT);
+    assert_unsupported!(opk::VoiceActivityDetectionsT);
+    assert_unsupported!(opk::TurnDetectionsT);
 }
 
 #[test]

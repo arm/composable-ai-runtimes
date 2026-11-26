@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING, cast
 from unittest.mock import MagicMock, call
 
@@ -71,6 +72,7 @@ def test_failed_startup_cleanup_is_retried_during_shutdown(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     bus = MagicMock()
+    bus.pop_filtered.return_value = None
     bus.connect.return_value = 1
     failed_pipeline = MagicMock()
     failed_pipeline.get_bus.return_value = bus
@@ -152,3 +154,15 @@ def test_failed_stop_retains_pipeline_for_retry(
 
     assert retained_pipeline
     assert stopped_after_retry
+
+
+def test_failed_start_preserves_native_error_details(tmp_path: Path) -> None:
+    missing = tmp_path / "missing-video.raw"
+    with create_runtime() as runtime:
+        with pytest.raises(PipelineError, match="missing-video.raw"):
+            runtime.start_pipeline(
+                "missing-source", f'filesrc location="{missing}" ! fakesink'
+            )
+        assert not runtime.has_pipeline("missing-source")
+        runtime.start_pipeline("recovered", PLAYING_PIPELINE)
+        runtime.stop_pipeline("recovered")

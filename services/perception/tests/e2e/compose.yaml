@@ -45,6 +45,8 @@ services:
     platform: ${PERCEPTION_E2E_PLATFORM:-linux/arm64}
     build:
       context: tests/e2e/pipewire_source
+      additional_contexts:
+        production: service:perception-service
     volumes:
       - pipewire-runtime:/run/pipewire
 

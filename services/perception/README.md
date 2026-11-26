@@ -43,7 +43,7 @@ docker compose build perception-service
 ```
 
 This requires an ARM64 Docker host. The build downloads the
-[OPK 0.1.1 release](https://github.com/arm/open-perception-kit/releases/tag/v0.1.1)
+[OPK 0.1.3 release](https://github.com/arm/open-perception-kit/releases/tag/v0.1.3)
 and verifies its SHA256.
 
 ## Running
@@ -116,7 +116,9 @@ of zero use the defaults: HTTP `9999`, WebSocket signaling `8000`, and control
 WebSocket `8001`. A successful deployment returns the resolved ports in
 `PerceptionSession.debug_endpoint`. Docker Compose publishes the default ports
 on the host's loopback interface. Custom ports require corresponding Compose
-port mappings.
+port mappings. The default metadata WebSocket range (`7001`–`7016`) is also
+published on loopback for the browser result panels; custom metadata ranges need
+matching mappings. Debug annotations are rendered by the browser and can be hidden.
 
 ### Readiness
 

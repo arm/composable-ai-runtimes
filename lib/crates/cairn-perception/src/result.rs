@@ -125,6 +125,14 @@ pub enum PerceptionPayload {
     SegmentationMasks(SegmentationMasks),
     /// Object track traces.
     TrackTraces(TrackTraces),
+    /// SemanticSegmentationMasks output.
+    SemanticSegmentationMasks(SemanticSegmentationMasks),
+    /// InstanceSegmentationMasks output.
+    InstanceSegmentationMasks(InstanceSegmentationMasks),
+    /// VoiceActivityDetections output.
+    VoiceActivityDetections(VoiceActivityDetections),
+    /// TurnDetections output.
+    TurnDetections(TurnDetections),
     /// Application-defined opaque data using an OPK external key.
     External(ExternalPayload),
     /// An unrecognized payload retained losslessly.
@@ -329,6 +337,12 @@ impl std::error::Error for PerceptionResultError {}
 const SUPPORTED_PAYLOAD_SCHEMA_MAJOR: u16 = 1;
 
 struct KnownPayloadIterators<'a> {
+    turn_detections: open_perception_kit::PayloadIter<'a, opk::TurnDetectionsT>,
+    voice_activity_detections: open_perception_kit::PayloadIter<'a, opk::VoiceActivityDetectionsT>,
+    instance_segmentation_masks:
+        open_perception_kit::PayloadIter<'a, opk::InstanceSegmentationMasksT>,
+    semantic_segmentation_masks:
+        open_perception_kit::PayloadIter<'a, opk::SemanticSegmentationMasksT>,
     box_detections: open_perception_kit::PayloadIter<'a, opk::BoxDetectionsT>,
     classifications: open_perception_kit::PayloadIter<'a, opk::ClassificationsT>,
     frame_contexts: open_perception_kit::PayloadIter<'a, opk::FrameContextT>,
@@ -343,6 +357,16 @@ struct KnownPayloadIterators<'a> {
 impl<'a> KnownPayloadIterators<'a> {
     fn new(envelope: &'a open_perception_kit::Envelope) -> Self {
         Self {
+            semantic_segmentation_masks: envelope.for_each(open_perception_kit::payload::<
+                opk::SemanticSegmentationMasksT,
+            >()),
+            instance_segmentation_masks: envelope.for_each(open_perception_kit::payload::<
+                opk::InstanceSegmentationMasksT,
+            >()),
+            voice_activity_detections: envelope
+                .for_each(open_perception_kit::payload::<opk::VoiceActivityDetectionsT>()),
+            turn_detections: envelope
+                .for_each(open_perception_kit::payload::<opk::TurnDetectionsT>()),
             box_detections: envelope
                 .for_each(open_perception_kit::payload::<opk::BoxDetectionsT>()),
             classifications: envelope
@@ -418,6 +442,36 @@ fn next_typed_payload(
         ),
         opk::TrackTracesT::NAME => PerceptionPayload::TrackTraces(
             next_validated_payload(&mut payloads.track_traces, context, |payload| {
+                (payload.schema_major, payload.schema_minor)
+            })?
+            .into(),
+        ),
+        opk::SemanticSegmentationMasksT::NAME => PerceptionPayload::SemanticSegmentationMasks(
+            next_validated_payload(
+                &mut payloads.semantic_segmentation_masks,
+                context,
+                |payload| (payload.schema_major, payload.schema_minor),
+            )?
+            .into(),
+        ),
+        opk::InstanceSegmentationMasksT::NAME => PerceptionPayload::InstanceSegmentationMasks(
+            next_validated_payload(
+                &mut payloads.instance_segmentation_masks,
+                context,
+                |payload| (payload.schema_major, payload.schema_minor),
+            )?
+            .into(),
+        ),
+        opk::VoiceActivityDetectionsT::NAME => PerceptionPayload::VoiceActivityDetections(
+            next_validated_payload(
+                &mut payloads.voice_activity_detections,
+                context,
+                |payload| (payload.schema_major, payload.schema_minor),
+            )?
+            .into(),
+        ),
+        opk::TurnDetectionsT::NAME => PerceptionPayload::TurnDetections(
+            next_validated_payload(&mut payloads.turn_detections, context, |payload| {
                 (payload.schema_major, payload.schema_minor)
             })?
             .into(),

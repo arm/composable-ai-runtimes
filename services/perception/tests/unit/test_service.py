@@ -575,7 +575,6 @@ def test_deploy_debug_output_returns_resolved_endpoint(
         (
             "test-source ! test-inference ! opkperformance ! "
             "opkcomm method=websocket ws-port=7001 endpoint=/ws ! "
-            "opkosd enabled=true ! "
             "opksink http-port=10000 ws-port=10001 ctrl-port=10002"
         )
     ]

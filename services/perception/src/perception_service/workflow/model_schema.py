@@ -30,11 +30,14 @@ OPCHAIN_SCHEMA_FILE = "opchain.schema.json"
 SUPPORTING_SCHEMA_FILES = (
     "opchain/common.schema.json",
     "opchain/op.schema.json",
+    "opchain/ops/generic-audio-preprocess.schema.json",
     "opchain/ops/generic-image-preprocess.schema.json",
     "opchain/ops/generic-postprocess.schema.json",
     "opchain/ops/inference-controller.schema.json",
     "opchain/ops/inference.schema.json",
+    "opchain/ops/paddle-ocr-preprocess.schema.json",
     "opchain/ops/python-script.schema.json",
+    "opchain/ops/turn-detector.schema.json",
 )
 
 

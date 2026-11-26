@@ -81,7 +81,7 @@ __all__ = [
     "VoiceActivityDetections",
 ]
 
-PerceptionPayload: TypeAlias = BoxDetections  |  Classifications  |  FrameContext  |  ObjectEmbeddings  |  ObjectTracks  |  PerformanceOverlay  |  PoseEstimations  |  SegmentationMasks  |  TrackTraces  |  ExternalPayload  |  UnknownPayload  |  MalformedKnownPayload
+PerceptionPayload: TypeAlias = BoxDetections  |  Classifications  |  FrameContext  |  ObjectEmbeddings  |  ObjectTracks  |  PerformanceOverlay  |  PoseEstimations  |  SemanticSegmentationMasks  |  InstanceSegmentationMasks  |  VoiceActivityDetections  |  TurnDetections  |  SegmentationMasks  |  TrackTraces  |  ExternalPayload  |  UnknownPayload  |  MalformedKnownPayload
 r"""
 A decoded or preserved Perception result entry.
 """

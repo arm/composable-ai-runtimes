@@ -14,7 +14,7 @@ dependencies = [
     "jsonschema==4.26.0",
     "loguru==0.7.3",
     "numpy==2.4.2",
-    "open-perception-kit @ https://github.com/arm/open-perception-kit/archive/917caf6dda1dc476a89e7f563c4c1576c6e3b0ec.tar.gz#subdirectory=generated/open_perception_kit/python",
+    "open-perception-kit @ https://github.com/arm/open-perception-kit/archive/e20d4535b3d284443180d42d1fe4b72acafc55fd.tar.gz#subdirectory=generated/open_perception_kit/python",
     "protobuf==7.35.1",
     "pycairo==1.29.0",
     "pygobject==3.56.3",

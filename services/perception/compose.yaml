@@ -13,6 +13,7 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       XDG_RUNTIME_DIR: /run/pipewire
     ports:
+      - "127.0.0.1:7001-7016:7001-7016"
       - host_ip: 127.0.0.1
         target: 9999
         published: 9999

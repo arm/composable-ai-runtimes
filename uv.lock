@@ -564,12 +564,12 @@ wheels = [
 
 [[package]]
 name = "open-perception-kit"
-version = "0.1.1"
-source = { url = "https://github.com/arm/open-perception-kit/archive/917caf6dda1dc476a89e7f563c4c1576c6e3b0ec.tar.gz", subdirectory = "generated/open_perception_kit/python" }
+version = "0.1.3"
+source = { url = "https://github.com/arm/open-perception-kit/archive/e20d4535b3d284443180d42d1fe4b72acafc55fd.tar.gz", subdirectory = "generated/open_perception_kit/python" }
 dependencies = [
     { name = "flatbuffers" },
 ]
-sdist = { hash = "sha256:5493991b2e92e4a793f8be90761997a93d3347a590e2a2749dffa27f1ee011fa" }
+sdist = { hash = "sha256:13abd9888111d9132b010663fdf1684352cf2c5922101c201377650166a99fcd" }
 
 [package.metadata]
 requires-dist = [
@@ -634,7 +634,7 @@ requires-dist = [
     { name = "jsonschema", specifier = "==4.26.0" },
     { name = "loguru", specifier = "==0.7.3" },
     { name = "numpy", specifier = "==2.4.2" },
-    { name = "open-perception-kit", url = "https://github.com/arm/open-perception-kit/archive/917caf6dda1dc476a89e7f563c4c1576c6e3b0ec.tar.gz", subdirectory = "generated/open_perception_kit/python" },
+    { name = "open-perception-kit", url = "https://github.com/arm/open-perception-kit/archive/e20d4535b3d284443180d42d1fe4b72acafc55fd.tar.gz", subdirectory = "generated/open_perception_kit/python" },
     { name = "protobuf", specifier = "==7.35.1" },
     { name = "pycairo", specifier = "==1.29.0" },
     { name = "pygobject", specifier = "==3.56.3" },

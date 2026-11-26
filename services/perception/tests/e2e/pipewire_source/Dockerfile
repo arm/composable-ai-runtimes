@@ -8,13 +8,24 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
-    gstreamer1.0-pipewire=1.4.2-1 \
     gstreamer1.0-plugins-base=1.26.2-1+deb13u2 \
     gstreamer1.0-plugins-good=1.26.2-1+deb13u2 \
     gstreamer1.0-tools=1.26.2-2 \
     pipewire=1.4.2-1 \
     wireplumber=0.5.8-2 \
   && rm -rf /var/lib/apt/lists/*
+
+# Older provider plugins exit when WebRTC attachment renegotiates capture.
+# hadolint ignore=DL3022
+COPY --from=production /usr/lib/*-linux-gnu/gstreamer-1.0/libgstpipewire.so /opt/perception-pipewire/gstreamer-1.0/
+# hadolint ignore=DL3022
+COPY --from=production /usr/lib/*-linux-gnu/libpipewire-0.3.so.* /opt/perception-pipewire/
+# hadolint ignore=DL3022
+COPY --from=production /usr/lib/*-linux-gnu/pipewire-0.3/ /opt/perception-pipewire/pipewire-0.3/
+# hadolint ignore=DL3022
+COPY --from=production /usr/lib/*-linux-gnu/spa-0.2/ /opt/perception-pipewire/spa-0.2/
+# hadolint ignore=DL3022
+COPY --from=production /usr/share/doc/pipewire/ /usr/share/doc/perception-pipewire/
 
 # UltraFace's sample supplies faces for the BlazeFace BYOM test.
 ADD --checksum=sha256:c83c559908a902dcb69e6aaaa7ddd80eb1aec90654c59d35676c0cbf96adee67 --chmod=644 \

@@ -25,7 +25,6 @@ def test_opksink_stage_constructs_default_debug_output() -> None:
         ctrl_port=8001,
     )
     assert definition.construct() == (
-        "opkosd enabled=true",
         "opksink http-port=9999 ws-port=8000 ctrl-port=8001",
     )
     assert definition.to_resolved_stage() == perception_pb2.ResolvedStage(
@@ -51,7 +50,6 @@ def test_opksink_stage_constructs_requested_ports() -> None:
         ctrl_port=10002,
     )
     assert definition.construct() == (
-        "opkosd enabled=true",
         "opksink http-port=10000 ws-port=10001 ctrl-port=10002",
     )
 

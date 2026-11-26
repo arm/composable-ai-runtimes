@@ -599,6 +599,15 @@ pub struct SemanticSegmentationMask {
     pub bitmap: Option<BitmapData>,
 }
 
+impl From<opk::SemanticSegmentationMaskT> for SemanticSegmentationMask {
+    fn from(value: opk::SemanticSegmentationMaskT) -> Self {
+        Self {
+            object: value.object.map(|nested| (*nested).into()),
+            bitmap: value.bitmap.map(|nested| (*nested).into()),
+        }
+    }
+}
+
 /// One instance segmentation mask.
 #[allow(missing_docs)]
 #[derive(Debug)]
@@ -608,6 +617,18 @@ pub struct InstanceSegmentationMask {
     pub class_id: i32,
     pub confidence: f32,
     pub bounding_box: Option<BoundingBox>,
+}
+
+impl From<opk::InstanceSegmentationMaskT> for InstanceSegmentationMask {
+    fn from(value: opk::InstanceSegmentationMaskT) -> Self {
+        Self {
+            object: value.object.map(|nested| (*nested).into()),
+            bitmap: value.bitmap.map(|nested| (*nested).into()),
+            class_id: value.class_id,
+            confidence: value.confidence,
+            bounding_box: value.box_.map(|nested| (*nested).into()),
+        }
+    }
 }
 
 /// One speech inference window.
@@ -624,6 +645,21 @@ pub struct VoiceActivityDetection {
     pub discontinuity: bool,
 }
 
+impl From<opk::VoiceActivityDetectionT> for VoiceActivityDetection {
+    fn from(value: opk::VoiceActivityDetectionT) -> Self {
+        Self {
+            object: value.object.map(|nested| (*nested).into()),
+            speech_probability: value.speech_probability,
+            speech_active: value.speech_active,
+            window_start_sample: value.window_start_sample,
+            window_end_sample: value.window_end_sample,
+            window_start_timestamp_ns: value.window_start_ts_ns,
+            window_end_timestamp_ns: value.window_end_ts_ns,
+            discontinuity: value.discontinuity,
+        }
+    }
+}
+
 /// One model turn assessment, not a conversation-controller decision.
 #[allow(missing_docs)]
 #[derive(Debug)]
@@ -638,6 +674,21 @@ pub struct TurnDetection {
     pub discontinuity: bool,
 }
 
+impl From<opk::TurnDetectionT> for TurnDetection {
+    fn from(value: opk::TurnDetectionT) -> Self {
+        Self {
+            object: value.object.map(|nested| (*nested).into()),
+            turn_probability: value.turn_probability,
+            turn_complete: value.turn_complete,
+            window_start_sample: value.window_start_sample,
+            window_end_sample: value.window_end_sample,
+            window_start_timestamp_ns: value.window_start_ts_ns,
+            window_end_timestamp_ns: value.window_end_ts_ns,
+            discontinuity: value.discontinuity,
+        }
+    }
+}
+
 /// One SemanticSegmentationMasks payload.
 #[allow(missing_docs)]
 #[derive(Debug)]
@@ -646,6 +697,19 @@ pub struct SemanticSegmentationMasks {
     pub schema_minor: u16,
     pub layer: Option<LayerInfo>,
     pub masks: Option<Vec<SemanticSegmentationMask>>,
+}
+
+impl From<opk::SemanticSegmentationMasksT> for SemanticSegmentationMasks {
+    fn from(value: opk::SemanticSegmentationMasksT) -> Self {
+        Self {
+            schema_major: value.schema_major,
+            schema_minor: value.schema_minor,
+            layer: value.layer.map(|nested| (*nested).into()),
+            masks: value
+                .masks
+                .map(|nested| nested.into_iter().map(Into::into).collect()),
+        }
+    }
 }
 
 /// One InstanceSegmentationMasks payload.
@@ -658,6 +722,19 @@ pub struct InstanceSegmentationMasks {
     pub masks: Option<Vec<InstanceSegmentationMask>>,
 }
 
+impl From<opk::InstanceSegmentationMasksT> for InstanceSegmentationMasks {
+    fn from(value: opk::InstanceSegmentationMasksT) -> Self {
+        Self {
+            schema_major: value.schema_major,
+            schema_minor: value.schema_minor,
+            layer: value.layer.map(|nested| (*nested).into()),
+            masks: value
+                .masks
+                .map(|nested| nested.into_iter().map(Into::into).collect()),
+        }
+    }
+}
+
 /// One VoiceActivityDetections payload.
 #[allow(missing_docs)]
 #[derive(Debug)]
@@ -668,6 +745,19 @@ pub struct VoiceActivityDetections {
     pub detections: Option<Vec<VoiceActivityDetection>>,
 }
 
+impl From<opk::VoiceActivityDetectionsT> for VoiceActivityDetections {
+    fn from(value: opk::VoiceActivityDetectionsT) -> Self {
+        Self {
+            schema_major: value.schema_major,
+            schema_minor: value.schema_minor,
+            layer: value.layer.map(|nested| (*nested).into()),
+            detections: value
+                .detections
+                .map(|nested| nested.into_iter().map(Into::into).collect()),
+        }
+    }
+}
+
 /// One TurnDetections payload.
 #[allow(missing_docs)]
 #[derive(Debug)]
@@ -676,4 +766,17 @@ pub struct TurnDetections {
     pub schema_minor: u16,
     pub layer: Option<LayerInfo>,
     pub detections: Option<Vec<TurnDetection>>,
+}
+
+impl From<opk::TurnDetectionsT> for TurnDetections {
+    fn from(value: opk::TurnDetectionsT) -> Self {
+        Self {
+            schema_major: value.schema_major,
+            schema_minor: value.schema_minor,
+            layer: value.layer.map(|nested| (*nested).into()),
+            detections: value
+                .detections
+                .map(|nested| nested.into_iter().map(Into::into).collect()),
+        }
+    }
 }

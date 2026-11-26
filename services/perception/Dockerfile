@@ -16,8 +16,8 @@ FROM ${UV_IMAGE} AS uv
 FROM package-repositories AS opk-package-acquisition
 
 ARG DEBIAN_FRONTEND=noninteractive
-ARG OPK_PACKAGE_URL=https://artifacts.tools.arm.com/open-perception-kit/v0.1.1/opk-release-artifacts/opk-0.1.1-linux-aarch64.tar.gz
-ARG OPK_PACKAGE_SHA256=2bfdd529a1efef40fc6160f9f548ae9e402d1276d6b5120a5709815fba5fb73f
+ARG OPK_PACKAGE_URL=https://artifacts.tools.arm.com/open-perception-kit/v0.1.3/opk-release-artifacts/opk-0.1.3-linux-aarch64.tar.gz
+ARG OPK_PACKAGE_SHA256=127fd0b16852459b0c42925baefe5c22c52ccd19f3f7a519d52abf1445b78837
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
@@ -42,20 +42,11 @@ RUN fetch-opk-package \
     --strip-components 1 \
     --no-same-owner \
     --no-same-permissions \
-  && cp \
-    /tmp/opk-package/lib/gstreamer-1.0/libopkcomm.so \
-    /tmp/opk-package/lib/gstreamer-1.0/libopkinfer.so \
-    /tmp/opk-package/lib/gstreamer-1.0/libopkosd.so \
-    /tmp/opk-package/lib/gstreamer-1.0/libopkperformance.so \
-    /tmp/opk-package/lib/gstreamer-1.0/libopksink.so \
+  && cp -a \
+    /tmp/opk-package/lib/gstreamer-1.0/. \
     /opt/opk/lib/gstreamer-1.0/ \
   && cp -a \
-    /tmp/opk-package/lib/opk/libonnxruntime.so.* \
-    /tmp/opk-package/lib/opk/libopk-common.so \
-    /tmp/opk-package/lib/opk/opk-executorch-ops.so \
-    /tmp/opk-package/lib/opk/opk-onnx-ops.so \
-    /tmp/opk-package/lib/opk/opk-python-ops.so \
-    /tmp/opk-package/lib/opk/opk-std-ops.so \
+    /tmp/opk-package/lib/opk/. \
     /opt/opk/lib/opk/ \
   && cp -a \
     /tmp/opk-package/share/opk/licenses \

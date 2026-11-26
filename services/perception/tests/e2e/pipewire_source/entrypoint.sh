@@ -23,10 +23,16 @@ fi
 chmod 666 "$XDG_RUNTIME_DIR/pipewire-0"
 wireplumber &
 
-exec gst-launch-1.0 -q \
+# An independent clock keeps buffer recycling running with slow consumers.
+exec env \
+  GST_PLUGIN_PATH=/opt/perception-pipewire/gstreamer-1.0 \
+  LD_LIBRARY_PATH=/opt/perception-pipewire \
+  PIPEWIRE_MODULE_DIR=/opt/perception-pipewire/pipewire-0.3 \
+  SPA_PLUGIN_DIR=/opt/perception-pipewire/spa-0.2 \
+  gst-launch-1.0 -q \
   filesrc location=/sample_input.jpg ! jpegdec ! imagefreeze is-live=true \
   ! videoscale ! videoconvert \
   ! video/x-raw,format=YUY2,width=640,height=480,framerate=30/1 \
   ! pipewiresink mode=provide async=false use-bufferpool=false \
       client-name=gstreamer-test-source \
-      stream-properties="props,media.class=(string)Video/Source,node.name=(string)gstreamer-test-source,node.description=(string)GStreamerTestSource"
+      stream-properties="props,node.group=(string)pipewire.dummy,media.class=(string)Video/Source,node.name=(string)gstreamer-test-source,node.description=(string)GStreamerTestSource"

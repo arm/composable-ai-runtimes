@@ -101,7 +101,6 @@ class OpkSinkStageDefinition(StageDefinition):
 
         ports = self._debug_ports
         return (
-            "opkosd enabled=true",
             f"opksink http-port={ports.http_port} ws-port={ports.ws_port} "
             f"ctrl-port={ports.ctrl_port}",
         )

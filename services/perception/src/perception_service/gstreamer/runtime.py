@@ -88,6 +88,15 @@ def _error_message(message: Gst.Message) -> str:
         return "GStreamer pipeline error"
 
 
+def _startup_error(managed: ManagedPipeline, fallback: str) -> PipelineError:
+    message = managed.bus.pop_filtered(Gst.MessageType.ERROR)
+    if message is not None:
+        _log_bus_message(managed.session_id, message)
+        error, debug = message.parse_error()
+        return PipelineError(f"{error.message}: {debug}" if debug else error.message)
+    return PipelineError(fallback)
+
+
 def _release_bus_resources(managed: ManagedPipeline) -> None:
     errors: list[Exception] = []
     if managed.bus_handler_id is not None:
@@ -237,7 +246,9 @@ class GStreamerRuntime:
                 managed.pipeline.set_state(Gst.State.PLAYING)
                 == Gst.StateChangeReturn.FAILURE
             ):
-                raise PipelineError(f"pipeline {managed.session_id!r} failed to start")
+                raise _startup_error(
+                    managed, f"pipeline {managed.session_id!r} failed to start"
+                )
 
             state_result, state, _ = managed.pipeline.get_state(
                 self._state_change_timeout
@@ -246,7 +257,8 @@ class GStreamerRuntime:
                 state_result == Gst.StateChangeReturn.FAILURE
                 or state != Gst.State.PLAYING
             ):
-                raise PipelineError(
+                raise _startup_error(
+                    managed,
                     f"pipeline {managed.session_id!r} did not reach PLAYING "
                     "before the timeout"
                 )
