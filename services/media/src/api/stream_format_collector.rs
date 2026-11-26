@@ -60,7 +60,7 @@ impl StreamFormatCollector {
     }
 }
 
-fn device_formats_from_pod(
+pub(super) fn device_formats_from_pod(
     device_type: DeviceType,
     pod: &pw::spa::pod::Pod,
     video_filter: Option<&StreamFormatFilter>,

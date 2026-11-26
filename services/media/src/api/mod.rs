@@ -22,3 +22,5 @@ mod parameters_test;
 mod service_test;
 #[cfg(test)]
 mod snapshot_test;
+#[cfg(test)]
+mod stream_format_collector_test;
