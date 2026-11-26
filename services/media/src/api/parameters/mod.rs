@@ -8,6 +8,9 @@ mod resolution;
 mod spa_format_tools;
 mod stream_format;
 
+#[cfg(test)]
+mod audio_format_test;
+
 use audio_format::AudioStreamFormat;
 pub(super) use audio_format::audio_formats_from_pod;
 pub(crate) use frame_rate::FrameRate;
