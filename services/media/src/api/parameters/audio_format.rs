@@ -119,7 +119,7 @@ fn spa_audio_formats_from_value(value: Value) -> Vec<AudioFormat> {
     formats
 }
 
-fn default_integer_from_value(value: Value) -> Option<u32> {
+pub(super) fn default_integer_from_value(value: Value) -> Option<u32> {
     let number = match value {
         Value::Int(value) => value,
         Value::Choice(ChoiceValue::Int(Choice(_, choice))) => default_from_choice(choice)?,

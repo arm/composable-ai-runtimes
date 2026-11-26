@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2026 Arm Limited and/or its affiliates <open-source-office@arm.com>
 // SPDX-License-Identifier: Apache-2.0
 
-use super::audio_format::{AudioStreamFormat, audio_formats_from_pod};
+use super::audio_format::{AudioStreamFormat, audio_formats_from_pod, default_integer_from_value};
 use pipewire::spa::param::ParamType;
 use pipewire::spa::param::audio::AudioFormat;
 use pipewire::spa::param::format::{FormatProperties, MediaSubtype, MediaType};
@@ -182,4 +182,98 @@ fn audio_formats_from_pod_preserves_format_without_a_matching_layout() {
         assert_eq!(actual[0].channels, 2);
         assert!(actual[0].channel_layout.is_empty());
     }
+}
+
+fn integer_choice(choice: ChoiceEnum<i32>) -> Value {
+    Value::Choice(ChoiceValue::Int(Choice(ChoiceFlags::empty(), choice)))
+}
+
+#[test]
+fn default_integer_from_value_accepts_positive_integers() {
+    for (number, expected) in [(1, 1), (48_000, 48_000), (i32::MAX, 2_147_483_647)] {
+        assert_eq!(
+            default_integer_from_value(Value::Int(number)),
+            Some(expected)
+        );
+    }
+}
+
+#[test]
+fn default_integer_from_value_returns_single_choice_value() {
+    let value = integer_choice(ChoiceEnum::None(48_000));
+
+    assert_eq!(default_integer_from_value(value), Some(48_000));
+}
+
+#[test]
+fn default_integer_from_value_returns_range_default() {
+    let value = integer_choice(ChoiceEnum::Range {
+        default: 48_000,
+        min: 8_000,
+        max: 192_000,
+    });
+
+    assert_eq!(default_integer_from_value(value), Some(48_000));
+}
+
+#[test]
+fn default_integer_from_value_returns_step_default() {
+    let value = integer_choice(ChoiceEnum::Step {
+        default: 48_000,
+        min: 8_000,
+        max: 192_000,
+        step: 8_000,
+    });
+
+    assert_eq!(default_integer_from_value(value), Some(48_000));
+}
+
+#[test]
+fn default_integer_from_value_returns_enum_default() {
+    let value = integer_choice(ChoiceEnum::Enum {
+        default: 48_000,
+        alternatives: vec![8_000, 96_000],
+    });
+
+    assert_eq!(default_integer_from_value(value), Some(48_000));
+}
+
+#[test]
+fn default_integer_from_value_rejects_nonpositive_values() {
+    for number in [0, -1, i32::MIN] {
+        for value in [Value::Int(number), integer_choice(ChoiceEnum::None(number))] {
+            assert_eq!(default_integer_from_value(value), None, "accepted {number}");
+        }
+    }
+}
+
+#[test]
+fn default_integer_from_value_rejects_unsupported_value_types() {
+    for value in [
+        Value::None,
+        Value::Bool(true),
+        Value::Long(48_000),
+        Value::Float(48_000.0),
+        Value::Id(Id(48_000)),
+        Value::Choice(ChoiceValue::Id(Choice(
+            ChoiceFlags::empty(),
+            ChoiceEnum::None(Id(48_000)),
+        ))),
+    ] {
+        assert_eq!(
+            default_integer_from_value(value.clone()),
+            None,
+            "accepted {value:?}"
+        );
+    }
+}
+
+#[test]
+fn default_integer_from_value_rejects_flags_choice() {
+    let value = integer_choice(ChoiceEnum::Flags {
+        default: 1,
+        flags: vec![1, 2, 4],
+    });
+
+    assert_eq!(default_integer_from_value(value), None);
 }
