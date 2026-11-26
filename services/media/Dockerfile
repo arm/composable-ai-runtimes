@@ -40,6 +40,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libdbus-1-dev=1.16.2-2 \
     libglib2.0-dev=2.84.4-3~deb13u5 \
     libudev-dev=257.13-1~deb13u1 \
+    libwebrtc-audio-processing-dev=1.3-3+b1 \
     meson=1.7.0-1 \
     ninja-build=1.12.1-1* \
     pkg-config=1.8.1-4 \
@@ -63,6 +64,7 @@ RUN arch="$(dpkg-architecture -qDEB_HOST_MULTIARCH)" \
       -Dexamples=disabled \
       -Dtests=disabled \
       -Dsession-managers=[] \
+      -Decho-cancel-webrtc=enabled \
       -Dlibcamera=enabled \
       -Dpipewire-jack=disabled \
       -Drlimits-install=false \
@@ -137,6 +139,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libudev1=257.13-1~deb13u1 \
     libunwind8=1.8.1-0.1 \
     libv4l-0t64=1.30.1-1 \
+    libwebrtc-audio-processing-1-3=1.3-3+b1 \
     wireplumber=0.5.8-2 \
   && apt-get purge -y --auto-remove curl gpg \
   && rm -f /etc/apt/sources.list.d/raspberrypi.list \

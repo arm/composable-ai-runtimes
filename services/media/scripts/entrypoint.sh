@@ -29,7 +29,11 @@ if [ ! -w "$XDG_RUNTIME_DIR" ]; then
   exit 1
 fi
 
-pipewire &
+if [ "${CAIRN_ECHO_CANCEL:-0}" = 1 ]; then
+  pipewire -P '{ cairn.echo-cancel = true }' &
+else
+  pipewire &
+fi
 PIPEWIRE_PID=$!
 TIMEOUT_TENTHS=50
 for _ in $(seq 1 "$TIMEOUT_TENTHS"); do

@@ -5,16 +5,19 @@
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import time
 from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
 import docker
 import pytest
 from docker.errors import APIError, NotFound
+from docker.models.containers import Container
 from docker.models.volumes import Volume
 from media_smoke.docker import (
     cleanup_containers_by_prefix,
@@ -272,3 +275,61 @@ def test_notifications_redis_unavailable(run_container_probe) -> None:
         result, r"failed to connect notifications Redis client; retrying"
     ), f"Probe {label} did not log the expected Redis-unavailable retry."
     assert_running_at_end(result)
+
+
+@contextmanager
+def aec_server(client: docker.DockerClient, enabled: bool) -> Iterator[Container]:
+    environment = {"PIPEWIRE_DEBUG": "3"}
+    if enabled:
+        environment["CAIRN_ECHO_CANCEL"] = "1"
+    container = client.containers.run(
+        MEDIA_IMAGE_NAME,
+        detach=True,
+        name=f"{CONTAINER_PREFIX}-aec-{enabled}",
+        environment=environment,
+        cap_add=["SYS_NICE"],
+        mounts=[docker.types.Mount(target="/run/pipewire", source=None, type="volume")],
+    )
+    try:
+        # The entrypoint starts the media API after PipeWire has initialized.
+        deadline = time.monotonic() + 30
+        while time.monotonic() < deadline:
+            ready = container.exec_run(["grpc_health_probe", "-addr=127.0.0.1:50051"])
+            if ready.exit_code == 0:
+                break
+            time.sleep(0.25)
+        else:
+            pytest.fail(f"Media API did not become ready: {container.logs()!r}")
+
+        yield container
+    finally:
+        container.remove(force=True, v=True)
+
+
+def pipewire_graph(container: Container) -> list[dict]:
+    dump = container.exec_run(["pw-dump"], environment={"PIPEWIRE_DEBUG": "0"})
+    assert dump.exit_code == 0, dump.output
+    return json.loads(dump.output)
+
+
+@pytest.mark.parametrize("enabled", [False, True], ids=["default", "enabled"])
+def test_echo_cancellation_startup(
+    docker_client: docker.DockerClient, enabled: bool
+) -> None:
+    with aec_server(docker_client, enabled) as container:
+        graph = pipewire_graph(container)
+        nodes = {
+            props["node.name"]: props.get("media.class")
+            for obj in graph
+            if obj["type"] == "PipeWire:Interface:Node"
+            for props in [obj["info"]["props"]]
+            if props.get("node.name") in {"cairn.aec.sink", "cairn.aec.source"}
+        }
+        assert nodes == (
+            {"cairn.aec.sink": "Audio/Sink", "cairn.aec.source": "Audio/Source"}
+            if enabled
+            else {}
+        )
+
+        # Confirm the image includes and loads the configured backend.
+        assert (b"Using plugin AEC webrtc " in container.logs()) == enabled
